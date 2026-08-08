@@ -462,3 +462,44 @@ function groupByRoomId<T extends RoomImageRow | RoomAmenityRow | RoomUnitRow>(ro
 
   return grouped;
 }
+
+export type RoomUnitOption = {
+  id: string;
+  roomTypeId: string;
+  unitNumber: string;
+  status: string;
+};
+
+export async function listRoomUnits(roomTypeId?: string): Promise<RoomUnitOption[]> {
+  const supabase = await getSupabaseOrNull();
+  if (!supabase) {
+    return [
+      { id: "u-101", roomTypeId: roomTypeId || "1", unitNumber: "A-101", status: "active" },
+      { id: "u-102", roomTypeId: roomTypeId || "1", unitNumber: "A-102", status: "active" },
+      { id: "u-201", roomTypeId: roomTypeId || "2", unitNumber: "B-201", status: "active" },
+    ];
+  }
+
+  try {
+    let query = supabase.from("room_units").select("*");
+    if (roomTypeId) {
+      query = query.eq("room_type_id", roomTypeId);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return (data ?? []).map((u) => ({
+      id: u.id,
+      roomTypeId: u.room_type_id,
+      unitNumber: u.unit_number,
+      status: u.status ?? "active",
+    }));
+  } catch (error) {
+    warnSupabaseFallback("listRoomUnits", error);
+    return [
+      { id: "u-101", roomTypeId: roomTypeId || "1", unitNumber: "A-101", status: "active" },
+      { id: "u-102", roomTypeId: roomTypeId || "1", unitNumber: "A-102", status: "active" },
+      { id: "u-201", roomTypeId: roomTypeId || "2", unitNumber: "B-201", status: "active" },
+    ];
+  }
+}

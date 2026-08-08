@@ -71,6 +71,12 @@ function getDayOfWeekMonday(dateStr: string): number {
   return (d.getDay() + 6) % 7; // 0=Mon … 6=Sun
 }
 
+const PUBLIC_STATUS_LEGEND_OPTIONS: Array<{ value: DayAvailability; label: string }> = [
+  { value: "available", label: "Disponible" },
+  { value: "partially_reserved", label: "Partiellement réservé" },
+  { value: "not_available", label: "Indisponible" },
+];
+
 export function AvailabilityCalendar({
   calendars,
   selectedCheckIn,
@@ -112,7 +118,7 @@ export function AvailabilityCalendar({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 text-xs font-medium">
-        {ROOM_DATE_STATUS_OPTIONS.map((option) => (
+        {PUBLIC_STATUS_LEGEND_OPTIONS.map((option) => (
           <span key={option.value} className="flex items-center gap-1.5">
             <span
               className={`inline-block h-3 w-3 rounded-sm border ${legendColor(option.value)}`}
