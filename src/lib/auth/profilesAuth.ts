@@ -85,10 +85,16 @@ export async function registerClient(input: ClientRegisterInput): Promise<Client
   const fullName = input.fullName.trim();
   const phone = input.phone?.trim() ?? "";
 
+  const emailRedirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/client/login`
+      : "https://marina-six-iota.vercel.app/client/login";
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password: input.password,
     options: {
+      emailRedirectTo,
       data: {
         full_name: fullName,
         phone,
