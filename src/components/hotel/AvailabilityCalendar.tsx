@@ -39,7 +39,7 @@ function statusColor(status: DayAvailability, selected: boolean, inRange: boolea
     return "bg-rose-100 text-rose-700 cursor-not-allowed opacity-80";
   }
   if (status === "partially_reserved") {
-    return "bg-amber-50 text-amber-900 hover:bg-amber-100 cursor-pointer";
+    return "bg-amber-100 text-amber-900 border border-amber-300 font-medium hover:bg-amber-200 cursor-pointer";
   }
   return "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 cursor-pointer";
 }

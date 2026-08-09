@@ -299,6 +299,14 @@ export async function getMonthlyCalendar(
       const rawStatus = row?.status ?? "available";
       const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
 
+      // Also check local mock/fallback reservations matching this room
+      const localReservedCount = reservations.filter(r => {
+        if (r.status === "cancelled" || r.status === "no_show") return false;
+        const isMatch = r.roomId === roomTypeId || r.roomId === uuid || SLUG_TO_UUID[r.roomId] === uuid;
+        if (!isMatch) return false;
+        return r.checkIn <= date && date < r.checkOut;
+      }).length;
+
       let status: DayAvailability;
       let availableUnits: number;
 
@@ -313,12 +321,13 @@ export async function getMonthlyCalendar(
         availableUnits = 0;
       } else if (normalizedStatus === "partially_reserved") {
         // Admin explicitly marked as partially reserved
-        const avail = availableByDate.get(date) ?? Math.max(0, totalUnits - 1);
+        const availFromRpc = availableByDate.get(date) ?? totalUnits;
+        availableUnits = Math.max(0, Math.min(availFromRpc, totalUnits - localReservedCount, totalUnits - 1));
         status = "partially_reserved";
-        availableUnits = avail;
       } else {
-        // "available" in DB — use RPC result to detect partial/full reservation
-        const avail = availableByDate.has(date) ? availableByDate.get(date)! : totalUnits;
+        // "available" in DB — use RPC + local reservations to detect partial/full reservation
+        const availFromRpc = availableByDate.get(date) ?? totalUnits;
+        const avail = Math.max(0, Math.min(availFromRpc, totalUnits - localReservedCount));
         if (avail <= 0) {
           status = "not_available";
           availableUnits = 0;
