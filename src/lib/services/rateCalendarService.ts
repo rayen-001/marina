@@ -206,7 +206,7 @@ export async function getMonthlyCalendar(
     days: allDays.map((date) => ({
       date,
       price: defaultPrice,
-      status: "available",
+      status: "available" as DayAvailability,
       minNights: 1,
       note: null,
       reservedUnits: 0,
@@ -215,59 +215,68 @@ export async function getMonthlyCalendar(
     })),
   });
 
-  const supabase = await getSupabaseOrNull();
-  if (!supabase) return makeDefault();
+  // Resolve UUID: if we received a slug (e.g. "appartement-economique-s1"), map it to its real UUID
+  const SLUG_TO_UUID: Record<string, string> = {
+    studio: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
+    "appartement-economique-s1": "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
+    "appartement-standard-s1": "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
+    "appartement-s2": "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
+  };
+  const uuid = SLUG_TO_UUID[roomTypeId] ?? roomTypeId;
+
+  // Use raw fetch so we bypass any Supabase client caching, type coercion, or init issues
+  const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
+    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL)
+    || "";
+  const supabaseKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON_KEY)
+    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_ANON_KEY)
+    || "";
+
+  if (!supabaseUrl || !supabaseKey) return makeDefault();
 
   try {
-    const exactIds = resolveAllRoomTypeIds(roomTypeId);
+    const params = new URLSearchParams({
+      select: "date,status,price,min_nights,note",
+      room_type_id: `eq.${uuid}`,
+      date: `gte.${startDate}`,
+      order: "date",
+    });
+    // Supabase requires separate params for range filters
+    const url = `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`;
+    const response = await fetch(url, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-    // Query room_rate_calendar — the single source of truth set by admin
-    const { data: rateRows, error: rateError } = await supabase
-      .from("room_rate_calendar")
-      .select("date, status, price, min_nights, note")
-      .in("room_type_id", exactIds)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .order("date");
-
-    if (rateError) {
-      console.error("[getMonthlyCalendar] room_rate_calendar error", rateError);
+    if (!response.ok) {
+      console.error("[getMonthlyCalendar] fetch error", response.status, await response.text());
       return makeDefault();
     }
 
-    // DEBUG - remove after fixing
-    console.log(`[getMonthlyCalendar] roomTypeId=${roomTypeId} year=${year} month=${month} rows=${rateRows?.length}`, rateRows?.filter(r => r.status !== "available").map(r => `${r.date}:${r.status}`));
+    const rateRows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
 
-    // Build a date → row map from DB
-    const dbByDate = new Map<string, { status: string; price: number; min_nights: number; note: string | null }>();
-    for (const row of rateRows ?? []) {
-      dbByDate.set(row.date, {
-        status: row.status,
-        price: Number(row.price),
-        min_nights: row.min_nights ?? 1,
-        note: row.note ?? null,
-      });
-    }
+    console.log(`[getMonthlyCalendar] uuid=${uuid} year=${year}/${month} rows=${rateRows.length}`, rateRows.filter(r => r.status !== "available").map(r => `${r.date}:${r.status}`));
 
-    console.log(`[getMonthlyCalendar] dbByDate not_available keys:`, [...dbByDate.entries()].filter(([,v]) => v.status !== "available").map(([k,v]) => `${k}=${v.status}`));
-
-    // Count reservations only for partial booking detection
+    // Count reservations
     const endExclusive = addDays(endDate, 1);
-    const resRes = await supabase
+    const supabase = await getSupabaseOrNull();
+    const resRes = supabase ? await supabase
       .from("reservations")
       .select("check_in, check_out, status")
-      .in("room_type_id", exactIds)
+      .eq("room_type_id", uuid)
       .neq("status", "cancelled")
       .lt("check_in", endExclusive)
-      .gt("check_out", startDate);
+      .gt("check_out", startDate) : { data: [], error: null };
 
     const reservationsByDate = buildReservationCountMap(resRes.error ? [] : (resRes.data ?? []));
 
     const days: DayCalendarEntry[] = allDays.map((date) => {
-      const row = dbByDate.get(date);
+      const row = rateRows.find(r => r.date === date);
       const reservedUnits = reservationsByDate.get(date) ?? 0;
 
-      // Status comes DIRECTLY from DB — admin is the single source of truth
       const rawStatus = row?.status ?? "available";
       const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
 
@@ -280,11 +289,9 @@ export async function getMonthlyCalendar(
         normalizedStatus === "maintenance" ||
         normalizedStatus === "reserved"
       ) {
-        // Admin explicitly marked as unavailable
         status = "not_available";
         availableUnits = 0;
       } else {
-        // Available — check if partial reservations make it yellow
         const remaining = totalUnits - reservedUnits;
         if (remaining <= 0 && totalUnits > 0) {
           status = "not_available";
@@ -300,7 +307,7 @@ export async function getMonthlyCalendar(
 
       return {
         date,
-        price: row?.price ?? defaultPrice,
+        price: row ? Number(row.price) : defaultPrice,
         status,
         minNights: row?.min_nights ?? 1,
         note: row?.note ?? null,
@@ -353,30 +360,83 @@ export async function getRoomDateRangeRules(
   checkOut: string,
 ): Promise<DateRangeRules> {
   const stayDates = getDatesBetween(checkIn, checkOut, false);
-  if (stayDates.length === 0) {
-    return {
-      rates: [],
-      priceByDate: new Map(),
-      statusByDate: new Map(),
-      minNights: 1,
-      blockingDates: [],
-    };
+  const empty: DateRangeRules = {
+    rates: [],
+    priceByDate: new Map(),
+    statusByDate: new Map(),
+    minNights: 1,
+    blockingDates: [],
+  };
+  if (stayDates.length === 0) return empty;
+
+  const SLUG_TO_UUID: Record<string, string> = {
+    studio: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
+    "appartement-economique-s1": "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
+    "appartement-standard-s1": "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
+    "appartement-s2": "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
+  };
+  const uuid = SLUG_TO_UUID[roomTypeId] ?? roomTypeId;
+
+  const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
+    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL)
+    || "";
+  const supabaseKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON_KEY)
+    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_ANON_KEY)
+    || "";
+
+  if (!supabaseUrl || !supabaseKey) return empty;
+
+  try {
+    const startDate = stayDates[0];
+    const endDate = stayDates[stayDates.length - 1];
+    const url = `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`;
+    const response = await fetch(url, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) return empty;
+
+    const rows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
+    const rowsByDate = new Map(rows.map(r => [r.date, r]));
+
+    const matchingRates: RoomDateRate[] = stayDates.map(date => {
+      const row = rowsByDate.get(date);
+      const status = normalizeAvailabilityStatus(row?.status ?? "available");
+      return {
+        id: "",
+        ownerId: null,
+        roomId: uuid,
+        date,
+        price: row ? Number(row.price) : 0,
+        availabilityStatus: status,
+        minNights: row?.min_nights ?? 1,
+        note: row?.note ?? null,
+        inventoryMode: "auto" as const,
+        unitsAvailableOverride: null,
+        selectedUnitIds: [],
+        createdAt: null,
+        updatedAt: null,
+      };
+    });
+
+    const priceByDate = new Map(matchingRates.map(r => [r.date, r.price]));
+    const statusByDate = new Map(matchingRates.map(r => [r.date, r.availabilityStatus]));
+    const minNights = Math.max(1, ...matchingRates.map(r => r.minNights));
+    const blockingDates = matchingRates.filter(r => isBlockingAvailabilityStatus(r.availabilityStatus));
+
+    console.log(`[getRoomDateRangeRules] uuid=${uuid} ${checkIn}→${checkOut} blockingDates:`, blockingDates.map(r => `${r.date}:${r.availabilityStatus}`));
+
+    return { rates: matchingRates, priceByDate, statusByDate, minNights, blockingDates };
+  } catch (error) {
+    warnSupabaseFallback("date range rules", error);
+    return empty;
   }
-
-  const rates = await getRoomDateRates(roomTypeId, stayDates[0], stayDates[stayDates.length - 1]);
-  const ratesByDate = new Map(rates.map((rate) => [rate.date, rate]));
-  const matchingRates = stayDates
-    .map((date) => ratesByDate.get(date))
-    .filter(Boolean) as RoomDateRate[];
-  const priceByDate = new Map(matchingRates.map((rate) => [rate.date, rate.price]));
-  const statusByDate = new Map(matchingRates.map((rate) => [rate.date, rate.availabilityStatus]));
-  const minNights = Math.max(1, ...matchingRates.map((rate) => rate.minNights));
-  const blockingDates = matchingRates.filter((rate) =>
-    isBlockingAvailabilityStatus(rate.availabilityStatus),
-  );
-
-  return { rates: matchingRates, priceByDate, statusByDate, minNights, blockingDates };
 }
+
 
 export function calculateDateRangeTotal(
   rules: DateRangeRules,
