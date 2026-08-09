@@ -230,6 +230,12 @@ DROP POLICY IF EXISTS "public_select" ON reservation_messages;
 DROP POLICY IF EXISTS "public_all_guests" ON guests;
 CREATE POLICY "public_all_guests" ON guests FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "public_all_res_conversations" ON reservation_conversations;
+CREATE POLICY "public_all_res_conversations" ON reservation_conversations FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "public_all_res_messages" ON reservation_messages;
+CREATE POLICY "public_all_res_messages" ON reservation_messages FOR ALL USING (true);
+
 CREATE POLICY "public_select" ON room_date_prices         FOR SELECT USING (true);
 CREATE POLICY "public_select" ON room_date_rates          FOR SELECT USING (true);
 CREATE POLICY "public_select" ON room_availability_blocks FOR SELECT USING (true);

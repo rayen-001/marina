@@ -333,23 +333,34 @@ export async function markConversationRead(
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
 
-  if (isAdminRole(current.role)) {
-    const { error } = await supabase
+  try {
+    if (isAdminRole(current.role)) {
+      await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("sender_id", conversationId);
+
+      await supabase
+        .from("reservation_messages")
+        .update({ is_read: true })
+        .eq("is_read", false);
+      return;
+    }
+
+    await supabase
       .from("messages")
       .update({ is_read: true })
-      .eq("sender_id", conversationId)
+      .eq("receiver_id", current.id);
+
+    await supabase
+      .from("reservation_messages")
+      .update({ is_read: true })
       .eq("is_read", false);
-    if (error) throw mapSupabaseError(error);
-    return;
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn("[markConversationRead] failed to update read status", err);
+    }
   }
-
-  const { error } = await supabase
-    .from("messages")
-    .update({ is_read: true })
-    .eq("receiver_id", current.id)
-    .eq("is_read", false);
-
-  if (error) throw mapSupabaseError(error);
 }
 
 export async function updateConversationStatus(
