@@ -332,9 +332,46 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
 
 let activeConversationId: string | null = null;
 const markedAsReadConversationIds = new Set<string>();
+const READ_CONVERSATIONS_STORAGE_KEY = "marina_read_conversation_ids";
+
+function getPersistedReadConversationIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(READ_CONVERSATIONS_STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistReadConversationId(id: string) {
+  if (!id || typeof window === "undefined") return;
+  try {
+    markedAsReadConversationIds.add(id);
+    const ids = getPersistedReadConversationIds();
+    ids.add(id);
+    localStorage.setItem(READ_CONVERSATIONS_STORAGE_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
+export function clearPersistedReadStatus(id: string) {
+  if (!id || typeof window === "undefined") return;
+  try {
+    markedAsReadConversationIds.delete(id);
+    const ids = getPersistedReadConversationIds();
+    ids.delete(id);
+    localStorage.setItem(READ_CONVERSATIONS_STORAGE_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
+function isConversationRead(id: string): boolean {
+  if (markedAsReadConversationIds.has(id)) return true;
+  return getPersistedReadConversationIds().has(id);
+}
 
 export function setActiveConversationId(id: string | null) {
   activeConversationId = id;
+  if (id) persistReadConversationId(id);
 }
 
 export async function markConversationRead(
@@ -343,7 +380,7 @@ export async function markConversationRead(
 ) {
   if (!conversationId) return;
   activeConversationId = conversationId;
-  markedAsReadConversationIds.add(conversationId);
+  persistReadConversationId(conversationId);
 
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
@@ -353,7 +390,13 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .or(`sender_id.eq.${conversationId},receiver_id.eq.${conversationId}`)
+        .eq("sender_id", conversationId)
+        .eq("is_read", false);
+
+      await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("receiver_id", conversationId)
         .eq("is_read", false);
 
       await supabase
@@ -364,7 +407,7 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .or(`sender_id.eq.${current.id},receiver_id.eq.${current.id}`)
+        .eq("receiver_id", current.id)
         .eq("is_read", false);
 
       await supabase
@@ -590,7 +633,7 @@ function makeConversationSummary({
   const now = new Date().toISOString();
   const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
   const isActive = activeConversationId === id;
-  const isMarkedRead = markedAsReadConversationIds.has(id);
+  const isMarkedRead = isConversationRead(id);
   const unreadAdminCount = ((isActive || isMarkedRead) && perspective === "admin")
     ? 0
     : messages.filter((message) => message.senderRole === "client" && !message.isRead).length;

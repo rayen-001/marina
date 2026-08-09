@@ -251,6 +251,7 @@ export function AdminLayout({
                               key={item.id}
                               to="/admin/messages"
                               search={{ conversation: item.id }}
+                              onClick={() => setNotificationsOpen(false)}
                               className="block rounded-lg border border-border bg-background p-3 text-xs transition hover:border-accent"
                             >
                               <div className="flex items-center justify-between gap-2">

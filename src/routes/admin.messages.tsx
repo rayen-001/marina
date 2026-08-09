@@ -129,6 +129,12 @@ function AdminMessages() {
   }, [search.conversation]);
 
   useEffect(() => {
+    if (search.conversation && search.conversation !== selectedId) {
+      setSelectedId(search.conversation);
+    }
+  }, [search.conversation, selectedId]);
+
+  useEffect(() => {
     if (!selectedConversationId) {
       setMessages([]);
       setActiveConversationId(null);
@@ -136,16 +142,12 @@ function AdminMessages() {
     }
 
     setActiveConversationId(selectedConversationId);
-    if (selectedId !== selectedConversationId) setSelectedId(selectedConversationId);
-    if (search.conversation !== selectedConversationId) {
-      navigate({ to: "/admin/messages", search: { conversation: selectedConversationId } });
-    }
     void loadMessages(selectedConversationId);
 
     return () => {
       setActiveConversationId(null);
     };
-  }, [loadMessages, navigate, search.conversation, selectedConversationId, selectedId]);
+  }, [loadMessages, selectedConversationId]);
 
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;

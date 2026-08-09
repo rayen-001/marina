@@ -1,15 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarDays, CheckCircle2, Loader2, Mail, MapPin, Phone, Send, ShipWheel } from "lucide-react";
-import React, { useState } from "react";
+import { CalendarDays, CheckCircle2, Loader2, LogIn, Mail, MapPin, Phone, Send, ShipWheel, UserCheck, UserCircle2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import heroImg from "@/assets/hero-marina.jpg";
 import { SiteHeader } from "@/components/site-header";
+import { getCurrentProfile } from "@/lib/auth/profilesAuth";
 import { getHotelSettings } from "@/lib/services/settingsService";
 import { createContactConversation } from "@/lib/services/reservationMessageService";
 
 export const Route = createFileRoute("/contact")({
   loader: async () => {
-    const settings = await getHotelSettings();
-    return { settings };
+    const [settings, userProfile] = await Promise.all([
+      getHotelSettings(),
+      getCurrentProfile().catch(() => null),
+    ]);
+    return { settings, userProfile };
   },
   head: () => ({
     meta: [
@@ -24,16 +28,24 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { settings } = Route.useLoaderData();
+  const { settings, userProfile } = Route.useLoaderData();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState(userProfile?.fullName ?? userProfile?.name ?? "");
+  const [email, setEmail] = useState(userProfile?.email ?? "");
+  const [phone, setPhone] = useState(userProfile?.phone ?? "");
   const [subject, setSubject] = useState("Réservation Appart-Hôtel");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userProfile) {
+      if (!fullName) setFullName(userProfile.fullName ?? userProfile.name ?? "");
+      if (!email) setEmail(userProfile.email ?? "");
+      if (!phone && userProfile.phone) setPhone(userProfile.phone);
+    }
+  }, [userProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,9 +68,6 @@ function ContactPage() {
     setSubmitting(false);
     if (res.success) {
       setSentSuccess(true);
-      setFullName("");
-      setEmail("");
-      setPhone("");
       setMessage("");
     } else {
       setErrorMessage(res.error || "Erreur lors de l'envoi du message.");
@@ -123,38 +132,73 @@ function ContactPage() {
             </Link>
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-premium)]">
-            {sentSuccess && (
-              <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-800 dark:text-emerald-300">
-                <CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                <div className="text-sm font-semibold">
-                  Votre message a été transmis à la réception avec succès ! Nous vous répondrons sous peu.
-                </div>
+          {!userProfile ? (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-primary/20 bg-card p-8 text-center shadow-[var(--shadow-premium)]">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <UserCircle2 className="size-8" />
               </div>
-            )}
+              <h3 className="text-2xl font-black text-primary">Compte Client Requis</h3>
+              <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+                Pour envoyer un message à la réception de Marina Cap Monastir et recevoir votre réponse directement dans votre espace client, veuillez vous connecter à votre compte.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  to="/login"
+                  search={{ redirect: "/contact" }}
+                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-ocean"
+                >
+                  <LogIn className="size-4" />
+                  Se connecter
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-6 text-sm font-semibold text-foreground transition hover:border-primary hover:bg-primary/5"
+                >
+                  Créer un compte
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-premium)]">
+              <div className="mb-4 flex items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-xs font-bold text-primary">
+                <UserCheck className="size-4 text-emerald-600" />
+                <span>Connecté en tant que {userProfile.fullName || userProfile.name} ({userProfile.email})</span>
+              </div>
 
-            {errorMessage && (
-              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
-                {errorMessage}
-              </div>
-            )}
+              {sentSuccess && (
+                <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-800 dark:text-emerald-300">
+                  <CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <div className="text-sm font-semibold">
+                    Votre message a été transmis à la réception avec succès ! Nous vous répondrons sous peu.
+                  </div>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                  {errorMessage}
+                </div>
+              )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Nom complet">
                 <input
                   required
+                  readOnly={!!userProfile}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="field-input"
+                  className={`field-input ${userProfile ? "bg-muted/50 cursor-not-allowed font-semibold text-foreground/80" : ""}`}
                   placeholder="Nom et prénom"
                 />
               </Field>
               <Field label="Email">
                 <input
                   type="email"
+                  required
+                  readOnly={!!userProfile}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="field-input"
+                  className={`field-input ${userProfile ? "bg-muted/50 cursor-not-allowed font-semibold text-foreground/80" : ""}`}
                   placeholder="client@email.com"
                 />
               </Field>
@@ -204,6 +248,7 @@ function ContactPage() {
               {submitting ? "Envoi en cours..." : "Envoyer la demande"}
             </button>
           </form>
+        )}
         </section>
       </main>
     </div>

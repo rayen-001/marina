@@ -1,5 +1,7 @@
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Reservation } from "@/data/hotel";
+import { getCurrentProfile } from "@/lib/auth/profilesAuth";
+import { createConversation, sendMessage as sendPortalMessage } from "@/lib/services/messageService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type { MessageSenderType, Tables } from "@/lib/supabase/types";
 
@@ -259,7 +261,7 @@ export async function createContactConversation(input: {
     mockMessages.push({
       id: `mock-msg-${Date.now()}`,
       conversationId: convId,
-      senderType: "guest",
+      senderType: "client",
       senderName: input.fullName,
       message: formattedMessage,
       isRead: false,
@@ -269,6 +271,16 @@ export async function createContactConversation(input: {
   }
 
   try {
+    const currentProfile = await getCurrentProfile().catch(() => null);
+    if (currentProfile && currentProfile.role === "client") {
+      try {
+        const conv = await createConversation({ subject: input.subject || "Contact Reception" });
+        await sendPortalMessage({ conversationId: conv.id, body: formattedMessage });
+      } catch (portalErr) {
+        warnSupabaseFallback("contact portal message sync", portalErr);
+      }
+    }
+
     const ownerId = await resolveOwnerIdForContact(supabase);
     const insertPayload: Record<string, unknown> = {
       client_name: input.fullName,
@@ -290,7 +302,7 @@ export async function createContactConversation(input: {
       .from("reservation_messages")
       .insert({
         conversation_id: convData.id,
-        sender_type: "guest",
+        sender_type: "client",
         sender_name: input.fullName,
         message: formattedMessage,
         is_read: false,
