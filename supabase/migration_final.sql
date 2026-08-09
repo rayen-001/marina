@@ -182,6 +182,31 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION link_guest_reservations_to_client()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_user_email text;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  SELECT email INTO v_user_email FROM auth.users WHERE id = v_user_id;
+  IF v_user_email IS NULL THEN
+    RETURN;
+  END IF;
+
+  UPDATE reservations
+  SET guest_id = v_user_id
+  WHERE LOWER(email) = LOWER(v_user_email)
+    AND (guest_id IS NULL OR guest_id != v_user_id);
+END;
+$$;
+
 -- 5. Row Level Security Policies
 ALTER TABLE room_date_prices         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_date_rates          ENABLE ROW LEVEL SECURITY;
