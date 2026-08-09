@@ -311,6 +311,10 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   const supabase = await requireMessagingSupabase();
   const receiver = await resolveReceiver(current, input.conversationId);
 
+  if (input.conversationId) locallyReadConversationIds.delete(input.conversationId);
+  locallyReadConversationIds.delete(current.id);
+  locallyReadConversationIds.delete(receiver.id);
+
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -422,9 +426,12 @@ export async function subscribeToConversationMessages(
   const channelName = `direct-messages-${Math.random().toString(36).slice(2, 9)}`;
   const channel = supabase
     .channel(channelName)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) =>
-      onEvent(payload as ConversationMessageRealtimeEvent),
-    )
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => {
+      const row = payload.new as { sender_id?: string; receiver_id?: string } | null;
+      if (row?.sender_id) locallyReadConversationIds.delete(row.sender_id);
+      if (row?.receiver_id) locallyReadConversationIds.delete(row.receiver_id);
+      onEvent(payload as ConversationMessageRealtimeEvent);
+    })
     .subscribe();
 
   return () => {
