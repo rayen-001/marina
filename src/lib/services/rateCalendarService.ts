@@ -209,6 +209,30 @@ function buildBlockByRoomDate(
   return blockByDate;
 }
 
+function isUuid(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+const SLUG_TO_UUID: Record<string, string> = {
+  studio: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
+  "appartement-economique-s1": "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
+  "appartement-standard-s1": "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
+  "appartement-s2": "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
+};
+
+function resolveRoomTypeUuid(roomTypeIdOrSlug: string): string | null {
+  if (SLUG_TO_UUID[roomTypeIdOrSlug]) return SLUG_TO_UUID[roomTypeIdOrSlug];
+  if (isUuid(roomTypeIdOrSlug)) return roomTypeIdOrSlug;
+
+  const matched = rooms.find(
+    (r) => r.id === roomTypeIdOrSlug || r.slug === roomTypeIdOrSlug || r.name === roomTypeIdOrSlug,
+  );
+  if (matched && isUuid(matched.id)) return matched.id;
+  if (matched && matched.slug && SLUG_TO_UUID[matched.slug]) return SLUG_TO_UUID[matched.slug];
+
+  return null;
+}
+
 export async function getMonthlyCalendar(
   roomTypeId: string,
   year: number,
@@ -236,14 +260,8 @@ export async function getMonthlyCalendar(
     })),
   });
 
-  // Resolve UUID: if we received a slug (e.g. "appartement-economique-s1"), map it to its real UUID
-  const SLUG_TO_UUID: Record<string, string> = {
-    studio: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
-    "appartement-economique-s1": "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
-    "appartement-standard-s1": "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
-    "appartement-s2": "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
-  };
-  const uuid = SLUG_TO_UUID[roomTypeId] ?? roomTypeId;
+  const uuid = resolveRoomTypeUuid(roomTypeId);
+  if (!uuid) return makeDefault();
 
   // Use raw fetch so we bypass any Supabase client caching, type coercion, or init issues
   const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
@@ -419,13 +437,8 @@ export async function getRoomDateRangeRules(
   };
   if (stayDates.length === 0) return empty;
 
-  const SLUG_TO_UUID: Record<string, string> = {
-    studio: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
-    "appartement-economique-s1": "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
-    "appartement-standard-s1": "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
-    "appartement-s2": "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
-  };
-  const uuid = SLUG_TO_UUID[roomTypeId] ?? roomTypeId;
+  const uuid = resolveRoomTypeUuid(roomTypeId);
+  if (!uuid) return empty;
 
   const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
     || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL)
