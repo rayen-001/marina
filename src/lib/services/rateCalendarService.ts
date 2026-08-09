@@ -1,5 +1,4 @@
 import { hotelSettings } from "@/data/hotel";
-import { getRoomType } from "@/lib/services/roomService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type {
   RoomDateAvailabilityStatus,
@@ -178,18 +177,25 @@ export async function getMonthlyCalendar(
   if (!supabase) return makeDefault();
 
   try {
+    const matchedRoom = hotelSettings.roomTypes.find(
+      (r) => r.id === roomTypeId || r.slug === roomTypeId,
+    );
+    const roomIds = Array.from(
+      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
+    );
+
     const [dateRates, blocksRes, resRes] = await Promise.all([
       getRoomDateRates(roomTypeId, startDate, endDate),
       supabase
         .from("room_availability_blocks")
         .select("start_date, end_date, status, reason")
-        .eq("room_type_id", roomTypeId)
+        .in("room_type_id", roomIds)
         .lt("start_date", endExclusive)
         .gte("end_date", startDate),
       supabase
         .from("reservations")
         .select("check_in, check_out, status")
-        .eq("room_type_id", roomTypeId)
+        .in("room_type_id", roomIds)
         .neq("status", "cancelled")
         .lt("check_in", endExclusive)
         .gt("check_out", startDate),
@@ -567,8 +573,12 @@ async function getLegacyRoomDateRates(
   if (!supabase) return [];
 
   try {
-    const room = await getRoomType(roomTypeId);
-    const roomIds = Array.from(new Set([roomTypeId, room?.id, room?.slug].filter(Boolean) as string[]));
+    const matchedRoom = hotelSettings.roomTypes.find(
+      (r) => r.id === roomTypeId || r.slug === roomTypeId,
+    );
+    const roomIds = Array.from(
+      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
+    );
 
     const { data, error } = await supabase
       .from("room_rate_calendar")
