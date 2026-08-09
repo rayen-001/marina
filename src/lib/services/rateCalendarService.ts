@@ -284,8 +284,16 @@ export async function getMonthlyCalendar(
       status: string;
     }> = [];
 
+    let resRows: Array<{
+      check_in: string;
+      check_out: string;
+      status: string;
+    }> = [];
+
+    let isUsingSupabase = false;
+
     if (supabase) {
-      const [rateRes, blockRes] = await Promise.all([
+      const [rateRes, blockRes, reservationRes] = await Promise.all([
         supabase
           .from("room_rate_calendar")
           .select("date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids")
@@ -299,13 +307,26 @@ export async function getMonthlyCalendar(
           .eq("room_type_id", uuid)
           .lt("start_date", endExclusive)
           .gte("end_date", startDate),
+        supabase
+          .from("reservations")
+          .select("check_in,check_out,status")
+          .eq("room_type_id", uuid)
+          .neq("status", "cancelled")
+          .neq("status", "no_show")
+          .neq("status", "checked_out")
+          .lt("check_in", endExclusive)
+          .gt("check_out", startDate),
       ]);
 
       if (!rateRes.error && rateRes.data) {
         rateRows = rateRes.data as typeof rateRows;
+        isUsingSupabase = true;
       }
       if (!blockRes.error && blockRes.data) {
         blockRows = blockRes.data as typeof blockRows;
+      }
+      if (!reservationRes.error && reservationRes.data) {
+        resRows = reservationRes.data as typeof resRows;
       }
     }
 
@@ -331,6 +352,7 @@ export async function getMonthlyCalendar(
         );
         if (fetchRes.ok) {
           rateRows = await fetchRes.json();
+          isUsingSupabase = true;
         }
       }
     }
@@ -352,38 +374,39 @@ export async function getMonthlyCalendar(
 
       const baseStatus = inventoryMode === "closed" ? "closed" : (blockStatus ?? rateStatus);
 
-      // Check local mock/fallback reservations matching this room
-      const localReservedCount = reservations.filter((r) => {
-        if (r.status === "cancelled" || r.status === "no_show") return false;
-        const isMatch = r.roomId === roomTypeId || r.roomId === uuid || SLUG_TO_UUID[r.roomId] === uuid;
-        if (!isMatch) return false;
-        return r.checkIn <= date && date < r.checkOut;
-      }).length;
+      // If Supabase data is loaded, count real DB reservations for this date.
+      // Otherwise, fallback to local mock reservations array for offline development.
+      const reservedCount = isUsingSupabase
+        ? resRows.filter((r) => r.check_in <= date && date < r.check_out).length
+        : reservations.filter((r) => {
+            if (r.status === "cancelled" || r.status === "no_show" || r.status === "checked_out") return false;
+            const isMatch = r.roomId === roomTypeId || r.roomId === uuid || SLUG_TO_UUID[r.roomId] === uuid;
+            if (!isMatch) return false;
+            return r.checkIn <= date && date < r.checkOut;
+          }).length;
 
       let availableUnits: number;
       if (inventoryMode === "closed" || isBlockingAvailabilityStatus(baseStatus)) {
         availableUnits = 0;
-      } else if (inventoryMode === "all") {
-        availableUnits = Math.max(0, totalUnits - localReservedCount);
       } else if (inventoryMode === "quantity") {
-        availableUnits = clampCount(unitsAvailableOverride ?? totalUnits, totalUnits);
+        const override = unitsAvailableOverride ?? totalUnits;
+        availableUnits = Math.max(0, Math.min(override, totalUnits) - reservedCount);
       } else if (inventoryMode === "specific_units") {
         const selectedCount = selectedUnitIds.length || unitsAvailableOverride || totalUnits;
-        availableUnits = clampCount(selectedCount, totalUnits);
+        availableUnits = Math.max(0, Math.min(selectedCount, totalUnits) - reservedCount);
       } else {
-        availableUnits = Math.max(0, totalUnits - localReservedCount);
+        // "auto" or "all"
+        availableUnits = Math.max(0, totalUnits - reservedCount);
       }
 
       let status: DayAvailability;
       if (isBlockingAvailabilityStatus(baseStatus) || availableUnits <= 0) {
         status = "not_available";
         availableUnits = 0;
-      } else if (availableUnits < totalUnits || baseStatus === "partially_reserved") {
+      } else if (baseStatus === "partially_reserved" || (totalUnits > 0 && availableUnits < totalUnits)) {
         status = "partially_reserved";
-        availableUnits = Math.min(availableUnits, totalUnits - 1);
       } else {
         status = "available";
-        availableUnits = totalUnits;
       }
 
       const dayPrice = row && row.price > 0 ? Number(row.price) : basePrice;
