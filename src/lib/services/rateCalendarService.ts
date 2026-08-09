@@ -289,9 +289,15 @@ export async function getMonthlyCalendar(
         normalizedStatus === "maintenance" ||
         normalizedStatus === "reserved"
       ) {
+        // Admin explicitly blocked this date
         status = "not_available";
         availableUnits = 0;
+      } else if (normalizedStatus === "partially_reserved") {
+        // Admin explicitly marked as partially reserved — trust it directly
+        status = "partially_reserved";
+        availableUnits = Math.max(0, totalUnits - reservedUnits);
       } else {
+        // "available" in DB — double-check via actual reservation counts
         const remaining = totalUnits - reservedUnits;
         if (remaining <= 0 && totalUnits > 0) {
           status = "not_available";
