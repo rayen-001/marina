@@ -98,8 +98,8 @@ export function SearchForm({
           onChange={(event) => setRoomType(event.target.value)}
           className="w-full bg-transparent text-sm font-bold text-foreground outline-none"
         >
-          {types.map((type) => (
-            <option key={type} value={type}>
+          {types.map((type, index) => (
+            <option key={`${type}-${index}`} value={type}>
               {type}
             </option>
           ))}

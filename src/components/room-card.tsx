@@ -126,15 +126,9 @@ export function RoomCard({
           )}
 
           <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-            <Link
-              to="/room/$id"
-              params={{ id: room.id }}
-              search={search}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold text-muted-foreground transition hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
-            >
+            <span className="inline-flex h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold text-muted-foreground transition group-hover:border-accent/40 group-hover:bg-accent/5 group-hover:text-accent">
               Voir détails
-            </Link>
+            </span>
             <span className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary/8 px-4 text-xs font-black text-primary transition-all group-hover:bg-accent group-hover:text-accent-foreground">
               Réserver
               <ChevronRight className="size-3.5" />

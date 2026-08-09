@@ -403,8 +403,9 @@ export async function subscribeToConversationMessages(
   const supabase = await getSupabaseOrNull();
   if (!supabase) return null;
 
+  const channelName = `direct-messages-${Math.random().toString(36).slice(2, 9)}`;
   const channel = supabase
-    .channel("direct-messages")
+    .channel(channelName)
     .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) =>
       onEvent(payload as ConversationMessageRealtimeEvent),
     )

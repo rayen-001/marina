@@ -102,9 +102,13 @@ export async function linkGuestReservationsToClient() {
   const supabase = await getSupabaseOrNull();
   if (!supabase) return;
 
-  const { error } = await supabase.rpc("link_guest_reservations_to_client");
-  if (error && import.meta.env.DEV) {
-    console.warn("[clientAuth] link_guest_reservations_to_client failed", error);
+  try {
+    const { error } = await supabase.rpc("link_guest_reservations_to_client");
+    if (error && error.code !== "PGRST202" && error.code !== "42883" && import.meta.env.DEV) {
+      console.warn("[clientAuth] link_guest_reservations_to_client failed", error);
+    }
+  } catch {
+    // Ignore RPC missing error gracefully
   }
 }
 

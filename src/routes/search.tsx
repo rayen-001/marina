@@ -239,9 +239,9 @@ function SearchPage() {
         </div>
 
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {["Tous", ...roomTypes].map((type) => (
+          {["Tous", ...roomTypes].map((type, idx) => (
             <button
-              key={type}
+              key={`${type}-${idx}`}
               type="button"
               onClick={() => setActiveType(type)}
               className={`h-9 whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition ${
