@@ -334,15 +334,10 @@ export async function markConversationRead(
   const supabase = await requireMessagingSupabase();
 
   if (isAdminRole(current.role)) {
-    const admins = await fetchAdminProfiles();
-    const adminIds = admins.map((admin) => admin.id);
-    if (adminIds.length === 0) return;
-
     const { error } = await supabase
       .from("messages")
       .update({ is_read: true })
       .eq("sender_id", conversationId)
-      .in("receiver_id", adminIds)
       .eq("is_read", false);
     if (error) throw mapSupabaseError(error);
     return;
@@ -351,7 +346,6 @@ export async function markConversationRead(
   const { error } = await supabase
     .from("messages")
     .update({ is_read: true })
-    .eq("sender_id", conversationId)
     .eq("receiver_id", current.id)
     .eq("is_read", false);
 

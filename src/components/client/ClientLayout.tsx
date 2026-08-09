@@ -24,6 +24,25 @@ export function ClientLayout({ children }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    const updateUnread = async () => {
+      try {
+        const count = await getUnreadClientConversationCount();
+        if (mounted) setUnreadCount(count);
+      } catch {}
+    };
+    void updateUnread();
+    const unsubscribePromise = subscribeToConversationMessages(() => {
+      void updateUnread();
+    });
+    return () => {
+      mounted = false;
+      unsubscribePromise.then((fn) => fn?.());
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let mounted = true;
@@ -39,18 +58,7 @@ export function ClientLayout({ children }: Props) {
           return;
         }
 
-        // Defense in depth: the route-level beforeLoad already blocks
-        // non-client roles, but the layout must never render client
-        // content for owner/admin/capitainerie even if mounted directly.
         if (rawContext.profile.role !== "client") {
-          if (import.meta.env.DEV) {
-            console.info("[ClientLayout] non-client role blocked, redirecting", {
-              authUserId: rawContext.user.id,
-              profileUserId: rawContext.profile.userId,
-              profileRole: rawContext.profile.role,
-              redirectTarget: getDefaultPathForRole(rawContext.profile.role),
-            });
-          }
           navigate({ to: getDefaultPathForRole(rawContext.profile.role) as never });
           return;
         }
@@ -126,7 +134,12 @@ export function ClientLayout({ children }: Props) {
         <ClientBrand />
         <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-3">
           {navItems.map((item) => (
-            <ClientNavItem key={item.to} item={item} pathname={pathname} />
+            <ClientNavItem
+              key={item.to}
+              item={item}
+              pathname={pathname}
+              unreadCount={item.to === "/client/messages" ? unreadCount : 0}
+            />
           ))}
           <div className="pt-3">
             <Link
@@ -188,6 +201,7 @@ export function ClientLayout({ children }: Props) {
                   key={item.to}
                   item={item}
                   pathname={pathname}
+                  unreadCount={item.to === "/client/messages" ? unreadCount : 0}
                   onClick={() => setMenuOpen(false)}
                 />
               ))}
@@ -244,10 +258,12 @@ function ClientBrand({ compact = false }: { compact?: boolean }) {
 function ClientNavItem({
   item,
   pathname,
+  unreadCount = 0,
   onClick,
 }: {
   item: (typeof navItems)[number];
   pathname: string;
+  unreadCount?: number;
   onClick?: () => void;
 }) {
   const active =
@@ -260,14 +276,21 @@ function ClientNavItem({
     <Link
       to={item.to}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-bold transition ${
+      className={`flex items-center justify-between gap-3 rounded-md px-3 py-2.5 text-sm font-bold transition ${
         active
           ? "bg-white text-primary shadow-sm"
           : "text-white/78 hover:bg-white/10 hover:text-white"
       }`}
     >
-      <Icon className="size-4" />
-      {item.label}
+      <div className="flex items-center gap-3 min-w-0">
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{item.label}</span>
+      </div>
+      {unreadCount > 0 && (
+        <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-black text-white shadow-sm">
+          {unreadCount}
+        </span>
+      )}
     </Link>
   );
 }
