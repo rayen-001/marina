@@ -235,33 +235,68 @@ export async function getMonthlyCalendar(
   if (!supabaseUrl || !supabaseKey) return makeDefault();
 
   try {
-    const params = new URLSearchParams({
-      select: "date,status,price,min_nights,note",
-      room_type_id: `eq.${uuid}`,
-      date: `gte.${startDate}`,
-      order: "date",
-    });
-    // Supabase requires separate params for range filters
-    const url = `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`;
-    const response = await fetch(url, {
-      headers: {
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const endExclusive = addDays(endDate, 1);
+    const [rateRes, blockRes] = await Promise.all([
+      fetch(
+        `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+      fetch(
+        `${supabaseUrl}/rest/v1/room_availability_blocks?select=start_date,end_date,status&room_type_id=eq.${uuid}&start_date=lt.${endExclusive}&end_date=gte.${startDate}`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    ]);
 
-    if (!response.ok) {
-      console.error("[getMonthlyCalendar] fetch error", response.status, await response.text());
+    if (!rateRes.ok) {
+      console.error("[getMonthlyCalendar] fetch error", rateRes.status, await rateRes.text());
       return makeDefault();
     }
 
-    const rateRows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
+    const rateRows: Array<{
+      date: string;
+      status: string;
+      price: number;
+      min_nights: number | null;
+      note: string | null;
+      inventory_mode?: string | null;
+      units_available_override?: number | null;
+      selected_unit_ids?: string[] | null;
+    }> = await rateRes.json();
+
+    const blockRows: Array<{
+      start_date: string;
+      end_date: string;
+      status: string;
+    }> = blockRes.ok ? await blockRes.json() : [];
+
+    const blockByDate = buildBlockByRoomDate(
+      blockRows.map((b) => ({ ...b, room_type_id: uuid })),
+      startDate,
+      endDate,
+    );
 
     const days: DayCalendarEntry[] = allDays.map((date) => {
       const row = rateRows.find((r) => r.date === date);
-      const rawStatus = row?.status ?? "available";
-      const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
+      const block = blockByDate.get(`${uuid}:${date}`);
+      const rateStatus = normalizeAvailabilityStatus(row?.status);
+      const blockStatus = normalizeBlockStatus(block?.status);
+      const inventoryMode = normalizeInventoryMode(row?.inventory_mode);
+      const unitsAvailableOverride = normalizeUnitsAvailableOverride(row?.units_available_override);
+      const selectedUnitIds = normalizeSelectedUnitIds(row?.selected_unit_ids);
+
+      const baseStatus = inventoryMode === "closed" ? "closed" : (blockStatus ?? rateStatus);
 
       // Check local mock/fallback reservations matching this room
       const localReservedCount = reservations.filter((r) => {
@@ -271,30 +306,28 @@ export async function getMonthlyCalendar(
         return r.checkIn <= date && date < r.checkOut;
       }).length;
 
-      let status: DayAvailability;
       let availableUnits: number;
+      if (inventoryMode === "closed" || isBlockingAvailabilityStatus(baseStatus)) {
+        availableUnits = 0;
+      } else if (inventoryMode === "all") {
+        availableUnits = Math.max(0, totalUnits - localReservedCount);
+      } else if (inventoryMode === "quantity") {
+        availableUnits = clampCount(unitsAvailableOverride ?? totalUnits, totalUnits);
+      } else if (inventoryMode === "specific_units") {
+        const selectedCount = selectedUnitIds.length || unitsAvailableOverride || totalUnits;
+        availableUnits = clampCount(selectedCount, totalUnits);
+      } else {
+        availableUnits = Math.max(0, totalUnits - localReservedCount);
+      }
 
-      if (
-        normalizedStatus === "not_available" ||
-        normalizedStatus === "closed" ||
-        normalizedStatus === "maintenance" ||
-        normalizedStatus === "reserved"
-      ) {
-        // Admin explicitly blocked this date (RED & unclickable)
+      let status: DayAvailability;
+      if (isBlockingAvailabilityStatus(baseStatus) || availableUnits <= 0) {
         status = "not_available";
         availableUnits = 0;
-      } else if (normalizedStatus === "partially_reserved" || localReservedCount > 0) {
-        // Partially reserved date (YELLOW & clickable)
-        const avail = Math.max(0, totalUnits - localReservedCount);
-        if (avail <= 0) {
-          status = "not_available";
-          availableUnits = 0;
-        } else {
-          status = "partially_reserved";
-          availableUnits = Math.min(avail, totalUnits - 1);
-        }
+      } else if (availableUnits < totalUnits || baseStatus === "partially_reserved") {
+        status = "partially_reserved";
+        availableUnits = Math.min(availableUnits, totalUnits - 1);
       } else {
-        // Fully available date (GREEN & clickable)
         status = "available";
         availableUnits = totalUnits;
       }
