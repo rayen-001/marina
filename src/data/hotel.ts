@@ -190,9 +190,8 @@ const defaultRooms: Room[] = [
     pricePerNight: 85,
     capacityAdults: 2,
     capacityChildren: 0,
-    beds: "1 lit double ou 2 lits simples",
     bathrooms: 1,
-    totalUnits: 36,
+    totalUnits: 10,
     amenities: [
       "Terrasse",
       "Télévision à écran plat",
@@ -217,7 +216,7 @@ const defaultRooms: Room[] = [
     capacityChildren: 0,
     beds: "2 lits simples + 1 canapé-lit",
     bathrooms: 1,
-    totalUnits: 32,
+    totalUnits: 5,
     amenities: [
       "Télévision à écran plat",
       "Climatisation",
@@ -241,7 +240,7 @@ const defaultRooms: Room[] = [
     capacityChildren: 0,
     beds: "1 lit double ou 2 lits simples + 1 canapé-lit",
     bathrooms: 1,
-    totalUnits: 34,
+    totalUnits: 5,
     amenities: [
       "Télévision à écran plat",
       "Climatisation",
@@ -266,7 +265,7 @@ const defaultRooms: Room[] = [
     capacityChildren: 0,
     beds: "2 lits simples + 1 lit double + 1 canapé-lit",
     bathrooms: 1,
-    totalUnits: 18,
+    totalUnits: 5,
     amenities: [
       "Télévision à écran plat",
       "Climatisation",

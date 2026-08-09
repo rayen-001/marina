@@ -78,9 +78,15 @@ export async function listRoomTypes() {
         fallbackImages[index] ?? rooms[0]?.images ?? [],
       );
 
+      const unitCount = unitsByRoom.get(row.id)?.length;
+      const totalUnits =
+        unitCount && unitCount > 0
+          ? unitCount
+          : row.total_units ?? mappedRoom.totalUnits ?? 1;
+
       return {
         ...mappedRoom,
-        totalUnits: unitsByRoom.get(row.id)?.length || mappedRoom.totalUnits,
+        totalUnits,
       };
     });
 
