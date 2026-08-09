@@ -181,7 +181,7 @@ export const hotelSettings: HotelSettings = {
 
 const defaultRooms: Room[] = [
   {
-    id: "studio",
+    id: "ae47c5a0-5915-4e45-a355-bcda4a85bb5a",
     slug: "studio",
     name: "Studio",
     type: "Studio",
@@ -206,7 +206,7 @@ const defaultRooms: Room[] = [
     bookings: [],
   },
   {
-    id: "appartement-economique-s1",
+    id: "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
     slug: "appartement-economique-s1",
     name: "Appartement Économique S+1",
     type: "Appartement",
@@ -230,7 +230,7 @@ const defaultRooms: Room[] = [
     bookings: [],
   },
   {
-    id: "appartement-standard-s1",
+    id: "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
     slug: "appartement-standard-s1",
     name: "Appartement Standard S+1",
     type: "Appartement",
@@ -255,7 +255,7 @@ const defaultRooms: Room[] = [
     bookings: [],
   },
   {
-    id: "appartement-s2",
+    id: "de47c5a0-5915-4e45-a355-bcda4a85bb5d",
     slug: "appartement-s2",
     name: "Appartement S+2",
     type: "Appartement",

@@ -146,6 +146,49 @@ function getDatesBetween(startDate: string, endDate: string, inclusiveEnd = true
   return dates;
 }
 
+const ROOM_TYPE_ID_MAP: Record<string, string[]> = {
+  studio: ["ae47c5a0-5915-4e45-a355-bcda4a85bb5a", "studio", "Studio"],
+  "ae47c5a0-5915-4e45-a355-bcda4a85bb5a": ["ae47c5a0-5915-4e45-a355-bcda4a85bb5a", "studio", "Studio"],
+
+  "appartement-economique-s1": [
+    "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
+    "appartement-economique-s1",
+    "Appartement Économique S+1",
+    "Appartement Economique S+1",
+  ],
+  "be47c5a0-5915-4e45-a355-bcda4a85bb5b": [
+    "be47c5a0-5915-4e45-a355-bcda4a85bb5b",
+    "appartement-economique-s1",
+    "Appartement Économique S+1",
+    "Appartement Economique S+1",
+  ],
+
+  "appartement-standard-s1": [
+    "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
+    "appartement-standard-s1",
+    "Appartement Standard S+1",
+  ],
+  "ce47c5a0-5915-4e45-a355-bcda4a85bb5c": [
+    "ce47c5a0-5915-4e45-a355-bcda4a85bb5c",
+    "appartement-standard-s1",
+    "Appartement Standard S+1",
+  ],
+
+  "appartement-s2": ["de47c5a0-5915-4e45-a355-bcda4a85bb5d", "appartement-s2", "Appartement S+2"],
+  "de47c5a0-5915-4e45-a355-bcda4a85bb5d": ["de47c5a0-5915-4e45-a355-bcda4a85bb5d", "appartement-s2", "Appartement S+2"],
+};
+
+export function resolveAllRoomTypeIds(roomTypeId: string): string[] {
+  const mapped = ROOM_TYPE_ID_MAP[roomTypeId] ?? [];
+  const matchedRoom = rooms.find(
+    (r: { id: string; slug?: string; name?: string }) =>
+      r.id === roomTypeId || r.slug === roomTypeId || r.name === roomTypeId,
+  );
+  return Array.from(
+    new Set([roomTypeId, ...mapped, matchedRoom?.id, matchedRoom?.slug, matchedRoom?.name].filter(Boolean) as string[]),
+  );
+}
+
 export async function getMonthlyCalendar(
   roomTypeId: string,
   year: number,
@@ -176,17 +219,9 @@ export async function getMonthlyCalendar(
   if (!supabase) return makeDefault();
 
   try {
-    // Resolve the exact UUID for this room type if we got a slug
-    const matchedRoom = rooms.find(
-      (r: { id: string; slug?: string }) =>
-        r.id === roomTypeId || r.slug === roomTypeId,
-    );
-    // Use only UUID + slug — never room name to avoid cross-room contamination
-    const exactIds = Array.from(
-      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
-    );
+    const exactIds = resolveAllRoomTypeIds(roomTypeId);
 
-    // Query only room_rate_calendar — the single source of truth set by admin
+    // Query room_rate_calendar — the single source of truth set by admin
     const { data: rateRows, error: rateError } = await supabase
       .from("room_rate_calendar")
       .select("date, status, price, min_nights, note")
@@ -200,6 +235,9 @@ export async function getMonthlyCalendar(
       return makeDefault();
     }
 
+    // DEBUG - remove after fixing
+    console.log(`[getMonthlyCalendar] roomTypeId=${roomTypeId} year=${year} month=${month} rows=${rateRows?.length}`, rateRows?.filter(r => r.status !== "available").map(r => `${r.date}:${r.status}`));
+
     // Build a date → row map from DB
     const dbByDate = new Map<string, { status: string; price: number; min_nights: number; note: string | null }>();
     for (const row of rateRows ?? []) {
@@ -210,6 +248,8 @@ export async function getMonthlyCalendar(
         note: row.note ?? null,
       });
     }
+
+    console.log(`[getMonthlyCalendar] dbByDate not_available keys:`, [...dbByDate.entries()].filter(([,v]) => v.status !== "available").map(([k,v]) => `${k}=${v.status}`));
 
     // Count reservations only for partial booking detection
     const endExclusive = addDays(endDate, 1);
