@@ -34,7 +34,7 @@ export async function getBookingQuote(
     blockingDates: [],
   };
 
-  if (!checkIn || !checkOut || checkIn >= checkOut) {
+  if (!checkIn || !checkOut) {
     return {
       breakdown: fallbackBreakdown,
       availability: 0,
@@ -43,7 +43,20 @@ export async function getBookingQuote(
       minNights: 1,
       rules: emptyRules,
       nightlyRates: [],
-      reason: "Selectionnez des dates valides.",
+      reason: null,
+    };
+  }
+
+  if (checkIn >= checkOut) {
+    return {
+      breakdown: fallbackBreakdown,
+      availability: 0,
+      canBook: false,
+      loading: false,
+      minNights: 1,
+      rules: emptyRules,
+      nightlyRates: [],
+      reason: "La date de départ doit être supérieure à la date d'arrivée.",
     };
   }
 
