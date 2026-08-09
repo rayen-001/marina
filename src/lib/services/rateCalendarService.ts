@@ -209,27 +209,35 @@ export async function getMonthlyCalendar(
       const rate = rateByDate.get(date);
       const block = blockedDates.get(date);
       const reservedUnits = reservationsByDate.get(date) ?? 0;
-      const explicitStatus = rate?.availabilityStatus;
+      const explicitStatus = rate?.availabilityStatus ?? "available";
+
       let availableUnits = calculateInventoryAvailabilityForDate({
         rate,
         totalUnits,
         reservedUnits,
       });
 
-      let status: DayAvailability = explicitStatus ?? "available";
-      if (block === "closed" || block === "not_available") {
+      let status: DayAvailability = explicitStatus;
+      if (block === "closed" || block === "not_available" || block === "maintenance") {
         status = block;
         availableUnits = 0;
       }
-      if (block === "maintenance") {
-        status = "maintenance";
+
+      if (
+        isBlockingAvailabilityStatus(status) ||
+        status === "not_available" ||
+        status === "closed" ||
+        status === "maintenance"
+      ) {
+        status = "not_available";
         availableUnits = 0;
-      }
-      if (block === "partially_reserved" && status === "available") status = "partially_reserved";
-      if (isBlockingAvailabilityStatus(status)) availableUnits = 0;
-      if (availableUnits <= 0 && totalUnits > 0 && status === "available") status = "reserved";
-      if (availableUnits > 0 && availableUnits < totalUnits && status === "available") {
+      } else if (availableUnits <= 0 && totalUnits > 0) {
+        status = "not_available";
+        availableUnits = 0;
+      } else if (availableUnits > 0 && availableUnits < totalUnits) {
         status = "partially_reserved";
+      } else {
+        status = "available";
       }
 
       return {
