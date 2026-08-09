@@ -258,23 +258,44 @@ export async function getMonthlyCalendar(
 
     const rateRows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
 
-    // Count reservations
-    const endExclusive = addDays(endDate, 1);
-    const supabase = await getSupabaseOrNull();
-    const resRes = supabase ? await supabase
-      .from("reservations")
-      .select("check_in, check_out, status")
-      .eq("room_type_id", uuid)
-      .neq("status", "cancelled")
-      .lt("check_in", endExclusive)
-      .gt("check_out", startDate) : { data: [], error: null };
+    // For dates that are "available" in room_rate_calendar, use get_available_units RPC
+    // (SECURITY DEFINER) to count actual reservations and detect partial availability.
+    // Batch all "available" dates as parallel requests.
+    const availableDatesInMonth = allDays.filter(date => {
+      const row = rateRows.find(r => r.date === date);
+      const s = normalizeAvailabilityStatus(row?.status ?? "available");
+      return s === "available";
+    });
 
-    const reservationsByDate = buildReservationCountMap(resRes.error ? [] : (resRes.data ?? []));
+    // Call get_available_units for each available date in parallel
+    const availableByDate = new Map<string, number>();
+    if (availableDatesInMonth.length > 0 && totalUnits > 1) {
+      await Promise.all(
+        availableDatesInMonth.map(async (date) => {
+          try {
+            const nextDay = addDays(date, 1);
+            const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_available_units`, {
+              method: "POST",
+              headers: {
+                apikey: supabaseKey,
+                Authorization: `Bearer ${supabaseKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ room_type_id: uuid, check_in: date, check_out: nextDay }),
+            });
+            if (rpcRes.ok) {
+              const n = await rpcRes.json();
+              availableByDate.set(date, Number(n));
+            }
+          } catch {
+            // silently ignore per-date failures
+          }
+        }),
+      );
+    }
 
     const days: DayCalendarEntry[] = allDays.map((date) => {
       const row = rateRows.find(r => r.date === date);
-      const reservedUnits = reservationsByDate.get(date) ?? 0;
-
       const rawStatus = row?.status ?? "available";
       const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
 
@@ -291,18 +312,19 @@ export async function getMonthlyCalendar(
         status = "not_available";
         availableUnits = 0;
       } else if (normalizedStatus === "partially_reserved") {
-        // Admin explicitly marked as partially reserved — trust it directly
+        // Admin explicitly marked as partially reserved
+        const avail = availableByDate.get(date) ?? Math.max(0, totalUnits - 1);
         status = "partially_reserved";
-        availableUnits = Math.max(0, totalUnits - reservedUnits);
+        availableUnits = avail;
       } else {
-        // "available" in DB — double-check via actual reservation counts
-        const remaining = totalUnits - reservedUnits;
-        if (remaining <= 0 && totalUnits > 0) {
+        // "available" in DB — use RPC result to detect partial/full reservation
+        const avail = availableByDate.has(date) ? availableByDate.get(date)! : totalUnits;
+        if (avail <= 0) {
           status = "not_available";
           availableUnits = 0;
-        } else if (reservedUnits > 0 && remaining > 0) {
+        } else if (avail < totalUnits) {
           status = "partially_reserved";
-          availableUnits = remaining;
+          availableUnits = avail;
         } else {
           status = "available";
           availableUnits = totalUnits;
@@ -315,7 +337,7 @@ export async function getMonthlyCalendar(
         status,
         minNights: row?.min_nights ?? 1,
         note: row?.note ?? null,
-        reservedUnits,
+        reservedUnits: Math.max(0, totalUnits - availableUnits),
         availableUnits,
         totalUnits,
       };
