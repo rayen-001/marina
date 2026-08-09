@@ -7,6 +7,7 @@ import {
   CreditCard,
   Crown,
   FileText,
+  Globe,
   Home,
   Hotel,
   LogOut,
@@ -150,6 +151,15 @@ export function AdminLayout({
             {visibleNavItems.map((item) => (
               <AdminNavLink key={item.to} item={item} pathname={pathname} />
             ))}
+            <div className="pt-2">
+              <Link
+                to="/"
+                className="flex items-center gap-3 rounded-lg border border-accent/40 bg-accent/20 px-3 py-2.5 text-sm font-black text-accent-light transition hover:bg-accent/35 hover:text-white"
+              >
+                <Globe className="size-4" />
+                Retour au site Web
+              </Link>
+            </div>
           </nav>
           <div className="border-t border-white/10 p-4">
             <div className="rounded-xl border border-white/10 bg-white/8 p-4 text-xs leading-5 text-white/72 shadow-inner">
@@ -396,9 +406,10 @@ export function AdminLayout({
 
 function BrandBlock({ compact = false }: { compact?: boolean }) {
   return (
-    <div
+    <Link
+      to="/"
       className={cn(
-        "flex items-center gap-3 border-b border-white/10 p-5",
+        "flex items-center gap-3 border-b border-white/10 p-5 transition hover:opacity-90",
         compact && "border-b-0",
       )}
     >
@@ -413,7 +424,7 @@ function BrandBlock({ compact = false }: { compact?: boolean }) {
           Extranet hôtelier
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
