@@ -258,49 +258,13 @@ export async function getMonthlyCalendar(
 
     const rateRows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
 
-    // For dates that are "available" in room_rate_calendar, use get_available_units RPC
-    // (SECURITY DEFINER) to count actual reservations and detect partial availability.
-    // Batch all "available" dates as parallel requests.
-    const availableDatesInMonth = allDays.filter(date => {
-      const row = rateRows.find(r => r.date === date);
-      const s = normalizeAvailabilityStatus(row?.status ?? "available");
-      return s === "available";
-    });
-
-    // Call get_available_units for each available date in parallel
-    const availableByDate = new Map<string, number>();
-    if (availableDatesInMonth.length > 0 && totalUnits > 1) {
-      await Promise.all(
-        availableDatesInMonth.map(async (date) => {
-          try {
-            const nextDay = addDays(date, 1);
-            const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_available_units`, {
-              method: "POST",
-              headers: {
-                apikey: supabaseKey,
-                Authorization: `Bearer ${supabaseKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ room_type_id: uuid, check_in: date, check_out: nextDay }),
-            });
-            if (rpcRes.ok) {
-              const n = await rpcRes.json();
-              availableByDate.set(date, Number(n));
-            }
-          } catch {
-            // silently ignore per-date failures
-          }
-        }),
-      );
-    }
-
     const days: DayCalendarEntry[] = allDays.map((date) => {
-      const row = rateRows.find(r => r.date === date);
+      const row = rateRows.find((r) => r.date === date);
       const rawStatus = row?.status ?? "available";
       const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
 
-      // Also check local mock/fallback reservations matching this room
-      const localReservedCount = reservations.filter(r => {
+      // Check local mock/fallback reservations matching this room
+      const localReservedCount = reservations.filter((r) => {
         if (r.status === "cancelled" || r.status === "no_show") return false;
         const isMatch = r.roomId === roomTypeId || r.roomId === uuid || SLUG_TO_UUID[r.roomId] === uuid;
         if (!isMatch) return false;
@@ -316,28 +280,23 @@ export async function getMonthlyCalendar(
         normalizedStatus === "maintenance" ||
         normalizedStatus === "reserved"
       ) {
-        // Admin explicitly blocked this date
+        // Admin explicitly blocked this date (RED & unclickable)
         status = "not_available";
         availableUnits = 0;
-      } else if (normalizedStatus === "partially_reserved") {
-        // Admin explicitly marked as partially reserved
-        const availFromRpc = availableByDate.get(date) ?? totalUnits;
-        availableUnits = Math.max(0, Math.min(availFromRpc, totalUnits - localReservedCount, totalUnits - 1));
-        status = "partially_reserved";
-      } else {
-        // "available" in DB — use RPC + local reservations to detect partial/full reservation
-        const availFromRpc = availableByDate.get(date) ?? totalUnits;
-        const avail = Math.max(0, Math.min(availFromRpc, totalUnits - localReservedCount));
+      } else if (normalizedStatus === "partially_reserved" || localReservedCount > 0) {
+        // Partially reserved date (YELLOW & clickable)
+        const avail = Math.max(0, totalUnits - localReservedCount);
         if (avail <= 0) {
           status = "not_available";
           availableUnits = 0;
-        } else if (avail < totalUnits) {
-          status = "partially_reserved";
-          availableUnits = avail;
         } else {
-          status = "available";
-          availableUnits = totalUnits;
+          status = "partially_reserved";
+          availableUnits = Math.min(avail, totalUnits - 1);
         }
+      } else {
+        // Fully available date (GREEN & clickable)
+        status = "available";
+        availableUnits = totalUnits;
       }
 
       return {
