@@ -10,6 +10,7 @@ import {
   listAdminConversations,
   markConversationRead,
   sendMessage,
+  setActiveConversationId,
   subscribeToConversationMessages,
   updateConversationStatus,
   type ConversationMessage,
@@ -130,14 +131,20 @@ function AdminMessages() {
   useEffect(() => {
     if (!selectedConversationId) {
       setMessages([]);
+      setActiveConversationId(null);
       return;
     }
 
+    setActiveConversationId(selectedConversationId);
     if (selectedId !== selectedConversationId) setSelectedId(selectedConversationId);
     if (search.conversation !== selectedConversationId) {
       navigate({ to: "/admin/messages", search: { conversation: selectedConversationId } });
     }
     void loadMessages(selectedConversationId);
+
+    return () => {
+      setActiveConversationId(null);
+    };
   }, [loadMessages, navigate, search.conversation, selectedConversationId, selectedId]);
 
   useEffect(() => {

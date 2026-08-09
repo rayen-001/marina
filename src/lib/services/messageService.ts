@@ -326,11 +326,18 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   return mapMessage(data, current, receiver);
 }
 
+let activeConversationId: string | null = null;
+
+export function setActiveConversationId(id: string | null) {
+  activeConversationId = id;
+}
+
 export async function markConversationRead(
   conversationId: string,
   _readerRole?: MessageSenderType,
 ) {
   if (!conversationId) return;
+  activeConversationId = conversationId;
 
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
@@ -340,7 +347,7 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .eq("sender_id", conversationId)
+        .or(`sender_id.eq.${conversationId},receiver_id.eq.${conversationId}`)
         .eq("is_read", false);
 
       await supabase
@@ -351,7 +358,7 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .eq("receiver_id", current.id)
+        .or(`sender_id.eq.${current.id},receiver_id.eq.${current.id}`)
         .eq("is_read", false);
 
       await supabase
@@ -573,12 +580,13 @@ function makeConversationSummary({
 }): ConversationSummary {
   const now = new Date().toISOString();
   const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
-  const unreadAdminCount = messages.filter(
-    (message) => message.senderRole === "client" && !message.isRead,
-  ).length;
-  const unreadClientCount = messages.filter(
-    (message) => message.senderRole === "admin" && !message.isRead,
-  ).length;
+  const isActive = activeConversationId === id;
+  const unreadAdminCount = (isActive && perspective === "admin")
+    ? 0
+    : messages.filter((message) => message.senderRole === "client" && !message.isRead).length;
+  const unreadClientCount = (isActive && perspective === "client")
+    ? 0
+    : messages.filter((message) => message.senderRole === "admin" && !message.isRead).length;
 
   return {
     id,

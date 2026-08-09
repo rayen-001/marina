@@ -12,6 +12,7 @@ import {
   listClientConversations,
   markConversationRead,
   sendMessage,
+  setActiveConversationId,
   subscribeToConversationMessages,
   type ConversationMessage,
   type ConversationSummary,
@@ -126,14 +127,20 @@ function ClientMessages() {
   useEffect(() => {
     if (!selectedConversationId) {
       setMessages([]);
+      setActiveConversationId(null);
       return;
     }
 
+    setActiveConversationId(selectedConversationId);
     if (selectedId !== selectedConversationId) setSelectedId(selectedConversationId);
     if (search.conversation !== selectedConversationId) {
       navigate({ to: "/client/messages", search: { conversation: selectedConversationId } });
     }
     void loadMessages(selectedConversationId);
+
+    return () => {
+      setActiveConversationId(null);
+    };
   }, [loadMessages, navigate, search.conversation, selectedConversationId, selectedId]);
 
   useEffect(() => {
