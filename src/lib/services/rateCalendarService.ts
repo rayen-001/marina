@@ -482,6 +482,10 @@ export function calculateInventoryAvailabilityForDate({
   reservedUnits: number;
   occupiedSelectedUnitIds?: Set<string>;
 }) {
+  if (rate && isBlockingAvailabilityStatus(rate.availabilityStatus)) {
+    return 0;
+  }
+
   const mode = rate?.inventoryMode ?? "auto";
 
   if (mode === "closed") return 0;
@@ -504,7 +508,7 @@ export function hasInventoryOverride(rate?: RoomDateRate | null) {
     rate.inventoryMode !== "auto" ||
     rate.unitsAvailableOverride !== null ||
     rate.selectedUnitIds.length > 0 ||
-    isBlockingAvailabilityStatus(rate.availabilityStatus)
+    rate.availabilityStatus !== "available"
   );
 }
 

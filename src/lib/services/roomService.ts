@@ -172,8 +172,6 @@ async function getInventoryManagedAvailability(
   if (blockingBlock) return 0;
 
   const ratesByDate = new Map(dateRules.rates.map((rate) => [rate.date, rate]));
-  const hasManagedRate = stayDates.some((date) => hasInventoryOverride(ratesByDate.get(date)));
-  if (!hasManagedRate) return null;
 
   const reservationsResult = await fetchAvailabilityReservations(
     supabase,
@@ -184,8 +182,6 @@ async function getInventoryManagedAvailability(
   const reservations = reservationsResult.data;
   const reservedByDate = buildReservationCountByDate(reservations, checkIn, checkOut);
   const occupiedUnitsByDate = buildOccupiedUnitIdsByDate(reservations, checkIn, checkOut);
-
-
 
   return Math.min(
     ...stayDates.map((date) => {
