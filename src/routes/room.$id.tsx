@@ -1,8 +1,22 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { RoomDetailPage } from "@/components/room-detail-page";
 import { SiteHeader } from "@/components/site-header";
-import { getMonthlyCalendar } from "@/lib/services/rateCalendarService";
+import { getMonthlyCalendar, type MonthCalendar } from "@/lib/services/rateCalendarService";
 import { getRoomType } from "@/lib/services/roomService";
+
+async function loadCalendars(roomId: string, totalUnits: number, defaultPrice: number): Promise<MonthCalendar[]> {
+  const today = new Date();
+  const months = Array.from({ length: 3 }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth() + index, 1);
+    return { year: date.getFullYear(), month: date.getMonth() + 1 };
+  });
+  return Promise.all(
+    months.map(({ year, month }) =>
+      getMonthlyCalendar(roomId, year, month, totalUnits, defaultPrice),
+    ),
+  );
+}
 
 export const Route = createFileRoute("/room/$id")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -11,22 +25,15 @@ export const Route = createFileRoute("/room/$id")({
     adults: Number(search.adults) || 2,
     children: Number(search.children) || 0,
   }),
+  // staleTime: 0 ensures the loader always runs fresh — no cached stale availability
+  staleTime: 0,
   loader: async ({ params }) => {
     const room = await getRoomType(params.id);
     if (!room) throw notFound();
     const defaultPrice = room.pricePerNight;
     const totalUnits = room.totalUnits ?? 1;
-    const today = new Date();
-    const months = Array.from({ length: 3 }, (_, index) => {
-      const date = new Date(today.getFullYear(), today.getMonth() + index, 1);
-      return { year: date.getFullYear(), month: date.getMonth() + 1 };
-    });
-    const calendars = await Promise.all(
-      months.map(({ year, month }) =>
-        getMonthlyCalendar(room.id, year, month, totalUnits, defaultPrice),
-      ),
-    );
-    return { room, calendars };
+    const calendars = await loadCalendars(room.id, totalUnits, defaultPrice);
+    return { room, calendars, totalUnits, defaultPrice };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -60,8 +67,18 @@ export const Route = createFileRoute("/room/$id")({
 });
 
 function RoomRoute() {
-  const { room, calendars } = Route.useLoaderData();
+  const { room, calendars: initialCalendars, totalUnits, defaultPrice } = Route.useLoaderData();
   const incoming = Route.useSearch();
+  const [calendars, setCalendars] = useState(initialCalendars);
+
+  // Always reload calendars client-side on mount to get real-time availability
+  useEffect(() => {
+    let cancelled = false;
+    loadCalendars(room.id, totalUnits, defaultPrice).then((fresh) => {
+      if (!cancelled) setCalendars(fresh);
+    });
+    return () => { cancelled = true; };
+  }, [room.id, totalUnits, defaultPrice]);
 
   return (
     <div className="min-h-screen bg-background">
