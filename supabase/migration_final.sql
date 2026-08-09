@@ -170,14 +170,40 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION mark_conversation_read_rpc(
+  p_conversation_id uuid
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE messages
+  SET is_read = true
+  WHERE sender_id = p_conversation_id OR receiver_id = p_conversation_id;
+
+  UPDATE reservation_messages
+  SET is_read = true
+  WHERE conversation_id = p_conversation_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION mark_reservation_messages_read(
   p_conversation_id uuid,
   p_reader_type text
 )
 RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
 BEGIN
+  IF p_reader_type = 'admin' THEN
+    UPDATE reservation_messages SET is_read = true WHERE conversation_id = p_conversation_id AND sender_type = 'guest';
+  ELSE
+    UPDATE reservation_messages SET is_read = true WHERE conversation_id = p_conversation_id AND sender_type = 'admin';
+  END IF;
+END;
+$$;
   UPDATE reservation_messages SET is_read = true WHERE conversation_id = p_conversation_id AND sender_type != p_reader_type;
 END;
 $$;

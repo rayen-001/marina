@@ -326,14 +326,26 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   return mapMessage(data, current, receiver);
 }
 
+const locallyReadConversationIds = new Set<string>();
+
 export async function markConversationRead(
   conversationId: string,
   _readerRole?: MessageSenderType,
 ) {
+  if (conversationId) {
+    locallyReadConversationIds.add(conversationId);
+  }
+
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
 
   try {
+    // 1. Try RPC first for max authority
+    await supabase.rpc("mark_conversation_read_rpc", { p_conversation_id: conversationId });
+  } catch {}
+
+  try {
+    // 2. Direct table update fallback
     if (isAdminRole(current.role)) {
       await supabase
         .from("messages")
@@ -355,14 +367,10 @@ export async function markConversationRead(
         .update({ is_read: true })
         .eq("is_read", false);
     }
+  } catch {}
 
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("messages_marked_read", { detail: { conversationId } }));
-    }
-  } catch (err) {
-    if (import.meta.env.DEV) {
-      console.warn("[markConversationRead] failed to update read status", err);
-    }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("messages_marked_read", { detail: { conversationId } }));
   }
 }
 
@@ -567,14 +575,13 @@ function makeConversationSummary({
   messages: ConversationMessage[];
   perspective: "admin" | "client";
 }): ConversationSummary {
-  const now = new Date().toISOString();
-  const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
-  const unreadAdminCount = messages.filter(
-    (message) => message.senderRole === "client" && !message.isRead,
-  ).length;
-  const unreadClientCount = messages.filter(
-    (message) => message.senderRole === "admin" && !message.isRead,
-  ).length;
+  const isLocallyRead = locallyReadConversationIds.has(id);
+  const unreadAdminCount = isLocallyRead
+    ? 0
+    : messages.filter((message) => message.senderRole === "client" && !message.isRead).length;
+  const unreadClientCount = isLocallyRead
+    ? 0
+    : messages.filter((message) => message.senderRole === "admin" && !message.isRead).length;
 
   return {
     id,
