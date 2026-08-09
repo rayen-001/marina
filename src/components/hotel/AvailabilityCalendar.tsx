@@ -117,15 +117,24 @@ export function AvailabilityCalendar({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-3 text-xs font-medium">
-        {PUBLIC_STATUS_LEGEND_OPTIONS.map((option) => (
-          <span key={option.value} className="flex items-center gap-1.5">
-            <span
-              className={`inline-block h-3 w-3 rounded-sm border ${legendColor(option.value)}`}
-            />
-            {option.label}
-          </span>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-medium">
+        <div className="flex flex-wrap gap-3">
+          {PUBLIC_STATUS_LEGEND_OPTIONS.map((option) => (
+            <span key={option.value} className="flex items-center gap-1.5">
+              <span
+                className={`inline-block h-3 w-3 rounded-sm border ${legendColor(option.value)}`}
+              />
+              {option.label}
+            </span>
+          ))}
+        </div>
+        <div className="text-[11px] font-semibold text-muted-foreground">
+          {!selectedCheckIn
+            ? "① Cliquez sur la date d'arrivée"
+            : !selectedCheckOut
+              ? "② Cliquez sur la date de départ"
+              : "✓ Séjour sélectionné (cliquez à nouveau pour changer)"}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
