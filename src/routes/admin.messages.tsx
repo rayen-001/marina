@@ -48,10 +48,24 @@ function AdminMessages() {
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+  const [departmentFilter, setDepartmentFilter] = useState<"all" | "marina" | "capitainerie">("all");
+
+  const isCapitainerieSubject = (subject: string) =>
+    subject.toLowerCase().includes("port") ||
+    subject.toLowerCase().includes("capitainerie") ||
+    subject.toLowerCase().includes("amarrage") ||
+    subject.toLowerCase().includes("vhf") ||
+    subject.toLowerCase().includes("ponton");
+
   const filteredConversations = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return conversations.filter((conversation) => {
       if (statusFilter !== "all" && conversation.status !== statusFilter) return false;
+
+      const isPort = isCapitainerieSubject(conversation.subject);
+      if (departmentFilter === "marina" && isPort) return false;
+      if (departmentFilter === "capitainerie" && !isPort) return false;
+
       if (!needle) return true;
       return [
         conversation.clientName,
@@ -66,7 +80,7 @@ function AdminMessages() {
         .toLowerCase()
         .includes(needle);
     });
-  }, [conversations, query, statusFilter]);
+  }, [conversations, departmentFilter, query, statusFilter]);
 
   const selectedConversation = useMemo(
     () =>
@@ -240,6 +254,42 @@ function AdminMessages() {
                 className="admin-input pl-9"
               />
             </label>
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-secondary/60 p-1">
+              <button
+                type="button"
+                onClick={() => setDepartmentFilter("all")}
+                className={`rounded-md py-1 text-center text-xs font-bold transition ${
+                  departmentFilter === "all"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-primary"
+                }`}
+              >
+                Tous
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepartmentFilter("marina")}
+                className={`rounded-md py-1 text-center text-xs font-bold transition ${
+                  departmentFilter === "marina"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-primary"
+                }`}
+              >
+                🏢 Hôtel
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepartmentFilter("capitainerie")}
+                className={`rounded-md py-1 text-center text-xs font-bold transition ${
+                  departmentFilter === "capitainerie"
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-primary"
+                }`}
+              >
+                ⚓ Capitainerie
+              </button>
+            </div>
+
             <div className="grid grid-cols-3 gap-2">
               {(["open", "closed", "all"] as StatusFilter[]).map((value) => (
                 <button
@@ -252,7 +302,7 @@ function AdminMessages() {
                       : "border-border bg-card text-primary hover:border-accent"
                   }`}
                 >
-                  {value === "open" ? "Ouverts" : value === "closed" ? "Clos" : "Tous"}
+                  {value === "open" ? "Ouverts" : value === "closed" ? "Clos" : "Tous etats"}
                 </button>
               ))}
             </div>
@@ -269,41 +319,55 @@ function AdminMessages() {
             </div>
           ) : (
             <div className="max-h-[650px] overflow-y-auto p-2">
-              {filteredConversations.map((conversation) => (
-                <button
-                  key={conversation.id}
-                  type="button"
-                  onClick={() => openConversation(conversation.id)}
-                  className={`mb-2 w-full rounded-lg border p-3 text-left transition hover:border-accent ${
-                    selectedConversation?.id === conversation.id
-                      ? "border-primary bg-card"
-                      : "border-border bg-card/70"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate font-black text-primary">
-                        {conversation.clientName}
+              {filteredConversations.map((conversation) => {
+                const isPort = isCapitainerieSubject(conversation.subject);
+                return (
+                  <button
+                    key={conversation.id}
+                    type="button"
+                    onClick={() => openConversation(conversation.id)}
+                    className={`mb-2 w-full rounded-lg border p-3 text-left transition hover:border-accent ${
+                      selectedConversation?.id === conversation.id
+                        ? "border-primary bg-card shadow-sm"
+                        : "border-border bg-card/70"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1">
+                          <span
+                            className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+                              isPort
+                                ? "border-teal-300 bg-teal-50 text-teal-900"
+                                : "border-ocean/20 bg-ocean/10 text-ocean-dark"
+                            }`}
+                          >
+                            {isPort ? "⚓ Capitainerie" : "🏢 Réception Marina"}
+                          </span>
+                        </div>
+                        <div className="truncate font-black text-primary">
+                          {conversation.clientName}
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {conversation.reservationNumber ?? conversation.subject}
+                        </div>
                       </div>
-                      <div className="mt-1 truncate text-xs text-muted-foreground">
-                        {conversation.reservationNumber ?? conversation.subject}
-                      </div>
+                      {conversation.unreadAdminCount > 0 && (
+                        <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-black text-white">
+                          {conversation.unreadAdminCount}
+                        </span>
+                      )}
                     </div>
-                    {conversation.unreadAdminCount > 0 && (
-                      <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-black text-white">
-                        {conversation.unreadAdminCount}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                    {conversation.latestMessage?.body ?? "Aucun message envoyé."}
-                  </p>
-                  <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-muted-foreground">
-                    <span>{conversation.status}</span>
-                    <span>{formatChatTime(conversation.lastMessageAt)}</span>
-                  </div>
-                </button>
-              ))}
+                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                      {conversation.latestMessage?.body ?? "Aucun message envoyé."}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-muted-foreground">
+                      <span>{conversation.status}</span>
+                      <span>{formatChatTime(conversation.lastMessageAt)}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </aside>
