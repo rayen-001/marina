@@ -311,6 +311,10 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   const supabase = await requireMessagingSupabase();
   const receiver = await resolveReceiver(current, input.conversationId);
 
+  if (input.conversationId) markedAsReadConversationIds.delete(input.conversationId);
+  markedAsReadConversationIds.delete(current.id);
+  markedAsReadConversationIds.delete(receiver.id);
+
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -327,6 +331,7 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
 }
 
 let activeConversationId: string | null = null;
+const markedAsReadConversationIds = new Set<string>();
 
 export function setActiveConversationId(id: string | null) {
   activeConversationId = id;
@@ -338,6 +343,7 @@ export async function markConversationRead(
 ) {
   if (!conversationId) return;
   activeConversationId = conversationId;
+  markedAsReadConversationIds.add(conversationId);
 
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
@@ -425,9 +431,12 @@ export async function subscribeToConversationMessages(
   const channelName = `direct-messages-${Math.random().toString(36).slice(2, 9)}`;
   const channel = supabase
     .channel(channelName)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) =>
-      onEvent(payload as ConversationMessageRealtimeEvent),
-    )
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => {
+      const row = payload.new as { sender_id?: string; receiver_id?: string } | null;
+      if (row?.sender_id) markedAsReadConversationIds.delete(row.sender_id);
+      if (row?.receiver_id) markedAsReadConversationIds.delete(row.receiver_id);
+      onEvent(payload as ConversationMessageRealtimeEvent);
+    })
     .subscribe();
 
   return () => {
@@ -581,10 +590,11 @@ function makeConversationSummary({
   const now = new Date().toISOString();
   const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
   const isActive = activeConversationId === id;
-  const unreadAdminCount = (isActive && perspective === "admin")
+  const isMarkedRead = markedAsReadConversationIds.has(id);
+  const unreadAdminCount = ((isActive || isMarkedRead) && perspective === "admin")
     ? 0
     : messages.filter((message) => message.senderRole === "client" && !message.isRead).length;
-  const unreadClientCount = (isActive && perspective === "client")
+  const unreadClientCount = ((isActive || isMarkedRead) && perspective === "client")
     ? 0
     : messages.filter((message) => message.senderRole === "admin" && !message.isRead).length;
 
