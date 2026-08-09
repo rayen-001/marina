@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import logoUrl from "@/assets/marina-logo.png";
 import { getClientSessionProfile, signOutClient, type ClientProfile } from "@/lib/auth/clientAuth";
 import { getCurrentSessionProfile, getDefaultPathForRole } from "@/lib/auth/profilesAuth";
+import {
+  getUnreadClientConversationCount,
+  subscribeToConversationMessages,
+} from "@/lib/services/messageService";
 
 type Props = {
   children: React.ReactNode;
