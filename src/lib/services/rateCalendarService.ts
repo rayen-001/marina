@@ -263,47 +263,11 @@ export async function getMonthlyCalendar(
   const uuid = resolveRoomTypeUuid(roomTypeId);
   if (!uuid) return makeDefault();
 
-  // Use raw fetch so we bypass any Supabase client caching, type coercion, or init issues
-  const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
-    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL)
-    || "";
-  const supabaseKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON_KEY)
-    || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_ANON_KEY)
-    || "";
-
-  if (!supabaseUrl || !supabaseKey) return makeDefault();
-
   try {
     const endExclusive = addDays(endDate, 1);
-    const [rateRes, blockRes] = await Promise.all([
-      fetch(
-        `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`,
-        {
-          headers: {
-            apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
-            "Content-Type": "application/json",
-          },
-        },
-      ),
-      fetch(
-        `${supabaseUrl}/rest/v1/room_availability_blocks?select=start_date,end_date,status&room_type_id=eq.${uuid}&start_date=lt.${endExclusive}&end_date=gte.${startDate}`,
-        {
-          headers: {
-            apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
-            "Content-Type": "application/json",
-          },
-        },
-      ),
-    ]);
+    const supabase = await getSupabaseOrNull();
 
-    if (!rateRes.ok) {
-      console.error("[getMonthlyCalendar] fetch error", rateRes.status, await rateRes.text());
-      return makeDefault();
-    }
-
-    const rateRows: Array<{
+    let rateRows: Array<{
       date: string;
       status: string;
       price: number;
@@ -312,13 +276,64 @@ export async function getMonthlyCalendar(
       inventory_mode?: string | null;
       units_available_override?: number | null;
       selected_unit_ids?: string[] | null;
-    }> = await rateRes.json();
+    }> = [];
 
-    const blockRows: Array<{
+    let blockRows: Array<{
       start_date: string;
       end_date: string;
       status: string;
-    }> = blockRes.ok ? await blockRes.json() : [];
+    }> = [];
+
+    if (supabase) {
+      const [rateRes, blockRes] = await Promise.all([
+        supabase
+          .from("room_rate_calendar")
+          .select("date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids")
+          .eq("room_type_id", uuid)
+          .gte("date", startDate)
+          .lte("date", endDate)
+          .order("date"),
+        supabase
+          .from("room_availability_blocks")
+          .select("start_date,end_date,status")
+          .eq("room_type_id", uuid)
+          .lt("start_date", endExclusive)
+          .gte("end_date", startDate),
+      ]);
+
+      if (!rateRes.error && rateRes.data) {
+        rateRows = rateRes.data as typeof rateRows;
+      }
+      if (!blockRes.error && blockRes.data) {
+        blockRows = blockRes.data as typeof blockRows;
+      }
+    }
+
+    // Fallback to direct fetch if Supabase client failed or returned empty
+    if (rateRows.length === 0) {
+      const supabaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
+        || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_URL)
+        || "";
+      const supabaseKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON_KEY)
+        || (typeof process !== "undefined" && process.env?.VITE_SUPABASE_ANON_KEY)
+        || "";
+
+      if (supabaseUrl && supabaseKey) {
+        const fetchRes = await fetch(
+          `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        if (fetchRes.ok) {
+          rateRows = await fetchRes.json();
+        }
+      }
+    }
 
     const blockByDate = buildBlockByRoomDate(
       blockRows.map((b) => ({ ...b, room_type_id: uuid })),
