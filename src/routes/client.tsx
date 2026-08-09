@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { ClientLayout } from "@/components/client/ClientLayout";
 import { requireClientSession } from "@/lib/auth/clientAuth";
-import { ClientDashboard } from "./client.dashboard";
 
 const publicClientRoutes = new Set(["/client/login", "/client/register"]);
 
@@ -20,5 +19,9 @@ function ClientRoute() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   if (publicClientRoutes.has(pathname)) return <Outlet />;
 
-  return <ClientLayout>{pathname === "/client" ? <ClientDashboard /> : <Outlet />}</ClientLayout>;
+  return (
+    <ClientLayout>
+      <Outlet />
+    </ClientLayout>
+  );
 }

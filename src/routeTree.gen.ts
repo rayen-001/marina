@@ -20,6 +20,7 @@ import { Route as ClientRouteImport } from './routes/client'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActualitesRouteImport } from './routes/actualites'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as RoomIdRouteImport } from './routes/room.$id'
 import { Route as PropertyIdRouteImport } from './routes/property.$id'
 import { Route as PortDePlaisanceTarifsRouteImport } from './routes/port-de-plaisance.tarifs'
@@ -101,6 +102,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ClientIndexRoute = ClientIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ClientRoute,
 } as any)
 const RoomIdRoute = RoomIdRouteImport.update({
   id: '/room/$id',
@@ -273,12 +279,12 @@ export interface FileRoutesByFullPath {
   '/port-de-plaisance/tarifs': typeof PortDePlaisanceTarifsRoute
   '/property/$id': typeof PropertyIdRoute
   '/room/$id': typeof RoomIdRoute
+  '/client/': typeof ClientIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actualites': typeof ActualitesRoute
   '/admin': typeof AdminRouteWithChildren
-  '/client': typeof ClientRouteWithChildren
   '/confirmation': typeof ConfirmationRoute
   '/contact': typeof ContactRoute
   '/login': typeof LoginRoute
@@ -312,6 +318,7 @@ export interface FileRoutesByTo {
   '/port-de-plaisance/tarifs': typeof PortDePlaisanceTarifsRoute
   '/property/$id': typeof PropertyIdRoute
   '/room/$id': typeof RoomIdRoute
+  '/client': typeof ClientIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -352,6 +359,7 @@ export interface FileRoutesById {
   '/port-de-plaisance/tarifs': typeof PortDePlaisanceTarifsRoute
   '/property/$id': typeof PropertyIdRoute
   '/room/$id': typeof RoomIdRoute
+  '/client/': typeof ClientIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -393,12 +401,12 @@ export interface FileRouteTypes {
     | '/port-de-plaisance/tarifs'
     | '/property/$id'
     | '/room/$id'
+    | '/client/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/actualites'
     | '/admin'
-    | '/client'
     | '/confirmation'
     | '/contact'
     | '/login'
@@ -432,6 +440,7 @@ export interface FileRouteTypes {
     | '/port-de-plaisance/tarifs'
     | '/property/$id'
     | '/room/$id'
+    | '/client'
   id:
     | '__root__'
     | '/'
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/port-de-plaisance/tarifs'
     | '/property/$id'
     | '/room/$id'
+    | '/client/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -568,6 +578,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/client/': {
+      id: '/client/'
+      path: '/'
+      fullPath: '/client/'
+      preLoaderRoute: typeof ClientIndexRouteImport
+      parentRoute: typeof ClientRoute
     }
     '/room/$id': {
       id: '/room/$id'
@@ -795,6 +812,7 @@ interface ClientRouteChildren {
   ClientProfileRoute: typeof ClientProfileRoute
   ClientRegisterRoute: typeof ClientRegisterRoute
   ClientReservationsRoute: typeof ClientReservationsRoute
+  ClientIndexRoute: typeof ClientIndexRoute
 }
 
 const ClientRouteChildren: ClientRouteChildren = {
@@ -804,6 +822,7 @@ const ClientRouteChildren: ClientRouteChildren = {
   ClientProfileRoute: ClientProfileRoute,
   ClientRegisterRoute: ClientRegisterRoute,
   ClientReservationsRoute: ClientReservationsRoute,
+  ClientIndexRoute: ClientIndexRoute,
 }
 
 const ClientRouteWithChildren =
