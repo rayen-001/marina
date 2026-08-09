@@ -311,10 +311,6 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   const supabase = await requireMessagingSupabase();
   const receiver = await resolveReceiver(current, input.conversationId);
 
-  if (input.conversationId) locallyReadConversationIds.delete(input.conversationId);
-  locallyReadConversationIds.delete(current.id);
-  locallyReadConversationIds.delete(receiver.id);
-
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -330,31 +326,22 @@ export async function sendMessage(input: SendMessageInput): Promise<Conversation
   return mapMessage(data, current, receiver);
 }
 
-const locallyReadConversationIds = new Set<string>();
-
 export async function markConversationRead(
   conversationId: string,
   _readerRole?: MessageSenderType,
 ) {
-  if (conversationId) {
-    locallyReadConversationIds.add(conversationId);
-  }
+  if (!conversationId) return;
 
   const current = await requireCurrentProfile();
   const supabase = await requireMessagingSupabase();
 
   try {
-    // 1. Try RPC first for max authority
-    await supabase.rpc("mark_conversation_read_rpc", { p_conversation_id: conversationId });
-  } catch {}
-
-  try {
-    // 2. Direct table update fallback
     if (isAdminRole(current.role)) {
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .or(`sender_id.eq.${conversationId},receiver_id.eq.${conversationId}`);
+        .eq("sender_id", conversationId)
+        .eq("is_read", false);
 
       await supabase
         .from("reservation_messages")
@@ -364,17 +351,22 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .or(`sender_id.eq.${current.id},receiver_id.eq.${current.id}`);
+        .eq("receiver_id", current.id)
+        .eq("is_read", false);
 
       await supabase
         .from("reservation_messages")
         .update({ is_read: true })
         .eq("is_read", false);
     }
-  } catch {}
 
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("messages_marked_read", { detail: { conversationId } }));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("messages_marked_read", { detail: { conversationId } }));
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn("[markConversationRead] failed to update read status", err);
+    }
   }
 }
 
@@ -426,12 +418,9 @@ export async function subscribeToConversationMessages(
   const channelName = `direct-messages-${Math.random().toString(36).slice(2, 9)}`;
   const channel = supabase
     .channel(channelName)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => {
-      const row = payload.new as { sender_id?: string; receiver_id?: string } | null;
-      if (row?.sender_id) locallyReadConversationIds.delete(row.sender_id);
-      if (row?.receiver_id) locallyReadConversationIds.delete(row.receiver_id);
-      onEvent(payload as ConversationMessageRealtimeEvent);
-    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) =>
+      onEvent(payload as ConversationMessageRealtimeEvent),
+    )
     .subscribe();
 
   return () => {
@@ -584,13 +573,12 @@ function makeConversationSummary({
 }): ConversationSummary {
   const now = new Date().toISOString();
   const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
-  const isLocallyRead = locallyReadConversationIds.has(id);
-  const unreadAdminCount = isLocallyRead
-    ? 0
-    : messages.filter((message) => message.senderRole === "client" && !message.isRead).length;
-  const unreadClientCount = isLocallyRead
-    ? 0
-    : messages.filter((message) => message.senderRole === "admin" && !message.isRead).length;
+  const unreadAdminCount = messages.filter(
+    (message) => message.senderRole === "client" && !message.isRead,
+  ).length;
+  const unreadClientCount = messages.filter(
+    (message) => message.senderRole === "admin" && !message.isRead,
+  ).length;
 
   return {
     id,
