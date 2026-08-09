@@ -166,14 +166,15 @@ export async function createClientReservation(input: CreateClientReservationInpu
 
   let targetGuestId = user.id;
 
-  const { error: guestUpsertErr } = await supabase.from("guests").upsert({
-    id: user.id,
-    full_name: user.user_metadata?.full_name || user.email || "Client",
-    email: user.email,
-    phone: input.phone || null,
-    country: input.country || null,
-    identity_number: input.identityNumber || null,
-  });
+  const { error: guestUpsertErr } = await supabase.from("guests").upsert(
+    {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || user.email || "Client",
+      email: user.email,
+      phone: input.phone || null,
+    },
+    { onConflict: "id" },
+  );
 
   if (guestUpsertErr) {
     const { data: existingGuest } = await supabase
@@ -185,16 +186,19 @@ export async function createClientReservation(input: CreateClientReservationInpu
     if (existingGuest?.id) {
       targetGuestId = existingGuest.id;
     } else {
-      const newGuestId = crypto.randomUUID();
-      await supabase.from("guests").insert({
-        id: newGuestId,
-        full_name: user.user_metadata?.full_name || user.email || "Client",
-        email: user.email,
-        phone: input.phone || null,
-        country: input.country || null,
-        identity_number: input.identityNumber || null,
-      });
-      targetGuestId = newGuestId;
+      const { data: newGuest } = await supabase
+        .from("guests")
+        .insert({
+          full_name: user.user_metadata?.full_name || user.email || "Client",
+          email: user.email,
+          phone: input.phone || null,
+        })
+        .select("id")
+        .maybeSingle();
+
+      if (newGuest?.id) {
+        targetGuestId = newGuest.id;
+      }
     }
   }
 
