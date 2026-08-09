@@ -338,8 +338,7 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .eq("sender_id", conversationId)
-        .eq("is_read", false);
+        .or(`sender_id.eq.${conversationId},receiver_id.eq.${conversationId}`);
 
       await supabase
         .from("reservation_messages")
@@ -349,8 +348,7 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .eq("receiver_id", current.id)
-        .eq("is_read", false);
+        .or(`sender_id.eq.${current.id},receiver_id.eq.${current.id}`);
 
       await supabase
         .from("reservation_messages")
@@ -377,12 +375,12 @@ export async function updateConversationStatus(
 
 export async function getUnreadAdminConversationCount() {
   const conversations = await listAdminConversations();
-  return conversations.reduce((sum, conversation) => sum + conversation.unreadAdminCount, 0);
+  return conversations.filter((conversation) => conversation.unreadAdminCount > 0).length;
 }
 
 export async function getUnreadClientConversationCount() {
   const conversations = await listClientConversations();
-  return conversations.reduce((sum, conversation) => sum + conversation.unreadClientCount, 0);
+  return conversations.filter((conversation) => conversation.unreadClientCount > 0).length;
 }
 
 export async function findClientProfileForGuest(_guestId?: string | null, email?: string | null) {
