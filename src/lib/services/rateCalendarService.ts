@@ -1,4 +1,4 @@
-import { hotelSettings, rooms } from "@/data/hotel";
+import { hotelSettings, reservations, rooms } from "@/data/hotel";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type {
   RoomDateAvailabilityStatus,

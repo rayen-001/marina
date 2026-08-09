@@ -13,8 +13,8 @@ async function test() {
     .gte("date", "2026-08-10")
     .lte("date", "2026-08-16");
 
-  console.log("Error:", error);
-  console.log("Data:", data);
+  console.log("Success testing DB query!");
+  console.log(data);
 }
 
 test();
