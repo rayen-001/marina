@@ -178,10 +178,13 @@ export async function getMonthlyCalendar(
 
   try {
     const matchedRoom = rooms.find(
-      (r: { id: string; slug?: string }) => r.id === roomTypeId || r.slug === roomTypeId,
+      (r: { id: string; slug?: string; name?: string }) =>
+        r.id === roomTypeId || r.slug === roomTypeId || r.name === roomTypeId,
     );
     const roomIds = Array.from(
-      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
+      new Set(
+        [roomTypeId, matchedRoom?.id, matchedRoom?.slug, matchedRoom?.name].filter(Boolean) as string[],
+      ),
     );
 
     const [dateRates, blocksRes, resRes] = await Promise.all([
@@ -582,10 +585,13 @@ async function getLegacyRoomDateRates(
 
   try {
     const matchedRoom = rooms.find(
-      (r: { id: string; slug?: string }) => r.id === roomTypeId || r.slug === roomTypeId,
+      (r: { id: string; slug?: string; name?: string }) =>
+        r.id === roomTypeId || r.slug === roomTypeId || r.name === roomTypeId,
     );
     const roomIds = Array.from(
-      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
+      new Set(
+        [roomTypeId, matchedRoom?.id, matchedRoom?.slug, matchedRoom?.name].filter(Boolean) as string[],
+      ),
     );
 
     const { data, error } = await supabase

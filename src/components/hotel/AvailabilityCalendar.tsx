@@ -86,8 +86,20 @@ export function AvailabilityCalendar({
 }: AvailabilityCalendarProps) {
   const today = new Date().toISOString().slice(0, 10);
 
+  const dayMap = useMemo(
+    () => new Map(calendars.flatMap((c) => c.days.map((d) => [d.date, d.status]))),
+    [calendars],
+  );
+
   const handleDayClick = (date: string, status: DayAvailability) => {
-    if (isBlockingAvailabilityStatus(status)) return;
+    if (
+      isBlockingAvailabilityStatus(status) ||
+      status === "not_available" ||
+      status === "closed" ||
+      status === "maintenance"
+    ) {
+      return;
+    }
     if (date < today) return;
 
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
@@ -96,6 +108,29 @@ export function AvailabilityCalendar({
     } else if (date <= selectedCheckIn) {
       onSelectCheckIn?.(date);
     } else {
+      const cur = new Date(selectedCheckIn + "T12:00:00");
+      const end = new Date(date + "T12:00:00");
+      let hasBlocked = false;
+      while (cur < end) {
+        const dStr = cur.toISOString().slice(0, 10);
+        const s = dayMap.get(dStr);
+        if (
+          s &&
+          (isBlockingAvailabilityStatus(s) ||
+            s === "not_available" ||
+            s === "closed" ||
+            s === "maintenance")
+        ) {
+          hasBlocked = true;
+          break;
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      if (hasBlocked) {
+        return;
+      }
+
       onSelectCheckOut?.(date);
     }
   };
