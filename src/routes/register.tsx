@@ -3,7 +3,7 @@ import { UserPlus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import logoUrl from "@/assets/marina-logo.png";
-import { linkGuestReservationsToClient, registerClient } from "@/lib/auth/clientAuth";
+import { getClientSessionProfile, linkGuestReservationsToClient, registerClient } from "@/lib/auth/clientAuth";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 
 type RegisterSearch = {
@@ -170,9 +170,31 @@ function RegisterPage() {
           </div>
 
           {message && (
-            <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
-              {message}
-            </p>
+            <div className="mt-4 rounded-md border border-emerald-500/30 bg-emerald-50/80 p-4 text-sm font-medium text-emerald-900">
+              <p>{message}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const session = await getClientSessionProfile();
+                    if (session?.profile) {
+                      await linkGuestReservationsToClient();
+                      navigate({ to: (search.redirect ?? "/client") as never });
+                    } else {
+                      navigate({ to: "/login" as never });
+                    }
+                  } catch {
+                    navigate({ to: "/login" as never });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="mt-3 inline-flex h-9 items-center gap-2 rounded-md bg-emerald-700 px-4 text-xs font-bold text-white shadow hover:bg-emerald-800"
+              >
+                J'ai confirmé mon email — Se connecter
+              </button>
+            </div>
           )}
           {error && (
             <p className="mt-4 rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
