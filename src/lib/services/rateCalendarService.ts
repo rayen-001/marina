@@ -343,6 +343,7 @@ export async function getMonthlyCalendar(
         const fetchRes = await fetch(
           `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note,inventory_mode,units_available_override,selected_unit_ids&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`,
           {
+            cache: "no-store",
             headers: {
               apikey: supabaseKey,
               Authorization: `Bearer ${supabaseKey}`,
@@ -503,6 +504,7 @@ export async function getRoomDateRangeRules(
     const endDate = stayDates[stayDates.length - 1];
     const url = `${supabaseUrl}/rest/v1/room_rate_calendar?select=date,status,price,min_nights,note&room_type_id=eq.${uuid}&date=gte.${startDate}&date=lte.${endDate}&order=date`;
     const response = await fetch(url, {
+      cache: "no-store",
       headers: {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,

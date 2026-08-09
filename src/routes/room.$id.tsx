@@ -31,6 +31,7 @@ export const Route = createFileRoute("/room/$id")({
   }),
   // staleTime: 0 — never use cached loader data; always fetch fresh availability
   staleTime: 0,
+  gcTime: 0,
   loader: async ({ params }) => {
     const room = await getRoomType(params.id);
     if (!room) throw notFound();
