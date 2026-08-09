@@ -189,6 +189,26 @@ export function resolveAllRoomTypeIds(roomTypeId: string): string[] {
   );
 }
 
+function buildBlockByRoomDate(
+  blocks: Array<{ room_type_id: string; start_date: string; end_date: string; status: string }>,
+  startDate: string,
+  endDate: string,
+) {
+  const blockByDate = new Map<string, { room_type_id: string; start_date: string; end_date: string; status: string }>();
+  for (const block of blocks) {
+    const sDate = block.start_date > startDate ? block.start_date : startDate;
+    const eDate = block.end_date < endDate ? block.end_date : endDate;
+    const cur = new Date(`${sDate}T12:00:00`);
+    const end = new Date(`${eDate}T12:00:00`);
+    while (cur <= end) {
+      const d = cur.toISOString().slice(0, 10);
+      blockByDate.set(`${block.room_type_id}:${d}`, block);
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+  return blockByDate;
+}
+
 export async function getMonthlyCalendar(
   roomTypeId: string,
   year: number,
@@ -199,13 +219,14 @@ export async function getMonthlyCalendar(
   const allDays = getDaysInMonth(year, month);
   const startDate = allDays[0];
   const endDate = allDays[allDays.length - 1];
+  const basePrice = defaultPrice > 0 ? defaultPrice : 95;
 
   const makeDefault = (): MonthCalendar => ({
     year,
     month,
     days: allDays.map((date) => ({
       date,
-      price: defaultPrice,
+      price: basePrice,
       status: "available" as DayAvailability,
       minNights: 1,
       note: null,
@@ -332,9 +353,11 @@ export async function getMonthlyCalendar(
         availableUnits = totalUnits;
       }
 
+      const dayPrice = row && row.price > 0 ? Number(row.price) : basePrice;
+
       return {
         date,
-        price: row ? Number(row.price) : defaultPrice,
+        price: dayPrice,
         status,
         minNights: row?.min_nights ?? 1,
         note: row?.note ?? null,
