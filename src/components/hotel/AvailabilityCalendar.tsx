@@ -34,14 +34,14 @@ function isUnavailableStatus(status: DayAvailability): boolean {
 
 function statusColor(status: DayAvailability, selected: boolean, inRange: boolean): string {
   if (selected) return "bg-ocean text-white ring-2 ring-ocean/40 font-semibold";
-  if (inRange) return "bg-ocean/10 text-ocean-dark";
+  if (inRange) return "bg-ocean/10 text-ocean-dark font-medium";
   if (isUnavailableStatus(status)) {
-    return "bg-rose-100 text-rose-700 cursor-not-allowed opacity-80";
+    return "bg-rose-100 text-rose-700 border border-rose-200 cursor-not-allowed opacity-75 line-through";
   }
   if (status === "partially_reserved") {
-    return "bg-amber-100 text-amber-900 border border-amber-300 font-medium hover:bg-amber-200 cursor-pointer";
+    return "bg-amber-100 text-amber-900 border border-amber-300 font-medium hover:bg-amber-200 cursor-pointer shadow-xs";
   }
-  return "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 cursor-pointer";
+  return "bg-emerald-50 text-emerald-900 border border-emerald-200/60 hover:bg-emerald-100 cursor-pointer";
 }
 
 function legendColor(status: DayAvailability): string {
