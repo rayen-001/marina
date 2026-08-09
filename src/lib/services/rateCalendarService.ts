@@ -258,8 +258,6 @@ export async function getMonthlyCalendar(
 
     const rateRows: Array<{ date: string; status: string; price: number; min_nights: number | null; note: string | null }> = await response.json();
 
-    console.log(`[getMonthlyCalendar] uuid=${uuid} year=${year}/${month} rows=${rateRows.length}`, rateRows.filter(r => r.status !== "available").map(r => `${r.date}:${r.status}`));
-
     // Count reservations
     const endExclusive = addDays(endDate, 1);
     const supabase = await getSupabaseOrNull();
@@ -433,8 +431,6 @@ export async function getRoomDateRangeRules(
     const statusByDate = new Map(matchingRates.map(r => [r.date, r.availabilityStatus]));
     const minNights = Math.max(1, ...matchingRates.map(r => r.minNights));
     const blockingDates = matchingRates.filter(r => isBlockingAvailabilityStatus(r.availabilityStatus));
-
-    console.log(`[getRoomDateRangeRules] uuid=${uuid} ${checkIn}→${checkOut} blockingDates:`, blockingDates.map(r => `${r.date}:${r.availabilityStatus}`));
 
     return { rates: matchingRates, priceByDate, statusByDate, minNights, blockingDates };
   } catch (error) {
