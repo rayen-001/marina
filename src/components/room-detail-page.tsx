@@ -36,6 +36,7 @@ type Props = {
     children?: number;
   };
   calendars?: MonthCalendar[];
+  isLoadingCalendar?: boolean;
 };
 
 const today = new Date();
@@ -43,7 +44,7 @@ const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 const afterTomorrow = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
 const iso = (date: Date) => date.toISOString().slice(0, 10);
 
-export function RoomDetailPage({ room, incoming, calendars = [] }: Props) {
+export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalendar = false }: Props) {
   const navigate = useNavigate();
   const capacity = getRoomCapacity(room);
   const [checkIn, setCheckIn] = useState(incoming.checkIn ?? iso(tomorrow));
@@ -271,7 +272,7 @@ export function RoomDetailPage({ room, incoming, calendars = [] }: Props) {
               />
             </div>
 
-            {calendars.length > 0 && (
+            {(calendars.length > 0 || isLoadingCalendar) && (
               <div>
                 <h2 className="gold-rule text-2xl font-black text-primary">
                   Disponibilités &amp; Tarifs
@@ -286,6 +287,7 @@ export function RoomDetailPage({ room, incoming, calendars = [] }: Props) {
                 <div className="mt-5">
                   <AvailabilityCalendar
                     calendars={calendars}
+                    isLoading={isLoadingCalendar}
                     selectedCheckIn={checkIn}
                     selectedCheckOut={checkOut}
                     onSelectCheckIn={(d) => {

@@ -156,7 +156,6 @@ export async function getMonthlyCalendar(
   const allDays = getDaysInMonth(year, month);
   const startDate = allDays[0];
   const endDate = allDays[allDays.length - 1];
-  const endExclusive = addDays(endDate, 1);
 
   const makeDefault = (): MonthCalendar => ({
     year,
@@ -177,78 +176,94 @@ export async function getMonthlyCalendar(
   if (!supabase) return makeDefault();
 
   try {
+    // Resolve the exact UUID for this room type if we got a slug
     const matchedRoom = rooms.find(
-      (r: { id: string; slug?: string; name?: string }) =>
-        r.id === roomTypeId || r.slug === roomTypeId || r.name === roomTypeId,
+      (r: { id: string; slug?: string }) =>
+        r.id === roomTypeId || r.slug === roomTypeId,
     );
-    const roomIds = Array.from(
-      new Set(
-        [roomTypeId, matchedRoom?.id, matchedRoom?.slug, matchedRoom?.name].filter(Boolean) as string[],
-      ),
+    // Use only UUID + slug — never room name to avoid cross-room contamination
+    const exactIds = Array.from(
+      new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
     );
 
-    const [dateRates, blocksRes, resRes] = await Promise.all([
-      getRoomDateRates(roomTypeId, startDate, endDate),
-      supabase
-        .from("room_availability_blocks")
-        .select("start_date, end_date, status, reason")
-        .in("room_type_id", roomIds)
-        .lt("start_date", endExclusive)
-        .gte("end_date", startDate),
-      supabase
-        .from("reservations")
-        .select("check_in, check_out, status")
-        .in("room_type_id", roomIds)
-        .neq("status", "cancelled")
-        .lt("check_in", endExclusive)
-        .gt("check_out", startDate),
-    ]);
+    // Query only room_rate_calendar — the single source of truth set by admin
+    const { data: rateRows, error: rateError } = await supabase
+      .from("room_rate_calendar")
+      .select("date, status, price, min_nights, note")
+      .in("room_type_id", exactIds)
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("date");
 
-    const rateByDate = new Map(dateRates.map((rate) => [rate.date, rate]));
-    const blockedDates = buildBlockedDateMap(blocksRes.error ? [] : (blocksRes.data ?? []));
+    if (rateError) {
+      console.error("[getMonthlyCalendar] room_rate_calendar error", rateError);
+      return makeDefault();
+    }
+
+    // Build a date → row map from DB
+    const dbByDate = new Map<string, { status: string; price: number; min_nights: number; note: string | null }>();
+    for (const row of rateRows ?? []) {
+      dbByDate.set(row.date, {
+        status: row.status,
+        price: Number(row.price),
+        min_nights: row.min_nights ?? 1,
+        note: row.note ?? null,
+      });
+    }
+
+    // Count reservations only for partial booking detection
+    const endExclusive = addDays(endDate, 1);
+    const resRes = await supabase
+      .from("reservations")
+      .select("check_in, check_out, status")
+      .in("room_type_id", exactIds)
+      .neq("status", "cancelled")
+      .lt("check_in", endExclusive)
+      .gt("check_out", startDate);
+
     const reservationsByDate = buildReservationCountMap(resRes.error ? [] : (resRes.data ?? []));
 
     const days: DayCalendarEntry[] = allDays.map((date) => {
-      const rate = rateByDate.get(date);
-      const block = blockedDates.get(date);
+      const row = dbByDate.get(date);
       const reservedUnits = reservationsByDate.get(date) ?? 0;
-      const explicitStatus = rate?.availabilityStatus ?? "available";
 
-      let availableUnits = calculateInventoryAvailabilityForDate({
-        rate,
-        totalUnits,
-        reservedUnits,
-      });
+      // Status comes DIRECTLY from DB — admin is the single source of truth
+      const rawStatus = row?.status ?? "available";
+      const normalizedStatus = normalizeAvailabilityStatus(rawStatus);
 
-      let status: DayAvailability = explicitStatus;
-      if (block === "closed" || block === "not_available" || block === "maintenance") {
-        status = block;
-        availableUnits = 0;
-      }
+      let status: DayAvailability;
+      let availableUnits: number;
 
       if (
-        isBlockingAvailabilityStatus(status) ||
-        status === "not_available" ||
-        status === "closed" ||
-        status === "maintenance"
+        normalizedStatus === "not_available" ||
+        normalizedStatus === "closed" ||
+        normalizedStatus === "maintenance" ||
+        normalizedStatus === "reserved"
       ) {
+        // Admin explicitly marked as unavailable
         status = "not_available";
         availableUnits = 0;
-      } else if (availableUnits <= 0 && totalUnits > 0) {
-        status = "not_available";
-        availableUnits = 0;
-      } else if (availableUnits > 0 && availableUnits < totalUnits) {
-        status = "partially_reserved";
       } else {
-        status = "available";
+        // Available — check if partial reservations make it yellow
+        const remaining = totalUnits - reservedUnits;
+        if (remaining <= 0 && totalUnits > 0) {
+          status = "not_available";
+          availableUnits = 0;
+        } else if (reservedUnits > 0 && remaining > 0) {
+          status = "partially_reserved";
+          availableUnits = remaining;
+        } else {
+          status = "available";
+          availableUnits = totalUnits;
+        }
       }
 
       return {
         date,
-        price: rate?.price ?? defaultPrice,
+        price: row?.price ?? defaultPrice,
         status,
-        minNights: rate?.minNights ?? 1,
-        note: rate?.note ?? null,
+        minNights: row?.min_nights ?? 1,
+        note: row?.note ?? null,
         reservedUnits,
         availableUnits,
         totalUnits,
