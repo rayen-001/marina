@@ -185,18 +185,7 @@ async function getInventoryManagedAvailability(
   const reservedByDate = buildReservationCountByDate(reservations, checkIn, checkOut);
   const occupiedUnitsByDate = buildOccupiedUnitIdsByDate(reservations, checkIn, checkOut);
 
-  if (import.meta.env.DEV) {
-    console.info(
-      "[roomService] room_unit_id column available",
-      reservationsResult.roomUnitIdAvailable,
-    );
-    console.info("[roomService] reservations count", reservations.length);
-    if (reservationsResult.fallbackUsed) {
-      console.info(
-        "[roomService] fallback mode: reservations.room_unit_id missing, using room_type_id availability",
-      );
-    }
-  }
+
 
   return Math.min(
     ...stayDates.map((date) => {
