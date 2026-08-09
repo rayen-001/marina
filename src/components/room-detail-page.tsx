@@ -490,7 +490,7 @@ function DateField({
       </span>
       <input
         type="date"
-        value={value}
+        value={value ?? ""}
         onChange={(event) => onChange(event.target.value)}
         className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
       />
