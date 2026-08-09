@@ -19,7 +19,7 @@ export const Route = createFileRoute("/client/dashboard")({
   component: ClientDashboard,
 });
 
-function ClientDashboard() {
+export function ClientDashboard() {
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [reservations, setReservations] = useState<ClientReservation[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
