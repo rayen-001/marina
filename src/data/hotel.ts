@@ -382,7 +382,7 @@ export const reservations: Reservation[] = [
       "Tunisie",
       "TN223344",
     ),
-    checkIn: offset(7),
+    checkIn: offset(6),
     checkOut: offset(12),
     adults: 3,
     children: 0,

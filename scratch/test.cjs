@@ -11,9 +11,10 @@ async function test() {
     .select("date,status,price")
     .eq("room_type_id", uuid)
     .gte("date", "2026-08-10")
-    .lte("date", "2026-08-16");
+    .lte("date", "2026-08-21")
+    .order("date");
 
-  console.log("Success testing DB query!");
+  console.log("Status for 10-21:");
   console.log(data);
 }
 
