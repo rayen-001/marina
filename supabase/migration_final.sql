@@ -208,6 +208,7 @@ END;
 $$;
 
 -- 5. Row Level Security Policies
+ALTER TABLE guests                    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_date_prices         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_date_rates          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_availability_blocks ENABLE ROW LEVEL SECURITY;
@@ -225,6 +226,9 @@ DROP POLICY IF EXISTS "public_select" ON channel_room_mappings;
 DROP POLICY IF EXISTS "public_select" ON sync_logs;
 DROP POLICY IF EXISTS "public_select" ON reservation_conversations;
 DROP POLICY IF EXISTS "public_select" ON reservation_messages;
+
+DROP POLICY IF EXISTS "public_all_guests" ON guests;
+CREATE POLICY "public_all_guests" ON guests FOR ALL USING (true);
 
 CREATE POLICY "public_select" ON room_date_prices         FOR SELECT USING (true);
 CREATE POLICY "public_select" ON room_date_rates          FOR SELECT USING (true);

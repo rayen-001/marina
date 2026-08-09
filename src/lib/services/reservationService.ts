@@ -164,7 +164,9 @@ export async function createClientReservation(input: CreateClientReservationInpu
   const total = quote.breakdown.totalPrice || room.pricePerNight * nights;
   const deposit = Math.round(total * 0.3);
 
-  await supabase.from("guests").upsert({
+  let targetGuestId = user.id;
+
+  const { error: guestUpsertErr } = await supabase.from("guests").upsert({
     id: user.id,
     full_name: user.user_metadata?.full_name || user.email || "Client",
     email: user.email,
@@ -173,11 +175,34 @@ export async function createClientReservation(input: CreateClientReservationInpu
     identity_number: input.identityNumber || null,
   });
 
+  if (guestUpsertErr) {
+    const { data: existingGuest } = await supabase
+      .from("guests")
+      .select("id")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (existingGuest?.id) {
+      targetGuestId = existingGuest.id;
+    } else {
+      const newGuestId = crypto.randomUUID();
+      await supabase.from("guests").insert({
+        id: newGuestId,
+        full_name: user.user_metadata?.full_name || user.email || "Client",
+        email: user.email,
+        phone: input.phone || null,
+        country: input.country || null,
+        identity_number: input.identityNumber || null,
+      });
+      targetGuestId = newGuestId;
+    }
+  }
+
   const { error: insertError } = await supabase.from("reservations").insert({
     id: resId,
     reservation_number: resNum,
     room_type_id: input.roomId,
-    guest_id: user.id,
+    guest_id: targetGuestId,
     check_in: input.checkIn,
     check_out: input.checkOut,
     adults: input.adults,
