@@ -1,4 +1,5 @@
 import { hotelSettings } from "@/data/hotel";
+import { getRoomType } from "@/lib/services/roomService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type {
   RoomDateAvailabilityStatus,
@@ -259,11 +260,13 @@ export async function getRoomDateRates(
       getRoomDateRows("room_date_rates", roomTypeId, startDate, endDate),
     ]);
 
-    if (!priceRows && !rateRows) return legacyRows;
+    if ((!priceRows || priceRows.length === 0) && (!rateRows || rateRows.length === 0)) {
+      return legacyRows;
+    }
 
     const merged = new Map<string, RoomDateRate>();
-    for (const row of rateRows ?? []) merged.set(row.date, mapRoomDateRateFromDb(row));
     for (const row of priceRows ?? []) merged.set(row.date, mapRoomDateRateFromDb(row));
+    for (const row of rateRows ?? []) merged.set(row.date, mapRoomDateRateFromDb(row));
     for (const row of legacyRows) merged.set(row.date, row);
     return [...merged.values()].sort((a, b) => a.date.localeCompare(b.date));
   } catch (error) {
@@ -564,10 +567,13 @@ async function getLegacyRoomDateRates(
   if (!supabase) return [];
 
   try {
+    const room = await getRoomType(roomTypeId);
+    const roomIds = Array.from(new Set([roomTypeId, room?.id, room?.slug].filter(Boolean) as string[]));
+
     const { data, error } = await supabase
       .from("room_rate_calendar")
       .select("*")
-      .eq("room_type_id", roomTypeId)
+      .in("room_type_id", roomIds)
       .gte("date", startDate)
       .lte("date", endDate)
       .order("date");
