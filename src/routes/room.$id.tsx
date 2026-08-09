@@ -1,5 +1,4 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
 import { RoomDetailPage } from "@/components/room-detail-page";
 import { SiteHeader } from "@/components/site-header";
 import { getMonthlyCalendar, type MonthCalendar } from "@/lib/services/rateCalendarService";
@@ -72,31 +71,8 @@ export const Route = createFileRoute("/room/$id")({
 });
 
 function RoomRoute() {
-  const { room, calendars: initialCalendars, totalUnits, defaultPrice } = Route.useLoaderData();
+  const { room, calendars, totalUnits, defaultPrice } = Route.useLoaderData();
   const incoming = Route.useSearch();
-  const [calendars, setCalendars] = useState(initialCalendars);
-  // Show skeleton until the client-side fresh fetch completes — prevents stale green clicks
-  const [isLoadingCalendar, setIsLoadingCalendar] = useState(true);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    setIsLoadingCalendar(true);
-    loadCalendars(room.id, totalUnits, defaultPrice)
-      .then((fresh) => {
-        if (!mountedRef.current) return;
-        setCalendars(fresh);
-        setIsLoadingCalendar(false);
-      })
-      .catch(() => {
-        if (!mountedRef.current) return;
-        // On error keep the loader data but stop showing skeleton
-        setIsLoadingCalendar(false);
-      });
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [room.id, totalUnits, defaultPrice]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +81,7 @@ function RoomRoute() {
         room={room}
         incoming={incoming}
         calendars={calendars}
-        isLoadingCalendar={isLoadingCalendar}
+        isLoadingCalendar={false}
       />
     </div>
   );
