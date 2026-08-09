@@ -109,6 +109,11 @@ export function AdminLayout({
     };
 
     void refreshMessages();
+    const handleReadEvent = () => {
+      void refreshMessages();
+    };
+    window.addEventListener("messages_marked_read", handleReadEvent);
+
     void subscribeToConversationMessages(() => {
       void refreshMessages();
     }).then((unsubscribe) => {
@@ -117,6 +122,7 @@ export function AdminLayout({
 
     return () => {
       isMounted = false;
+      window.removeEventListener("messages_marked_read", handleReadEvent);
       cleanup?.();
     };
   }, []);

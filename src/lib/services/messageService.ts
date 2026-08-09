@@ -338,24 +338,29 @@ export async function markConversationRead(
       await supabase
         .from("messages")
         .update({ is_read: true })
-        .eq("sender_id", conversationId);
+        .eq("sender_id", conversationId)
+        .eq("is_read", false);
 
       await supabase
         .from("reservation_messages")
         .update({ is_read: true })
         .eq("is_read", false);
-      return;
+    } else {
+      await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("receiver_id", current.id)
+        .eq("is_read", false);
+
+      await supabase
+        .from("reservation_messages")
+        .update({ is_read: true })
+        .eq("is_read", false);
     }
 
-    await supabase
-      .from("messages")
-      .update({ is_read: true })
-      .eq("receiver_id", current.id);
-
-    await supabase
-      .from("reservation_messages")
-      .update({ is_read: true })
-      .eq("is_read", false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("messages_marked_read", { detail: { conversationId } }));
+    }
   } catch (err) {
     if (import.meta.env.DEV) {
       console.warn("[markConversationRead] failed to update read status", err);

@@ -44,6 +44,11 @@ export function ClientLayout({ children }: Props) {
     };
 
     void updateUnread();
+    const handleReadEvent = () => {
+      void updateUnread();
+    };
+    window.addEventListener("messages_marked_read", handleReadEvent);
+
     void subscribeToConversationMessages(() => {
       void updateUnread();
     })
@@ -55,6 +60,7 @@ export function ClientLayout({ children }: Props) {
 
     return () => {
       mounted = false;
+      window.removeEventListener("messages_marked_read", handleReadEvent);
       cleanupFn?.();
     };
   }, [pathname, profile]);
