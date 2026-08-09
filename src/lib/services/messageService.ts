@@ -575,6 +575,8 @@ function makeConversationSummary({
   messages: ConversationMessage[];
   perspective: "admin" | "client";
 }): ConversationSummary {
+  const now = new Date().toISOString();
+  const lastMessageAt = latestMessage?.createdAt ?? client.createdAt ?? now;
   const isLocallyRead = locallyReadConversationIds.has(id);
   const unreadAdminCount = isLocallyRead
     ? 0
