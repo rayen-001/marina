@@ -1,4 +1,4 @@
-import { hotelSettings } from "@/data/hotel";
+import { hotelSettings, rooms } from "@/data/hotel";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type {
   RoomDateAvailabilityStatus,
@@ -177,8 +177,8 @@ export async function getMonthlyCalendar(
   if (!supabase) return makeDefault();
 
   try {
-    const matchedRoom = hotelSettings.roomTypes.find(
-      (r) => r.id === roomTypeId || r.slug === roomTypeId,
+    const matchedRoom = rooms.find(
+      (r: { id: string; slug?: string }) => r.id === roomTypeId || r.slug === roomTypeId,
     );
     const roomIds = Array.from(
       new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
@@ -573,8 +573,8 @@ async function getLegacyRoomDateRates(
   if (!supabase) return [];
 
   try {
-    const matchedRoom = hotelSettings.roomTypes.find(
-      (r) => r.id === roomTypeId || r.slug === roomTypeId,
+    const matchedRoom = rooms.find(
+      (r: { id: string; slug?: string }) => r.id === roomTypeId || r.slug === roomTypeId,
     );
     const roomIds = Array.from(
       new Set([roomTypeId, matchedRoom?.id, matchedRoom?.slug].filter(Boolean) as string[]),
