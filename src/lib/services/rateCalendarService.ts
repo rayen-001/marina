@@ -538,20 +538,20 @@ async function getRoomDateRows(
   const supabase = await getSupabaseOrNull();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from(tableName)
-    .select("*")
-    .eq("room_id", roomTypeId)
-    .gte("date", startDate)
-    .lte("date", endDate)
-    .order("date");
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select("*")
+      .eq("room_id", roomTypeId)
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("date");
 
-  if (error) {
-    if (isMissingRelationError(error)) return null;
-    throw error;
+    if (error) return null;
+    return (data ?? []) as RoomDateRateRow[];
+  } catch {
+    return null;
   }
-
-  return (data ?? []) as RoomDateRateRow[];
 }
 
 function mapRoomDateRateFromDb(row: RoomDateRateRow): RoomDateRate {
