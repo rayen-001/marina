@@ -376,7 +376,7 @@ export async function getMonthlyCalendar(
 
       // If Supabase data is loaded, count real DB reservations for this date.
       // Otherwise, fallback to local mock reservations array for offline development.
-      const reservedCount = isUsingSupabase
+      const reservedCount = resRows.length > 0
         ? resRows.filter((r) => r.check_in <= date && date < r.check_out).length
         : reservations.filter((r) => {
             if (r.status === "cancelled" || r.status === "no_show" || r.status === "checked_out") return false;
