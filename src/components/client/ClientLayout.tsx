@@ -27,22 +27,33 @@ export function ClientLayout({ children }: Props) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
+    if (!profile) return;
+
     let mounted = true;
+    let cleanupFn: (() => void) | undefined;
+
     const updateUnread = async () => {
       try {
         const count = await getUnreadClientConversationCount();
         if (mounted) setUnreadCount(count);
       } catch {}
     };
+
     void updateUnread();
-    const unsubscribePromise = subscribeToConversationMessages(() => {
+    void subscribeToConversationMessages(() => {
       void updateUnread();
-    });
+    })
+      .then((fn) => {
+        if (mounted && fn) cleanupFn = fn;
+        else fn?.();
+      })
+      .catch(() => {});
+
     return () => {
       mounted = false;
-      unsubscribePromise.then((fn) => fn?.());
+      cleanupFn?.();
     };
-  }, [pathname]);
+  }, [pathname, profile]);
 
   useEffect(() => {
     let mounted = true;
