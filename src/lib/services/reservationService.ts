@@ -185,8 +185,6 @@ export async function createClientReservation(input: CreateClientReservationInpu
     nights: nights,
     status: "pending",
     price_per_night: room.pricePerNight,
-    room_price: quote.breakdown.roomPrice || room.pricePerNight * nights,
-    taxes_and_fees: quote.breakdown.taxes || 0,
     total: total,
     deposit: deposit,
     remaining_amount: total - deposit,
