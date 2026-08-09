@@ -356,9 +356,10 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 )}
 
                 {!quoteLoading && quote?.reason && (
-                  <p className="mt-3 rounded-lg bg-destructive/10 p-3 text-xs font-medium text-destructive">
-                    {quote.reason}
-                  </p>
+                  <div className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                    <Info className="mt-0.5 size-4 shrink-0" />
+                    <span>{quote.reason}</span>
+                  </div>
                 )}
 
                 <div className="mt-4">
@@ -377,10 +378,11 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                   type="button"
                   disabled={!canBook}
                   onClick={reserve}
-                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                  title={!canBook ? (quote?.reason ?? "Réservation indisponible pour ces dates") : "Réserver cet appartement"}
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-primary disabled:hover:shadow-none"
                 >
                   <CalendarCheck className="size-4" />
-                  Réserver cet appartement
+                  {!canBook && quote?.reason ? "Réservation indisponible" : "Réserver cet appartement"}
                 </button>
 
                 <a

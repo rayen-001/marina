@@ -83,26 +83,54 @@ function getUnbookableReason(
   availability: number,
   rules: DateRangeRules,
 ) {
-  if (breakdown.nights <= 0) return "Selectionnez des dates valides.";
+  if (breakdown.nights <= 0) return "Sélectionnez des dates valides.";
   if (rules.blockingDates.length > 0) {
-    const blocked = rules.blockingDates[0];
-    return `Indisponible le ${blocked.date} (${formatStatus(blocked.availabilityStatus)}).`;
+    return formatBlockedDatesMessage(rules.blockingDates);
   }
   if (breakdown.nights < rules.minNights) {
-    return `Sejour minimum de ${rules.minNights} nuit${rules.minNights > 1 ? "s" : ""} sur ces dates.`;
+    return `Séjour minimum de ${rules.minNights} nuit${rules.minNights > 1 ? "s" : ""} sur ces dates.`;
   }
-  if (availability <= 0) return "Aucune unite disponible pour ces dates.";
+  if (availability <= 0) return "Aucune unité disponible pour ces dates.";
   return null;
 }
 
-function formatStatus(status: string) {
-  const labels: Record<string, string> = {
-    available: "disponible",
-    partially_reserved: "partiellement reserve",
-    not_available: "indisponible",
-    reserved: "reserve",
-    maintenance: "maintenance",
-    closed: "ferme",
+function formatBlockedDatesMessage(
+  blockingDates: Array<{ date: string; availabilityStatus: string }>,
+): string {
+  if (blockingDates.length === 0) return "Dates indisponibles.";
+
+  const dates = blockingDates.map((b) => b.date).sort();
+  const formatDateFr = (isoStr: string) => {
+    const [y, m, d] = isoStr.split("-");
+    return `${d}/${m}/${y}`;
   };
-  return labels[status] ?? status;
+  const formatDateShortFr = (isoStr: string) => {
+    const [y, m, d] = isoStr.split("-");
+    return `${d}/${m}`;
+  };
+
+  if (dates.length === 1) {
+    return `La date du ${formatDateFr(dates[0])} est indisponible. Veuillez consulter le calendrier.`;
+  }
+
+  // Check if dates are consecutive
+  let isConsecutive = true;
+  for (let i = 0; i < dates.length - 1; i++) {
+    const current = new Date(`${dates[i]}T12:00:00`);
+    const next = new Date(`${dates[i + 1]}T12:00:00`);
+    const diff = (next.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
+    if (Math.round(diff) !== 1) {
+      isConsecutive = false;
+      break;
+    }
+  }
+
+  if (isConsecutive) {
+    const start = formatDateShortFr(dates[0]);
+    const end = formatDateFr(dates[dates.length - 1]);
+    return `Dates indisponibles du ${start} au ${end}. Veuillez consulter le calendrier.`;
+  }
+
+  const listStr = dates.map(formatDateShortFr).join(", ");
+  return `Dates indisponibles (${listStr}). Veuillez consulter le calendrier.`;
 }
