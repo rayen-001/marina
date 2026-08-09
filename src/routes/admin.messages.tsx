@@ -293,7 +293,7 @@ function AdminMessages() {
                         {conversation.clientName}
                       </div>
                       <div className="mt-1 truncate text-xs text-muted-foreground">
-                        {conversation.reservationNumber ?? conversation.subject}
+                        {conversation.clientEmail || conversation.reservationNumber || conversation.subject}
                       </div>
                     </div>
                     {conversation.unreadAdminCount > 0 && (
