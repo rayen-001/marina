@@ -399,11 +399,22 @@ export async function getMonthlyCalendar(
         availableUnits = Math.max(0, totalUnits - reservedCount);
       }
 
+      const hasPartialReservation = reservations.some((r) => {
+        if (r.status === "cancelled" || r.status === "no_show" || r.status === "checked_out") return false;
+        const isMatch = r.roomId === roomTypeId || r.roomId === uuid || SLUG_TO_UUID[r.roomId] === uuid;
+        if (!isMatch) return false;
+        return r.checkIn <= date && date < r.checkOut;
+      });
+
       let status: DayAvailability;
       if (isBlockingAvailabilityStatus(baseStatus) || availableUnits <= 0) {
         status = "not_available";
         availableUnits = 0;
-      } else if (baseStatus === "partially_reserved" || (totalUnits > 0 && availableUnits < totalUnits)) {
+      } else if (
+        baseStatus === "partially_reserved" ||
+        hasPartialReservation ||
+        (totalUnits > 0 && availableUnits < totalUnits)
+      ) {
         status = "partially_reserved";
       } else {
         status = "available";

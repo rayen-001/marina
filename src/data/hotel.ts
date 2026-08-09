@@ -683,7 +683,7 @@ function rangesOverlap(a: DateRange, b: DateRange) {
 }
 
 function buildReservationTotals(roomId: string, checkIn: string, checkOut: string): PriceBreakdown {
-  const room = rooms.find((item) => item.id === roomId || item.slug === roomId);
+  const room = rooms.find((item) => item.id === roomId);
   if (!room)
     return { nights: 0, roomPrice: 0, taxesAndFees: 0, deposit: 0, total: 0, remainingAmount: 0 };
   return calculateTotal(room, checkIn, checkOut);
