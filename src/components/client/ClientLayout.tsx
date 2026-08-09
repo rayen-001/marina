@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { CalendarCheck, Home, LogOut, Menu, MessageCircle, UserRound, X } from "lucide-react";
+import { CalendarCheck, Globe, Home, LogOut, Menu, MessageCircle, UserRound, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import logoUrl from "@/assets/marina-logo.png";
@@ -128,6 +128,15 @@ export function ClientLayout({ children }: Props) {
           {navItems.map((item) => (
             <ClientNavItem key={item.to} item={item} pathname={pathname} />
           ))}
+          <div className="pt-3">
+            <Link
+              to="/"
+              className="flex items-center gap-3 rounded-lg border border-accent/40 bg-accent/20 px-3 py-2.5 text-sm font-black text-accent-light transition hover:bg-accent/35 hover:text-white"
+            >
+              <Globe className="size-4" />
+              Retour au site Web
+            </Link>
+          </div>
         </nav>
         <div className="border-t border-white/10 p-4">
           <div className="mb-3 rounded-lg border border-white/10 bg-white/8 p-3">
@@ -137,7 +146,7 @@ export function ClientLayout({ children }: Props) {
           <button
             type="button"
             onClick={logout}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/15 bg-white/10 text-sm font-bold text-white"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/15 bg-white/10 text-sm font-bold text-white transition hover:bg-white/20"
           >
             <LogOut className="size-4" />
             Déconnexion
@@ -182,6 +191,16 @@ export function ClientLayout({ children }: Props) {
                   onClick={() => setMenuOpen(false)}
                 />
               ))}
+              <div className="pt-3">
+                <Link
+                  to="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg border border-accent/40 bg-accent/20 px-3 py-2.5 text-sm font-black text-accent-light transition hover:bg-accent/35 hover:text-white"
+                >
+                  <Globe className="size-4" />
+                  Retour au site Web
+                </Link>
+              </div>
             </nav>
             <div className="border-t border-white/10 p-4">
               <button
@@ -208,7 +227,7 @@ function ClientBrand({ compact = false }: { compact?: boolean }) {
   const titleClass = compact ? "text-primary" : "text-white";
 
   return (
-    <div className={`flex items-center gap-3 ${compact ? "" : "p-4"}`}>
+    <Link to="/" className={`flex items-center gap-3 transition hover:opacity-90 ${compact ? "" : "p-4"}`}>
       <img src={logoUrl} alt="Marina Cap Monastir" className="size-11 rounded-md object-cover" />
       <div className="min-w-0">
         <div className={`truncate font-black tracking-tight ${titleClass}`}>
@@ -218,7 +237,7 @@ function ClientBrand({ compact = false }: { compact?: boolean }) {
           Portail client
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
