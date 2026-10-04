@@ -23,14 +23,12 @@ import { CreateClientAccountButton } from "@/components/admin/CreateClientAccoun
 import { KpiCard, KpiCardSkeleton } from "@/components/admin/kpi-card";
 import { ReservationsTable } from "@/components/admin/reservations-table";
 import { StatusBadge } from "@/components/admin/status-badge";
-import {
-  formatCurrency,
-  type Guest,
-  type Invoice,
-  type Payment,
-  type Reservation,
-  type Room,
-} from "@/data/hotel";
+import type { Guest, Invoice, Payment, Reservation, Room } from "@/data/hotel";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { getChannelLabels } from "@/lib/i18n/labels";
+import { tr } from "@/lib/i18n/locale";
+import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
   getAvailableUnitsForDate,
   getTodayCheckIns,
@@ -331,21 +329,40 @@ function getErrorMessage(error: unknown) {
   const parts = [maybeError.message, maybeError.details, maybeError.hint, maybeError.code].filter(
     Boolean,
   );
-  return parts.length ? parts.join(" | ") : "Erreur inconnue";
+  return parts.length ? parts.join(" | ") : tr("Erreur inconnue", "Unknown error");
 }
 
 function formatModuleName(module: string) {
-  const labels: Record<string, string> = {
-    reservations: "Réservations",
-    rooms: "Chambres",
-    payments: "Paiements",
-    invoices: "Factures",
-    guests: "Clients",
-    alerts: "Alertes",
-    statistics: "Statistiques",
+  const labels: Record<string, { fr: string; en: string }> = {
+    reservations: { fr: "Réservations", en: "Bookings" },
+    rooms: { fr: "Chambres", en: "Rooms" },
+    payments: { fr: "Paiements", en: "Payments" },
+    invoices: { fr: "Factures", en: "Invoices" },
+    guests: { fr: "Clients", en: "Guests" },
+    alerts: { fr: "Alertes", en: "Alerts" },
+    statistics: { fr: "Statistiques", en: "Statistics" },
   };
-  return labels[module] ?? module;
+  const label = labels[module];
+  return label ? tr(label.fr, label.en) : module;
 }
+
+// Alert titles follow the alert type so they can be shown in either language
+// (descriptions are stored data and stay as written).
+const ALERT_TITLES: Record<string, { fr: string; en: string }> = {
+  payment_pending: { fr: "Paiement en attente", en: "Payment pending" },
+  arrival_today: { fr: "Arrivée aujourd'hui", en: "Arrival today" },
+  departure_today: { fr: "Départ aujourd'hui", en: "Departure today" },
+  overbooking_risk: { fr: "Risque de survente", en: "Overbooking risk" },
+  maintenance_room: { fr: "Chambre en maintenance", en: "Room under maintenance" },
+  channel_sync_error: { fr: "Erreur de synchronisation channel", en: "Channel sync error" },
+  invoice_not_generated: { fr: "Facture à générer", en: "Invoice to generate" },
+};
+
+const ALERT_SEVERITY: Record<string, { fr: string; en: string }> = {
+  critical: { fr: "critique", en: "critical" },
+  warning: { fr: "attention", en: "warning" },
+  info: { fr: "info", en: "info" },
+};
 
 // ── Route ──────────────────────────────────────────────────────────────────
 
@@ -358,8 +375,19 @@ export const Route = createFileRoute("/admin")({
   shouldReload: ({ location }) => location.pathname === "/admin",
   head: () => ({
     meta: [
-      { title: "Administration - Marina Cap Monastir" },
-      { name: "description", content: "Tableau de bord hôtelier Marina Cap Monastir." },
+      {
+        title: headT(
+          "Administration - Marina Cap Monastir",
+          "Administration - Marina Cap Monastir",
+        ),
+      },
+      {
+        name: "description",
+        content: headT(
+          "Tableau de bord hôtelier Marina Cap Monastir.",
+          "Marina Cap Monastir hotel dashboard.",
+        ),
+      },
     ],
   }),
   pendingComponent: AdminDashboardPending,
@@ -377,8 +405,12 @@ function AdminRoute() {
 // ── Dashboard ──────────────────────────────────────────────────────────────
 
 function AdminDashboardPending() {
+  const { t } = useI18n();
   return (
-    <AdminLayout title="Tableau de bord" description="Chargement des donnees...">
+    <AdminLayout
+      title={t("Tableau de bord", "Dashboard")}
+      description={t("Chargement des données...", "Loading data...")}
+    >
       <DashboardLoadingState />
       {import.meta.env.DEV && (
         <DebugPanel
@@ -396,6 +428,8 @@ function AdminDashboardPending() {
 function AdminDashboard() {
   const loaderData = Route.useLoaderData() as DashboardLoaderData | undefined;
   const router = useRouter();
+  const { t, pick, locale, formatCurrency } = useI18n();
+  const channelLabels = getChannelLabels(locale);
   const data = loaderData?.data ?? emptyDashboardData();
   const errors = loaderData?.errors ?? { ...emptyDashboardErrors };
   const failedModules = Object.entries(errors).filter(([, error]) => Boolean(error));
@@ -452,17 +486,22 @@ function AdminDashboard() {
       ({ room, available, ratio }) => room.status !== "active" || available <= 2 || ratio >= 70,
     )
     .slice(0, 5);
-  const hotelStatus = isSupabaseConfigured() ? "Supabase connecte" : "Mock local";
+  const hotelStatus = isSupabaseConfigured()
+    ? t("Supabase connecté", "Supabase connected")
+    : t("Mock local", "Local mock data");
 
   return (
     <AdminLayout
-      title="Tableau de bord"
-      description="Pilotage hotelier centralise: arrivees, departs, revenus, alertes et canaux."
+      title={t("Tableau de bord", "Dashboard")}
+      description={t(
+        "Pilotage hôtelier centralisé : arrivées, départs, revenus, alertes et canaux.",
+        "Central hotel management: arrivals, departures, revenue, alerts and channels.",
+      )}
       actions={
         <>
           <CreateClientAccountButton onCreated={() => router.invalidate()} />
           <Link to="/admin/statistics" className={adminButtonClasses("primary")}>
-            Voir statistiques
+            {t("Voir statistiques", "View statistics")}
           </Link>
         </>
       }
@@ -480,39 +519,39 @@ function AdminDashboard() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <KpiCard
-          label="Check-ins aujourd'hui"
+          label={t("Check-ins aujourd'hui", "Check-ins today")}
           value={String(arrivals.length)}
           detail={today}
-          trend={arrivals.length > 0 ? "A preparer" : "Calme"}
+          trend={arrivals.length > 0 ? t("À préparer", "To prepare") : t("Calme", "Quiet")}
           icon={CalendarCheck}
           tone="gold"
         />
         <KpiCard
-          label="Check-outs aujourd'hui"
+          label={t("Check-outs aujourd'hui", "Check-outs today")}
           value={String(departures.length)}
-          detail="Departs prevus"
-          trend={departures.length > 0 ? "A suivre" : "RAS"}
+          detail={t("Départs prévus", "Scheduled departures")}
+          trend={departures.length > 0 ? t("À suivre", "To follow") : t("RAS", "All clear")}
           icon={CalendarX}
           tone="turquoise"
         />
         <KpiCard
-          label="Taux d'occupation"
+          label={t("Taux d'occupation", "Occupancy rate")}
           value={`${occupancy}%`}
-          detail={`${bookedToday}/${totalUnits} unites`}
-          trend={occupancy >= 80 ? "Fort" : "Stable"}
+          detail={`${bookedToday}/${totalUnits} ${t("unités", "units")}`}
+          trend={occupancy >= 80 ? t("Fort", "High") : t("Stable", "Stable")}
           icon={Percent}
           tone={occupancy >= 80 ? "green" : "navy"}
         />
         <KpiCard
-          label="Chambres disponibles"
+          label={t("Chambres disponibles", "Rooms available")}
           value={String(availableToday)}
-          detail="Inventaire du jour"
-          trend={availableToday <= 2 ? "Faible" : "Disponible"}
+          detail={t("Inventaire du jour", "Today's inventory")}
+          trend={availableToday <= 2 ? t("Faible", "Low") : t("Disponible", "Available")}
           icon={BedDouble}
           tone={availableToday <= 2 ? "red" : "green"}
         />
         <KpiCard
-          label="Revenu mensuel"
+          label={t("Revenu mensuel", "Monthly revenue")}
           value={formatCurrency(monthlyStats.revenue)}
           detail={`ADR ${formatCurrency(monthlyStats.adr)}`}
           trend={`RevPAR ${formatCurrency(monthlyStats.revpar)}`}
@@ -520,10 +559,10 @@ function AdminDashboard() {
           tone="gold"
         />
         <KpiCard
-          label="Paiements en attente"
+          label={t("Paiements en attente", "Pending payments")}
           value={String(pendingPayments)}
           detail={formatCurrency(monthlyStats.unpaidAmount)}
-          trend={pendingPayments > 0 ? "Relance" : "A jour"}
+          trend={pendingPayments > 0 ? t("Relance", "Follow up") : t("À jour", "Up to date")}
           icon={ReceiptText}
           tone={pendingPayments > 0 ? "red" : "green"}
         />
@@ -531,10 +570,10 @@ function AdminDashboard() {
 
       <section className="mt-6">
         <SectionHeader
-          title="Reservations recentes"
+          title={t("Réservations récentes", "Recent bookings")}
           action={
             <Link to="/admin/reservations" className={adminButtonClasses("outline", "sm")}>
-              Voir tout
+              {t("Voir tout", "View all")}
             </Link>
           }
         />
@@ -542,18 +581,23 @@ function AdminDashboard() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <DashboardPanel title="Alertes operationnelles" icon={AlertTriangle}>
+        <DashboardPanel
+          title={t("Alertes opérationnelles", "Operational alerts")}
+          icon={AlertTriangle}
+        >
           {alerts.length === 0 ? (
             <DashboardEmptyState
-              title="Aucune alerte active"
-              text="Les operations du jour sont stables."
+              title={t("Aucune alerte active", "No active alerts")}
+              text={t("Les opérations du jour sont stables.", "Today's operations are stable.")}
             />
           ) : (
             <div className="space-y-3">
               {alerts.slice(0, 6).map((alert) => (
                 <div key={alert.id} className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-black text-primary">{alert.title}</span>
+                    <span className="font-black text-primary">
+                      {ALERT_TITLES[alert.type] ? pick(ALERT_TITLES[alert.type]) : alert.title}
+                    </span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-black ${
                         alert.severity === "critical"
@@ -563,7 +607,9 @@ function AdminDashboard() {
                             : "bg-sky-50 text-sky-800"
                       }`}
                     >
-                      {alert.severity}
+                      {ALERT_SEVERITY[alert.severity]
+                        ? pick(ALERT_SEVERITY[alert.severity])
+                        : alert.severity}
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -575,16 +621,23 @@ function AdminDashboard() {
           )}
         </DashboardPanel>
 
-        <DashboardPanel title="Performance mensuelle" icon={TrendingUp}>
+        <DashboardPanel title={t("Performance mensuelle", "Monthly performance")} icon={TrendingUp}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricTile label="Revenu" value={formatCurrency(monthlyStats.revenue)} />
+            <MetricTile
+              label={t("Revenu", "Revenue")}
+              value={formatCurrency(monthlyStats.revenue)}
+            />
             <MetricTile label="ADR" value={formatCurrency(monthlyStats.adr)} />
             <MetricTile label="RevPAR" value={formatCurrency(monthlyStats.revpar)} />
           </div>
           <div className="mt-5 space-y-4">
-            <ProgressLine label="Occupation" value={`${occupancy}%`} percent={occupancy} />
             <ProgressLine
-              label="Paiements encaisses"
+              label={t("Occupation", "Occupancy")}
+              value={`${occupancy}%`}
+              percent={occupancy}
+            />
+            <ProgressLine
+              label={t("Paiements encaissés", "Payments collected")}
               value={formatCurrency(monthlyStats.revenue - monthlyStats.unpaidAmount)}
               percent={
                 monthlyStats.revenue > 0
@@ -596,18 +649,21 @@ function AdminDashboard() {
           </div>
         </DashboardPanel>
 
-        <DashboardPanel title="Sources de reservation" icon={CreditCard}>
+        <DashboardPanel title={t("Sources de réservation", "Booking sources")} icon={CreditCard}>
           {revenueBySource.length === 0 ? (
             <DashboardEmptyState
-              title="Aucune source active"
-              text="Les revenus par canal apparaitront ici."
+              title={t("Aucune source active", "No active sources")}
+              text={t(
+                "Les revenus par canal apparaîtront ici.",
+                "Revenue by channel will appear here.",
+              )}
             />
           ) : (
             <div className="space-y-4">
               {revenueBySource.map((item) => (
                 <ProgressLine
                   key={item.source}
-                  label={item.label}
+                  label={channelLabels[item.source as keyof typeof channelLabels] ?? item.label}
                   value={formatCurrency(safeNumber(item.revenue))}
                   percent={(safeNumber(item.revenue) / maxRevenue) * 100}
                 />
@@ -616,11 +672,14 @@ function AdminDashboard() {
           )}
         </DashboardPanel>
 
-        <DashboardPanel title="Chambres a surveiller" icon={BedDouble}>
+        <DashboardPanel title={t("Chambres à surveiller", "Rooms to watch")} icon={BedDouble}>
           {roomsToWatch.length === 0 ? (
             <DashboardEmptyState
-              title="Aucune chambre critique"
-              text="Inventaire, maintenance et occupation sont sous controle."
+              title={t("Aucune chambre critique", "No critical rooms")}
+              text={t(
+                "Inventaire, maintenance et occupation sont sous contrôle.",
+                "Inventory, maintenance and occupancy are under control.",
+              )}
             />
           ) : (
             <div className="space-y-3">
@@ -628,14 +687,22 @@ function AdminDashboard() {
                 <div key={room.id} className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="font-black text-primary">{room.name}</div>
+                      <div className="font-black text-primary">
+                        {localizeRoomName(room, locale)}
+                      </div>
                       <div className="mt-1 text-xs font-semibold text-muted-foreground">
-                        {occupied}/{safeNumber(room.totalUnits)} occupees · {available} libres
+                        {occupied}/{safeNumber(room.totalUnits)} {t("occupées", "occupied")} ·{" "}
+                        {available} {t("libres", "free")}
                       </div>
                     </div>
                     <StatusBadge kind="room" value={room.status} />
                   </div>
-                  <ProgressLine label="Occupation" value={`${ratio}%`} percent={ratio} compact />
+                  <ProgressLine
+                    label={t("Occupation", "Occupancy")}
+                    value={`${ratio}%`}
+                    percent={ratio}
+                    compact
+                  />
                 </div>
               ))}
             </div>
@@ -645,19 +712,19 @@ function AdminDashboard() {
 
       <section className="mt-6 grid gap-6 xl:grid-cols-3">
         <ReceptionPanel
-          title="Arrivees aujourd'hui"
+          title={t("Arrivées aujourd'hui", "Arrivals today")}
           items={arrivals}
-          empty="Aucune arrivee confirmee."
+          empty={t("Aucune arrivée confirmée.", "No confirmed arrivals.")}
         />
         <ReceptionPanel
-          title="Departs aujourd'hui"
+          title={t("Départs aujourd'hui", "Departures today")}
           items={departures}
-          empty="Aucun depart en attente."
+          empty={t("Aucun départ en attente.", "No pending departures.")}
         />
         <ReceptionPanel
-          title="Clients presents"
+          title={t("Clients présents", "Guests in house")}
           items={currentGuests}
-          empty="Aucun client actuellement check-in."
+          empty={t("Aucun client actuellement check-in.", "No guests currently checked in.")}
         />
       </section>
 
@@ -685,8 +752,9 @@ function DashboardHero({
   occupancy: number;
   pendingPayments: number;
 }) {
+  const { t, locale } = useI18n();
   const date = new Date(`${today}T12:00:00`);
-  const formattedDate = new Intl.DateTimeFormat("fr-FR", {
+  const formattedDate = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
@@ -703,10 +771,15 @@ function DashboardHero({
             <Hotel className="size-4" />
             Marina Cap Monastir PMS
           </div>
-          <h2 className="mt-4 text-3xl font-black leading-tight md:text-4xl">Tableau de bord</h2>
+          <h2 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
+            {t("Tableau de bord", "Dashboard")}
+          </h2>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-white/78">
-            {formattedDate} · {hotelStatus} · Occupation {occupancy}% · {pendingPayments} paiement
-            {pendingPayments > 1 ? "s" : ""} en attente
+            {formattedDate} · {hotelStatus} · {t("Occupation", "Occupancy")} {occupancy}% ·{" "}
+            {t(
+              `${pendingPayments} paiement${pendingPayments > 1 ? "s" : ""} en attente`,
+              `${pendingPayments} pending payment${pendingPayments > 1 ? "s" : ""}`,
+            )}
           </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -717,7 +790,7 @@ function DashboardHero({
           </Link>
           <Link to="/admin/payments" className={adminButtonClasses("secondary", "md")}>
             <CreditCard className="size-4" />
-            Paiement
+            {t("Paiement", "Payment")}
           </Link>
           <Link to="/admin/channels" className={adminButtonClasses("secondary", "md")}>
             <RefreshCw className="size-4" />
@@ -736,12 +809,15 @@ function DashboardErrorCard({
   failedModules: Array<[string, string | null]>;
   onRetry: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
       <div className="flex flex-wrap items-start gap-3">
         <AlertTriangle className="mt-0.5 size-5 shrink-0" />
         <div className="min-w-0 flex-1">
-          <h2 className="font-black">Impossible de charger certaines données</h2>
+          <h2 className="font-black">
+            {t("Impossible de charger certaines données", "Some data could not be loaded")}
+          </h2>
           <ul className="mt-2 space-y-1">
             {failedModules.map(([module, error]) => (
               <li key={module} className="break-words">
@@ -757,7 +833,7 @@ function DashboardErrorCard({
           className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-400 bg-white/70 px-3 text-xs font-black transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
           <RefreshCw className="size-3.5" />
-          Réessayer
+          {t("Réessayer", "Try again")}
         </button>
       </div>
     </div>
@@ -946,16 +1022,20 @@ function ReceptionPanel({
   items: Reservation[];
   empty: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
       <h2 className="text-lg font-black text-primary">{title}</h2>
       <div className="mt-4 space-y-3">
         {items.length === 0 ? (
-          <DashboardEmptyState title={empty} text="Aucune action immediate a traiter." />
+          <DashboardEmptyState
+            title={empty}
+            text={t("Aucune action immédiate à traiter.", "Nothing to handle right now.")}
+          />
         ) : (
           items.map((reservation) => {
             const guest = reservation.guest ?? {
-              fullName: "Client",
+              fullName: t("Client", "Guest"),
               identityNumber: "-",
             };
 
@@ -971,12 +1051,12 @@ function ReceptionPanel({
                   </span>
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  {safeDateString(reservation.checkIn) || "-"} au{" "}
+                  {safeDateString(reservation.checkIn) || "-"} {t("au", "to")}{" "}
                   {safeDateString(reservation.checkOut) || "-"} · {guest.identityNumber}
                 </div>
                 {reservation.paymentStatus !== "paid" && (
                   <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
-                    Rappel paiement avant check-in
+                    {t("Rappel paiement avant check-in", "Payment reminder before check-in")}
                   </div>
                 )}
               </div>

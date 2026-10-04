@@ -1,12 +1,11 @@
+import type { ChannelSource, PaymentStatus, ReservationStatus, RoomStatus } from "@/data/hotel";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
-  channelLabels,
-  paymentStatusLabels,
-  reservationStatusLabels,
-  type ChannelSource,
-  type PaymentStatus,
-  type ReservationStatus,
-  type RoomStatus,
-} from "@/data/hotel";
+  getChannelLabels,
+  getPaymentStatusLabels,
+  getReservationStatusLabels,
+} from "@/lib/i18n/labels";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 type Props =
@@ -17,7 +16,8 @@ type Props =
   | { kind: "source"; value: ChannelSource };
 
 export function StatusBadge(props: Props) {
-  const label = getLabel(props);
+  const { locale } = useI18n();
+  const label = getLabel(props, locale);
   const tone = getTone(props);
 
   return (
@@ -46,18 +46,20 @@ export function StatusBadge(props: Props) {
   );
 }
 
-function getLabel(props: Props) {
-  if (props.kind === "reservation") return reservationStatusLabels[props.value];
-  if (props.kind === "payment") return paymentStatusLabels[props.value];
-  if (props.kind === "source") return channelLabels[props.value];
+function getLabel(props: Props, locale: Locale) {
+  const en = locale === "en";
+  if (props.kind === "reservation") return getReservationStatusLabels(locale)[props.value];
+  if (props.kind === "payment") return getPaymentStatusLabels(locale)[props.value];
+  if (props.kind === "source") return getChannelLabels(locale)[props.value];
   if (props.kind === "room") {
-    if (props.value === "active") return "Actif";
+    if (props.value === "active") return en ? "Active" : "Actif";
     if (props.value === "maintenance") return "Maintenance";
-    if (props.value === "occupied") return "Occupe";
-    if (props.value === "cleaning_required") return "Menage";
-    return "Inactif";
+    if (props.value === "occupied") return en ? "Occupied" : "Occupé";
+    if (props.value === "cleaning_required") return en ? "Cleaning" : "Ménage";
+    return en ? "Inactive" : "Inactif";
   }
-  return props.value === "connected" ? "Connecte" : "Non connecte";
+  if (props.value === "connected") return en ? "Connected" : "Connecté";
+  return en ? "Not connected" : "Non connecté";
 }
 
 function getTone(props: Props): "green" | "gold" | "red" | "blue" | "gray" {

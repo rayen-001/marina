@@ -30,6 +30,8 @@ import {
   signOutAdmin,
   type AdminProfile,
 } from "@/lib/auth/adminAuth";
+import { LanguageSwitch } from "@/components/language-switch";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import {
   getUnreadAdminConversationCount,
@@ -49,19 +51,23 @@ type Props = {
 };
 
 const navItems = [
-  { to: "/admin", label: "Tableau de bord", icon: Home },
-  { to: "/admin/rooms", label: "Chambres", icon: BedDouble },
-  { to: "/admin/reservations", label: "Réservations", icon: Table2 },
-  { to: "/admin/messages", label: "Messages clients", icon: MessageCircle },
-  { to: "/admin/clients", label: "Clients", icon: Users },
-  { to: "/admin/calendar", label: "Calendrier", icon: CalendarDays },
-  { to: "/admin/payments", label: "Paiements", icon: CreditCard },
-  { to: "/admin/invoices", label: "Factures", icon: FileText },
-  { to: "/admin/settings", label: "Paramètres", icon: Settings },
-  { to: "/admin/channels", label: "Channels", icon: Plug },
-  { to: "/admin/statistics", label: "Statistiques", icon: TrendingUp },
-  { to: "/admin/direction", label: "Direction", icon: Crown },
-  { to: "/admin/port-tarifs", label: "Tarifs Port", icon: Anchor },
+  { to: "/admin", label: { fr: "Tableau de bord", en: "Dashboard" }, icon: Home },
+  { to: "/admin/rooms", label: { fr: "Chambres", en: "Rooms" }, icon: BedDouble },
+  { to: "/admin/reservations", label: { fr: "Réservations", en: "Bookings" }, icon: Table2 },
+  {
+    to: "/admin/messages",
+    label: { fr: "Messages clients", en: "Guest messages" },
+    icon: MessageCircle,
+  },
+  { to: "/admin/clients", label: { fr: "Clients", en: "Guests" }, icon: Users },
+  { to: "/admin/calendar", label: { fr: "Calendrier", en: "Calendar" }, icon: CalendarDays },
+  { to: "/admin/payments", label: { fr: "Paiements", en: "Payments" }, icon: CreditCard },
+  { to: "/admin/invoices", label: { fr: "Factures", en: "Invoices" }, icon: FileText },
+  { to: "/admin/settings", label: { fr: "Paramètres", en: "Settings" }, icon: Settings },
+  { to: "/admin/channels", label: { fr: "Channels", en: "Channels" }, icon: Plug },
+  { to: "/admin/statistics", label: { fr: "Statistiques", en: "Statistics" }, icon: TrendingUp },
+  { to: "/admin/direction", label: { fr: "Direction", en: "Management" }, icon: Crown },
+  { to: "/admin/port-tarifs", label: { fr: "Tarifs Port", en: "Marina rates" }, icon: Anchor },
 ] as const;
 
 export function AdminLayout({
@@ -73,6 +79,7 @@ export function AdminLayout({
 }: Props) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
+  const { t, pick } = useI18n();
   const [admin, setAdmin] = useState<AdminProfile | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -157,14 +164,21 @@ export function AdminLayout({
                 className="flex items-center gap-3 rounded-lg border border-accent/40 bg-accent/20 px-3 py-2.5 text-sm font-black text-accent-light transition hover:bg-accent/35 hover:text-white"
               >
                 <Globe className="size-4" />
-                Retour au site Web
+                {t("Retour au site Web", "Back to the website")}
               </Link>
             </div>
           </nav>
           <div className="border-t border-white/10 p-4">
             <div className="rounded-xl border border-white/10 bg-white/8 p-4 text-xs leading-5 text-white/72 shadow-inner">
-              <div className="font-semibold text-white">Session sécurisée</div>
-              <p className="mt-1">Supabase Auth, rôles admin et politiques RLS restent actifs.</p>
+              <div className="font-semibold text-white">
+                {t("Session sécurisée", "Secure session")}
+              </div>
+              <p className="mt-1">
+                {t(
+                  "Supabase Auth, rôles admin et politiques RLS restent actifs.",
+                  "Supabase Auth, admin roles and RLS policies stay active.",
+                )}
+              </p>
             </div>
           </div>
         </div>
@@ -179,14 +193,14 @@ export function AdminLayout({
                   type="button"
                   onClick={() => setDrawerOpen(true)}
                   className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-card text-primary shadow-sm transition hover:border-accent hover:bg-accent/10 lg:hidden"
-                  aria-label="Ouvrir le menu admin"
+                  aria-label={t("Ouvrir le menu admin", "Open the admin menu")}
                 >
                   <Menu className="size-5" />
                 </button>
                 <div>
                   <div className="section-kicker">
                     <Hotel className="size-4" />
-                    Administration
+                    {t("Administration", "Administration")}
                   </div>
                   <h1 className="mt-2 text-2xl font-black leading-tight text-primary md:text-3xl">
                     {title}
@@ -205,7 +219,10 @@ export function AdminLayout({
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="search"
-                  placeholder="Rechercher client, chambre, facture..."
+                  placeholder={t(
+                    "Rechercher client, chambre, facture...",
+                    "Search guest, room, invoice...",
+                  )}
                   className="admin-input h-11 rounded-xl border-primary/10 bg-card/90 pl-9 shadow-sm"
                 />
               </label>
@@ -214,6 +231,7 @@ export function AdminLayout({
                   <AdminNewReservationButton variant="secondary" onCreated={onReservationCreated} />
                 )}
                 {actions}
+                <LanguageSwitch className="h-11 rounded-xl" />
                 <div className="relative hidden md:block">
                   <button
                     type="button"
@@ -235,7 +253,9 @@ export function AdminLayout({
                   {notificationsOpen && (
                     <div className="absolute right-0 top-12 z-40 w-80 rounded-xl border border-border bg-card p-3 shadow-[var(--shadow-lift)]">
                       <div className="mb-2 flex items-center justify-between">
-                        <div className="text-sm font-black text-primary">Notifications</div>
+                        <div className="text-sm font-black text-primary">
+                          {t("Notifications", "Notifications")}
+                        </div>
                         <div className="rounded-full bg-accent/15 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-primary">
                           Live
                         </div>
@@ -243,7 +263,7 @@ export function AdminLayout({
                       <div className="space-y-2">
                         {latestConversations.length === 0 ? (
                           <div className="rounded-lg border border-dashed border-border bg-background p-3 text-center text-xs text-muted-foreground">
-                            Aucune notification pour le moment.
+                            {t("Aucune notification pour le moment.", "No notifications yet.")}
                           </div>
                         ) : (
                           latestConversations.map((item) => (
@@ -263,7 +283,8 @@ export function AdminLayout({
                                 )}
                               </div>
                               <div className="mt-1 line-clamp-2 leading-5 text-muted-foreground">
-                                {item.latestMessage?.body ?? "Conversation client"}
+                                {item.latestMessage?.body ??
+                                  t("Conversation client", "Guest conversation")}
                               </div>
                             </Link>
                           ))
@@ -290,7 +311,7 @@ export function AdminLayout({
                         {admin?.name ?? "Admin"}
                       </span>
                       <span className="block max-w-28 truncate text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                        {admin?.role ?? "chargement"}
+                        {admin?.role ?? t("chargement", "loading")}
                       </span>
                     </span>
                     <ChevronDown className="size-4 text-muted-foreground" />
@@ -300,7 +321,7 @@ export function AdminLayout({
                       <div className="rounded-lg bg-secondary p-3">
                         <div className="font-black text-primary">{admin?.name ?? "Admin"}</div>
                         <div className="mt-1 text-xs font-medium text-muted-foreground">
-                          {admin?.role ?? "chargement"} | Marina Cap Monastir
+                          {admin?.role ?? t("chargement", "loading")} | Marina Cap Monastir
                         </div>
                       </div>
                       <button
@@ -309,7 +330,7 @@ export function AdminLayout({
                         className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-card text-sm font-bold text-primary transition hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
                       >
                         <LogOut className="size-4" />
-                        Deconnexion
+                        {t("Déconnexion", "Sign out")}
                       </button>
                     </div>
                   )}
@@ -318,7 +339,8 @@ export function AdminLayout({
                   type="button"
                   onClick={logout}
                   className="hidden size-11 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm transition hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive md:inline-flex"
-                  title="Déconnexion admin"
+                  title={t("Déconnexion admin", "Admin sign-out")}
+                  aria-label={t("Déconnexion admin", "Admin sign-out")}
                 >
                   <LogOut className="size-4" />
                 </button>
@@ -344,7 +366,7 @@ export function AdminLayout({
                 )}
               >
                 <Icon className="size-4" />
-                <span className="max-w-full truncate">{item.label.split(" ")[0]}</span>
+                <span className="max-w-full truncate">{pick(item.label).split(" ")[0]}</span>
               </Link>
             );
           })}
@@ -354,7 +376,7 @@ export function AdminLayout({
             className="flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[10px] font-bold text-muted-foreground transition hover:bg-secondary hover:text-primary"
           >
             <Menu className="size-4" />
-            Menu
+            {t("Menu", "Menu")}
           </button>
         </nav>
       </div>
@@ -364,7 +386,7 @@ export function AdminLayout({
           <button
             type="button"
             className="absolute inset-0 bg-ocean/65 backdrop-blur-sm"
-            aria-label="Fermer le menu admin"
+            aria-label={t("Fermer le menu admin", "Close the admin menu")}
             onClick={() => setDrawerOpen(false)}
           />
           <div className="relative h-full w-[min(22rem,88vw)] overflow-hidden bg-ocean text-white shadow-2xl">
@@ -377,7 +399,7 @@ export function AdminLayout({
                   type="button"
                   onClick={() => setDrawerOpen(false)}
                   className="mr-4 inline-flex size-10 items-center justify-center rounded-md border border-white/15 bg-white/10 text-white"
-                  aria-label="Fermer le menu admin"
+                  aria-label={t("Fermer le menu admin", "Close the admin menu")}
                 >
                   <X className="size-5" />
                 </button>
@@ -394,7 +416,7 @@ export function AdminLayout({
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-white/15 bg-white/10 text-sm font-bold text-white"
                 >
                   <LogOut className="size-4" />
-                  Déconnexion
+                  {t("Déconnexion", "Sign out")}
                 </button>
               </div>
             </div>
@@ -406,6 +428,7 @@ export function AdminLayout({
 }
 
 function BrandBlock({ compact = false }: { compact?: boolean }) {
+  const { t } = useI18n();
   return (
     <Link
       to="/"
@@ -422,7 +445,7 @@ function BrandBlock({ compact = false }: { compact?: boolean }) {
       <div className="min-w-0">
         <div className="truncate font-black tracking-tight text-white">Marina Cap Monastir</div>
         <div className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">
-          Extranet hôtelier
+          {t("Extranet hôtelier", "Hotel extranet")}
         </div>
       </div>
     </Link>
@@ -430,6 +453,7 @@ function BrandBlock({ compact = false }: { compact?: boolean }) {
 }
 
 function AdminNavLink({ item, pathname }: { item: (typeof navItems)[number]; pathname: string }) {
+  const { pick } = useI18n();
   const Icon = item.icon;
   const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
 
@@ -450,7 +474,7 @@ function AdminNavLink({ item, pathname }: { item: (typeof navItems)[number]; pat
       >
         <Icon className="size-4" />
       </span>
-      <span className="min-w-0 truncate">{item.label}</span>
+      <span className="min-w-0 truncate">{pick(item.label)}</span>
     </Link>
   );
 }
