@@ -2,6 +2,10 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { RoomDetailPage } from "@/components/room-detail-page";
 import { SiteHeader } from "@/components/site-header";
 import { getMonthlyCalendar, type MonthCalendar } from "@/lib/services/rateCalendarService";
+import { getRequestLocale } from "@/lib/i18n/get-request-locale";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { localizeRoom } from "@/lib/i18n/rooms";
 import { getRoomType } from "@/lib/services/roomService";
 
 async function loadCalendars(
@@ -39,36 +43,51 @@ export const Route = createFileRoute("/room/$id")({
     const calendars = await loadCalendars(room.id, totalUnits, defaultPrice);
     return { room, calendars, totalUnits, defaultPrice };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData
-          ? `${loaderData.room.name} - Marina Cap Monastir`
-          : "Appartement - Marina Cap Monastir",
-      },
-      {
-        name: "description",
-        content: loaderData?.room.description ?? "Détail appartement Marina Cap Monastir.",
-      },
-    ],
-  }),
-  notFoundComponent: () => (
+  head: ({ loaderData }) => {
+    const room = loaderData ? localizeRoom(loaderData.room, getRequestLocale()) : null;
+    return {
+      meta: [
+        {
+          title: room
+            ? `${room.name} - Marina Cap Monastir`
+            : headT("Appartement - Marina Cap Monastir", "Apartment - Marina Cap Monastir"),
+        },
+        {
+          name: "description",
+          content:
+            room?.description ??
+            headT(
+              "Détail appartement Marina Cap Monastir.",
+              "Marina Cap Monastir apartment details.",
+            ),
+        },
+      ],
+    };
+  },
+  notFoundComponent: RoomNotFound,
+  component: RoomRoute,
+});
+
+function RoomNotFound() {
+  const { t } = useI18n();
+  return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-bold text-primary">Appartement introuvable</h1>
+        <h1 className="text-3xl font-bold text-primary">
+          {t("Appartement introuvable", "Apartment not found")}
+        </h1>
         <Link
           to="/search"
           search={{ adults: 2, children: 0, roomType: "Tous" }}
           className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
         >
-          Voir les appartements
+          {t("Voir les appartements", "See the apartments")}
         </Link>
       </div>
     </div>
-  ),
-  component: RoomRoute,
-});
+  );
+}
 
 function RoomRoute() {
   const { room, calendars, totalUnits, defaultPrice } = Route.useLoaderData();

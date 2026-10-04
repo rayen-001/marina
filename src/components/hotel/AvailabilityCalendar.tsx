@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
   isBlockingAvailabilityStatus,
   type DayAvailability,
@@ -14,12 +15,21 @@ interface AvailabilityCalendarProps {
   onSelectCheckOut?: (date: string) => void;
 }
 
-const MONTH_NAMES_FR = [
-  "Janvier","Février","Mars","Avril","Mai","Juin",
-  "Juillet","Août","Septembre","Octobre","Novembre","Décembre",
-];
+const MONTH_NAMES = {
+  fr: [
+    "Janvier","Février","Mars","Avril","Mai","Juin",
+    "Juillet","Août","Septembre","Octobre","Novembre","Décembre",
+  ],
+  en: [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
+  ],
+};
 
-const DAY_NAMES = ["L", "M", "M", "J", "V", "S", "D"];
+const DAY_NAMES = {
+  fr: ["L", "M", "M", "J", "V", "S", "D"],
+  en: ["M", "T", "W", "T", "F", "S", "S"],
+};
 
 /** Whether a day is fully blocked (red, unclickable) */
 function isUnavailableStatus(status: DayAvailability): boolean {
@@ -56,12 +66,16 @@ function getDayOfWeekMonday(dateStr: string): number {
 }
 
 const LEGEND = [
-  { value: "available" as DayAvailability, label: "Disponible" },
-  { value: "partially_reserved" as DayAvailability, label: "Partiellement réservé" },
-  { value: "not_available" as DayAvailability, label: "Indisponible" },
+  { value: "available" as DayAvailability, label: { fr: "Disponible", en: "Available" } },
+  {
+    value: "partially_reserved" as DayAvailability,
+    label: { fr: "Partiellement réservé", en: "Partly booked" },
+  },
+  { value: "not_available" as DayAvailability, label: { fr: "Indisponible", en: "Unavailable" } },
 ];
 
 function CalendarSkeleton({ monthLabel }: { monthLabel: string }) {
+  const { locale } = useI18n();
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse">
       <div className="bg-gradient-to-r from-ocean to-turquoise px-4 py-3 text-center">
@@ -69,7 +83,7 @@ function CalendarSkeleton({ monthLabel }: { monthLabel: string }) {
       </div>
       <div className="p-3">
         <div className="grid grid-cols-7 mb-1">
-          {DAY_NAMES.map((d, i) => (
+          {DAY_NAMES[locale].map((d, i) => (
             <div key={i} className="text-center text-[10px] font-semibold text-gray-400 py-1">{d}</div>
           ))}
         </div>
@@ -91,7 +105,14 @@ export function AvailabilityCalendar({
   onSelectCheckIn,
   onSelectCheckOut,
 }: AvailabilityCalendarProps) {
+  const { t, pick, locale } = useI18n();
   const today = new Date().toISOString().slice(0, 10);
+  const statusLabel = (status: DayAvailability) =>
+    isUnavailableStatus(status)
+      ? t("Indisponible", "Unavailable")
+      : status === "partially_reserved"
+        ? t("Partiellement réservé", "Partly booked")
+        : t("Disponible", "Available");
 
   const dayMap = useMemo(
     () => new Map(calendars.flatMap((c) => c.days.map((d) => [d.date, d.status]))),
@@ -137,7 +158,7 @@ export function AvailabilityCalendar({
   const today_ = new Date();
   const skeletonMonths = Array.from({ length: 3 }, (_, i) => {
     const d = new Date(today_.getFullYear(), today_.getMonth() + i, 1);
-    return `${MONTH_NAMES_FR[d.getMonth()]} ${d.getFullYear()}`;
+    return `${MONTH_NAMES[locale][d.getMonth()]} ${d.getFullYear()}`;
   });
 
   return (
@@ -147,18 +168,21 @@ export function AvailabilityCalendar({
           {LEGEND.map((opt) => (
             <span key={opt.value} className="flex items-center gap-1.5">
               <span className={`inline-block h-3 w-3 rounded-sm border ${legendColor(opt.value)}`} />
-              {opt.label}
+              {pick(opt.label)}
             </span>
           ))}
         </div>
         <div className="text-[11px] font-semibold text-muted-foreground">
           {isLoading
-            ? "Chargement des disponibilités…"
+            ? t("Chargement des disponibilités…", "Loading availability…")
             : !selectedCheckIn
-              ? "① Cliquez sur la date d'arrivée"
+              ? t("① Cliquez sur la date d'arrivée", "① Click your check-in date")
               : !selectedCheckOut
-                ? "② Cliquez sur la date de départ"
-                : "✓ Séjour sélectionné (cliquez à nouveau pour changer)"}
+                ? t("② Cliquez sur la date de départ", "② Click your check-out date")
+                : t(
+                    "✓ Séjour sélectionné (cliquez à nouveau pour changer)",
+                    "✓ Stay selected (click again to change)",
+                  )}
         </div>
       </div>
 
@@ -176,12 +200,12 @@ export function AvailabilityCalendar({
                 >
                   <div className="bg-gradient-to-r from-ocean to-turquoise px-4 py-3 text-center">
                     <p className="text-white font-semibold text-sm tracking-wide">
-                      {MONTH_NAMES_FR[cal.month - 1]} {cal.year}
+                      {MONTH_NAMES[locale][cal.month - 1]} {cal.year}
                     </p>
                   </div>
                   <div className="p-3">
                     <div className="grid grid-cols-7 mb-1">
-                      {DAY_NAMES.map((d, i) => (
+                      {DAY_NAMES[locale].map((d, i) => (
                         <div key={i} className="text-center text-[10px] font-semibold text-gray-400 py-1">{d}</div>
                       ))}
                     </div>
@@ -205,12 +229,12 @@ export function AvailabilityCalendar({
                             type="button"
                             disabled={isPast || isUnavail}
                             onClick={() => handleDayClick(day.date, day.status)}
-                            aria-label={`${day.date}, ${day.status}, ${Math.round(day.price)} DT`}
+                            aria-label={`${day.date}, ${statusLabel(day.status)}, ${Math.round(day.price)} DT`}
                             className={`rounded-md flex flex-col items-center justify-center py-1 px-0.5 transition-all text-center min-h-[44px] ${cls}`}
                             title={
                               isUnavail
-                                ? `${day.date} — Indisponible`
-                                : `${day.date} — ${Math.round(day.price)} DT/nuit${day.minNights > 1 ? ` — min. ${day.minNights} nuits` : ""}${day.note ? ` — ${day.note}` : ""}`
+                                ? `${day.date} — ${t("Indisponible", "Unavailable")}`
+                                : `${day.date} — ${Math.round(day.price)} DT/${t("nuit", "night")}${day.minNights > 1 ? ` — min. ${day.minNights} ${t("nuits", "nights")}` : ""}${day.note ? ` — ${day.note}` : ""}`
                             }
                           >
                             <span className="text-[11px] font-semibold leading-tight">{dayNum}</span>
@@ -232,8 +256,14 @@ export function AvailabilityCalendar({
       {selectedCheckIn && (
         <div className="text-xs text-gray-500 mt-2">
           {selectedCheckOut
-            ? `Séjour sélectionné : ${selectedCheckIn} → ${selectedCheckOut}`
-            : `Arrivée : ${selectedCheckIn} — Sélectionnez la date de départ`}
+            ? t(
+                `Séjour sélectionné : ${selectedCheckIn} → ${selectedCheckOut}`,
+                `Selected stay: ${selectedCheckIn} → ${selectedCheckOut}`,
+              )
+            : t(
+                `Arrivée : ${selectedCheckIn} — Sélectionnez la date de départ`,
+                `Check-in: ${selectedCheckIn} — Select your check-out date`,
+              )}
         </div>
       )}
     </div>

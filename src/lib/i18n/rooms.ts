@@ -102,3 +102,14 @@ export function localizeRoomName(room: Pick<Room, "name" | "slug" | "id">, local
   if (locale === "fr") return room.name;
   return englishRoom(room)?.name ?? room.name;
 }
+
+/** Display label of a room type value ("Studio", "Appartement"…); "Tous" is the "all" filter. */
+export function localizeRoomType(type: string, locale: Locale) {
+  if (locale === "fr") return type;
+  if (type === "Tous") return "All";
+  return ROOM_TYPE_EN[type as Room["type"]] ?? type;
+}
+
+export function localizeAmenity(amenity: string, locale: Locale) {
+  return locale === "fr" ? amenity : (AMENITY_EN[amenity] ?? amenity);
+}
