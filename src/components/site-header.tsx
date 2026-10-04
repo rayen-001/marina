@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Anchor,
+  CalendarCheck,
   ChevronDown,
   Menu,
   Phone,
@@ -26,6 +27,7 @@ import {
   type SessionProfile,
 } from "@/lib/auth/profilesAuth";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
+import { FloatingBookButton } from "./floating-book-button";
 
 const portLinks: { label: string; to: string }[] = [
   { label: "Présentation du Port", to: "/port-de-plaisance" },
@@ -39,151 +41,179 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/[0.07] bg-white/96 shadow-sm backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-8">
-        <Link to="/" className="flex shrink-0 items-center gap-3" onClick={() => setOpen(false)}>
-          <img
-            src="/icons/icon-512.png"
-            alt="Marina Cap Monastir"
-            className="size-10 rounded-lg object-cover shadow-sm"
-          />
-          <div className="hidden leading-tight sm:block">
-            <div className="text-sm font-black tracking-wide text-primary">Marina Cap Monastir</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Appart-hôtel & port
+    <>
+      <header className="sticky top-0 z-50 border-b border-black/[0.07] bg-white/96 shadow-sm backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+          <Link to="/" className="flex shrink-0 items-center gap-3" onClick={() => setOpen(false)}>
+            <img
+              src="/icons/icon-512.png"
+              alt="Marina Cap Monastir"
+              className="size-10 rounded-lg object-cover shadow-sm"
+            />
+            <div className="hidden leading-tight sm:block">
+              <div className="text-sm font-black tracking-wide text-primary">
+                Marina Cap Monastir
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Appart-hôtel & port
+              </div>
             </div>
-          </div>
-        </Link>
+          </Link>
 
-        <nav className="hidden items-center gap-5 text-sm font-semibold lg:flex">
-          <Link to="/" className="text-foreground/75 transition-colors hover:text-primary">
-            Accueil
-          </Link>
-          <Link
-            to="/search"
-            search={{ adults: 2, children: 0, roomType: "Tous" }}
-            className="text-foreground/75 transition-colors hover:text-primary"
-          >
-            Appart-Hôtel
-          </Link>
-          <div className="group relative">
-            <Link
-              to="/port-de-plaisance"
-              className="inline-flex items-center gap-1 text-foreground/75 transition-colors hover:text-primary"
-            >
-              Port de Plaisance
-              <ChevronDown className="size-3.5" />
+          <nav className="hidden items-center gap-4 whitespace-nowrap text-sm font-semibold xl:flex 2xl:gap-6">
+            <Link to="/" className="text-foreground/75 transition-colors hover:text-primary">
+              Accueil
             </Link>
-            <div className="invisible absolute left-0 top-full w-80 translate-y-2 rounded-lg border border-border bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-              {portLinks.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to as "/port-de-plaisance"}
-                  className="block rounded-md px-3 py-2.5 text-sm font-semibold text-foreground/75 transition hover:bg-secondary hover:text-primary"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <Link
-            to="/presentation"
-            className="text-foreground/75 transition-colors hover:text-primary"
-          >
-            Présentation
-          </Link>
-          <Link
-            to="/actualites"
-            className="text-foreground/75 transition-colors hover:text-primary"
-          >
-            Actualités
-          </Link>
-          <Link to="/contact" className="text-foreground/75 transition-colors hover:text-primary">
-            Contacter
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <a
-            href="/contact?service=reception"
-            className="hidden h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-md sm:inline-flex"
-          >
-            <Phone className="size-4" />
-            Réception
-          </a>
-          <Link
-            to="/port-de-plaisance/reservation"
-            className="hidden h-10 items-center gap-2 rounded-lg border border-primary/25 bg-transparent px-4 text-sm font-bold text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
-          >
-            <ShipWheel className="size-4" />
-            Capitainerie
-          </Link>
-          <AccountNav />
-          <button
-            type="button"
-            title="Menu"
-            onClick={() => setOpen((value) => !value)}
-            className="inline-flex size-10 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground shadow-sm transition hover:border-primary/30 hover:text-primary lg:hidden"
-            aria-expanded={open}
-          >
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
-        </div>
-      </div>
-
-      {open && (
-        <div className="border-t border-border bg-white px-4 py-4 shadow-lg lg:hidden">
-          <nav className="grid gap-1">
-            <MobileLink to="/" label="Accueil" onNavigate={() => setOpen(false)} />
-            <MobileLink
+            <Link
               to="/search"
-              label="Appart-Hôtel"
               search={{ adults: 2, children: 0, roomType: "Tous" }}
-              onNavigate={() => setOpen(false)}
-            />
-            <MobileLink
-              to="/port-de-plaisance"
-              label="Port de Plaisance"
-              onNavigate={() => setOpen(false)}
-            />
-            <div className="ml-3 border-l border-border pl-3">
-              {portLinks.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to as "/port-de-plaisance"}
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-10 items-center rounded-lg px-3 text-sm font-semibold text-muted-foreground transition hover:bg-secondary hover:text-primary"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <MobileLink to="/presentation" label="Présentation" onNavigate={() => setOpen(false)} />
-            <MobileLink to="/actualites" label="Actualités" onNavigate={() => setOpen(false)} />
-            <MobileLink to="/contact" label="Contacter" onNavigate={() => setOpen(false)} />
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
-              <a
-                href="/contact?service=reception"
-                onClick={() => setOpen(false)}
-                className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-white shadow-sm"
-              >
-                <Phone className="size-4" />
-                Réception
-              </a>
+              className="text-foreground/75 transition-colors hover:text-primary"
+            >
+              Appart-Hôtel
+            </Link>
+            <div className="group relative">
               <Link
-                to="/port-de-plaisance/reservation"
-                onClick={() => setOpen(false)}
-                className="flex h-11 items-center justify-center gap-2 rounded-lg border border-primary/30 text-sm font-bold text-primary"
+                to="/port-de-plaisance"
+                className="inline-flex items-center gap-1 text-foreground/75 transition-colors hover:text-primary"
               >
-                <Anchor className="size-4" />
-                Capitainerie
+                Port de Plaisance
+                <ChevronDown className="size-3.5" />
               </Link>
+              <div className="invisible absolute left-0 top-full w-80 translate-y-2 rounded-lg border border-border bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                {portLinks.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to as "/port-de-plaisance"}
+                    className="block rounded-md px-3 py-2.5 text-sm font-semibold text-foreground/75 transition hover:bg-secondary hover:text-primary"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
-            <MobileRegisterLink onNavigate={() => setOpen(false)} />
+            <Link
+              to="/presentation"
+              className="text-foreground/75 transition-colors hover:text-primary"
+            >
+              Présentation
+            </Link>
+            <Link
+              to="/actualites"
+              className="text-foreground/75 transition-colors hover:text-primary"
+            >
+              Actualités
+            </Link>
+            <Link to="/contact" className="text-foreground/75 transition-colors hover:text-primary">
+              Contacter
+            </Link>
           </nav>
+
+          <div className="flex items-center gap-2">
+            <Link
+              to="/search"
+              search={{ adults: 2, children: 0, roomType: "Tous" }}
+              className="hidden h-10 items-center gap-2 whitespace-nowrap rounded-lg bg-accent px-4 text-sm font-black text-accent-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-md sm:inline-flex"
+            >
+              <CalendarCheck className="size-4" />
+              Réserver
+            </Link>
+            <a
+              href="/contact?service=reception"
+              title="Réception"
+              aria-label="Réception"
+              className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
+            >
+              <Phone className="size-4" />
+            </a>
+            <Link
+              to="/port-de-plaisance/reservation"
+              title="Capitainerie"
+              aria-label="Capitainerie"
+              className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
+            >
+              <ShipWheel className="size-4" />
+            </Link>
+            <AccountNav />
+            <button
+              type="button"
+              title="Menu"
+              onClick={() => setOpen((value) => !value)}
+              className="inline-flex size-10 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground shadow-sm transition hover:border-primary/30 hover:text-primary xl:hidden"
+              aria-expanded={open}
+            >
+              {open ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
+          </div>
         </div>
-      )}
-    </header>
+
+        {open && (
+          <div className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-border bg-white px-4 py-4 shadow-lg xl:hidden">
+            <nav className="grid gap-1">
+              <Link
+                to="/search"
+                search={{ adults: 2, children: 0, roomType: "Tous" }}
+                onClick={() => setOpen(false)}
+                className="mb-2 flex h-12 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-black text-accent-foreground shadow-sm"
+              >
+                <CalendarCheck className="size-4" />
+                Réserver un appartement
+              </Link>
+              <MobileLink to="/" label="Accueil" onNavigate={() => setOpen(false)} />
+              <MobileLink
+                to="/search"
+                label="Appart-Hôtel"
+                search={{ adults: 2, children: 0, roomType: "Tous" }}
+                onNavigate={() => setOpen(false)}
+              />
+              <MobileLink
+                to="/port-de-plaisance"
+                label="Port de Plaisance"
+                onNavigate={() => setOpen(false)}
+              />
+              <div className="ml-3 border-l border-border pl-3">
+                {portLinks.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to as "/port-de-plaisance"}
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-10 items-center rounded-lg px-3 text-sm font-semibold text-muted-foreground transition hover:bg-secondary hover:text-primary"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+              <MobileLink
+                to="/presentation"
+                label="Présentation"
+                onNavigate={() => setOpen(false)}
+              />
+              <MobileLink to="/actualites" label="Actualités" onNavigate={() => setOpen(false)} />
+              <MobileLink to="/contact" label="Contacter" onNavigate={() => setOpen(false)} />
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
+                <a
+                  href="/contact?service=reception"
+                  onClick={() => setOpen(false)}
+                  className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-white shadow-sm"
+                >
+                  <Phone className="size-4" />
+                  Réception
+                </a>
+                <Link
+                  to="/port-de-plaisance/reservation"
+                  onClick={() => setOpen(false)}
+                  className="flex h-11 items-center justify-center gap-2 rounded-lg border border-primary/30 text-sm font-bold text-primary"
+                >
+                  <Anchor className="size-4" />
+                  Capitainerie
+                </Link>
+              </div>
+              <MobileRegisterLink onNavigate={() => setOpen(false)} />
+            </nav>
+          </div>
+        )}
+      </header>
+      <FloatingBookButton />
+    </>
   );
 }
 
@@ -247,22 +277,13 @@ function AccountNav() {
 
   if (!context) {
     return (
-      <>
-        <Link
-          to="/login"
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-md sm:px-4"
-        >
-          <User className="size-4" />
-          <span className="hidden sm:inline">Connexion</span>
-        </Link>
-        <Link
-          to="/register"
-          className="hidden h-10 items-center gap-2 rounded-lg border border-primary/25 bg-transparent px-4 text-sm font-bold text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
-        >
-          <UserPlus className="size-4" />
-          Créer un compte
-        </Link>
-      </>
+      <Link
+        to="/login"
+        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-md sm:px-4"
+      >
+        <User className="size-4" />
+        <span className="hidden whitespace-nowrap sm:inline">Connexion</span>
+      </Link>
     );
   }
 
