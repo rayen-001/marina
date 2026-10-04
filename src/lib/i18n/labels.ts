@@ -117,6 +117,13 @@ export function localizeAlertTitle(alert: { type: string; title: string }, local
   return ALERT_TITLES[alert.type]?.[locale] ?? alert.title;
 }
 
+export function localizeAlertDescription(
+  alert: { description: string; descriptionEn?: string },
+  locale: Locale,
+) {
+  return locale === "en" ? (alert.descriptionEn ?? alert.description) : alert.description;
+}
+
 export function localizeAlertSeverity(severity: string, locale: Locale) {
   return ALERT_SEVERITY[severity]?.[locale] ?? severity;
 }

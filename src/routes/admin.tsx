@@ -26,7 +26,12 @@ import { StatusBadge } from "@/components/admin/status-badge";
 import type { Guest, Invoice, Payment, Reservation, Room } from "@/data/hotel";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getChannelLabels, localizeAlertSeverity, localizeAlertTitle } from "@/lib/i18n/labels";
+import {
+  getChannelLabels,
+  localizeAlertDescription,
+  localizeAlertSeverity,
+  localizeAlertTitle,
+} from "@/lib/i18n/labels";
 import { tr } from "@/lib/i18n/locale";
 import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
@@ -593,7 +598,7 @@ function AdminDashboard() {
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {alert.description}
+                    {localizeAlertDescription(alert, locale)}
                   </p>
                 </div>
               ))}

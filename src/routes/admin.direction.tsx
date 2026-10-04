@@ -15,7 +15,12 @@ import { AdminLayout } from "@/components/admin/admin-layout";
 import { KpiCard } from "@/components/admin/kpi-card";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getChannelLabels, localizeAlertSeverity, localizeAlertTitle } from "@/lib/i18n/labels";
+import {
+  getChannelLabels,
+  localizeAlertDescription,
+  localizeAlertSeverity,
+  localizeAlertTitle,
+} from "@/lib/i18n/labels";
 import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
   getAvailableUnitsForDate,
@@ -287,7 +292,9 @@ function AdminDirection() {
                     {localizeAlertSeverity(alert.severity, locale)}
                   </span>
                 </div>
-                <p className="mt-1 text-sm leading-5 text-muted-foreground">{alert.description}</p>
+                <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                  {localizeAlertDescription(alert, locale)}
+                </p>
               </div>
             ))}
             {alerts.length === 0 && (

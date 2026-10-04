@@ -74,7 +74,7 @@ export function SiteHeader() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-4 whitespace-nowrap text-sm font-semibold xl:flex 2xl:gap-6">
+          <nav className="hidden items-center gap-4 whitespace-nowrap text-sm font-semibold xl:flex">
             <Link to="/" className="text-foreground/75 transition-colors hover:text-primary">
               {t("Accueil", "Home")}
             </Link>
@@ -332,10 +332,14 @@ function AccountNav() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          aria-label={profile.fullName}
           className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-md sm:px-4"
         >
           <UserRound className="size-4 shrink-0" />
-          <span className="hidden max-w-[9rem] truncate sm:inline">{profile.fullName}</span>
+          {/* Hidden from xl up: the header is capped at max-w-7xl and the full nav needs the room. */}
+          <span className="hidden max-w-[9rem] truncate sm:inline xl:hidden">
+            {profile.fullName}
+          </span>
           <ChevronDown className="size-3.5 shrink-0" />
         </button>
       </DropdownMenuTrigger>
