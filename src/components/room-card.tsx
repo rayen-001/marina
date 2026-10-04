@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Users } from "lucide-react";
 import type { Room } from "@/data/hotel";
-import { formatCurrency, getRoomCapacity } from "@/data/hotel";
+import { getRoomCapacity } from "@/data/hotel";
 import { bookingStore } from "@/lib/booking-store";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { localizeRoom } from "@/lib/i18n/rooms";
 
 type Props = {
   room: Room;
@@ -23,6 +25,8 @@ export function RoomCard({
   adults,
   children,
 }: Props) {
+  const { t, locale, formatCurrency } = useI18n();
+  const display = localizeRoom(room, locale);
   const soldOut = showAvailability && availableUnits === 0;
   const scarce =
     showAvailability && availableUnits !== undefined && availableUnits > 0 && availableUnits <= 2;
@@ -39,11 +43,11 @@ export function RoomCard({
         params={{ id: room.id }}
         search={search}
         className="relative block aspect-[4/3] overflow-hidden bg-secondary"
-        aria-label={`Voir les détails : ${room.name}`}
+        aria-label={`${t("Voir les détails", "View details")} : ${display.name}`}
       >
         <img
           src={room.images[0]}
-          alt={room.name}
+          alt={display.name}
           loading="lazy"
           className={`h-full w-full object-cover transition duration-700 group-hover:scale-105 ${
             soldOut ? "grayscale" : ""
@@ -52,7 +56,7 @@ export function RoomCard({
         <div className="absolute inset-0 bg-gradient-to-t from-ocean/70 via-transparent to-transparent" />
 
         <div className="absolute left-3 top-3 rounded-md border border-white/50 bg-white/94 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-primary shadow-sm backdrop-blur">
-          {room.type}
+          {display.type}
         </div>
 
         {showAvailability && (
@@ -66,19 +70,24 @@ export function RoomCard({
             }`}
           >
             {soldOut
-              ? "Complet"
+              ? t("Complet", "Fully booked")
               : scarce
-                ? `${availableUnits} restantes`
-                : `${availableUnits} disponibles`}
+                ? t(`${availableUnits} restantes`, `${availableUnits} left`)
+                : t(`${availableUnits} disponibles`, `${availableUnits} available`)}
           </div>
         )}
 
         <div className="absolute bottom-3 left-3 rounded-lg bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur">
-          <span className="text-xs font-semibold text-muted-foreground">À partir de </span>
+          <span className="text-xs font-semibold text-muted-foreground">
+            {t("À partir de", "From")}{" "}
+          </span>
           <span className="text-base font-black text-primary">
             {formatCurrency(room.pricePerNight)}
           </span>
-          <span className="text-xs font-medium text-muted-foreground"> / nuitée</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {" "}
+            / {t("nuitée", "night")}
+          </span>
         </div>
       </Link>
 
@@ -90,12 +99,12 @@ export function RoomCard({
             search={search}
             className="transition-colors hover:text-accent"
           >
-            {room.name}
+            {display.name}
           </Link>
         </h3>
         <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
           <Users className="size-4 shrink-0 text-accent" />
-          Jusqu'à {capacity} personnes
+          {t(`Jusqu'à ${capacity} personnes`, `Up to ${capacity} guests`)}
         </p>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-5">
@@ -105,11 +114,11 @@ export function RoomCard({
             search={search}
             className="inline-flex h-10 items-center rounded-lg border border-border px-4 text-sm font-semibold text-muted-foreground transition hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
           >
-            Voir détails
+            {t("Voir détails", "View details")}
           </Link>
           {soldOut ? (
             <span className="inline-flex h-10 cursor-not-allowed items-center rounded-lg bg-muted px-4 text-sm font-black text-muted-foreground">
-              Complet
+              {t("Complet", "Fully booked")}
             </span>
           ) : hasDates ? (
             <Link
@@ -126,7 +135,7 @@ export function RoomCard({
               }
               className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-black text-primary-foreground shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
             >
-              Réserver
+              {t("Réserver", "Book")}
               <ChevronRight className="size-4" />
             </Link>
           ) : (
@@ -136,7 +145,7 @@ export function RoomCard({
               search={search}
               className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-black text-primary-foreground shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
             >
-              Réserver
+              {t("Réserver", "Book")}
               <ChevronRight className="size-4" />
             </Link>
           )}

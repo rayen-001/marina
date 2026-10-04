@@ -1,6 +1,5 @@
 import { Fish, Sailboat, Shell, Ship, Sunset, Waves, type LucideIcon } from "lucide-react";
-
-export type Localized = { fr: string; en: string };
+import type { Localized } from "@/lib/i18n/locale";
 
 export type BoatActivity = {
   id: string;

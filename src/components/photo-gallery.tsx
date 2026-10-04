@@ -8,10 +8,12 @@ import {
   type GalleryCategory,
   type GalleryPhoto,
 } from "@/data/gallery";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type OpenPhoto = { category: GalleryCategory; index: number };
 
 export function PhotoGallery() {
+  const { t, pick } = useI18n();
   const [open, setOpen] = useState<OpenPhoto | null>(null);
   const photosOf = (category: GalleryCategory) =>
     galleryPhotos.filter((photo) => photo.category === category);
@@ -36,7 +38,7 @@ export function PhotoGallery() {
               value={category.id}
               className="h-10 gap-2 px-4 text-sm font-bold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-5"
             >
-              {category.label.fr}
+              {pick(category.label)}
               {photosOf(category.id).length > 0 && (
                 <span className="rounded-full bg-black/[0.06] px-1.5 text-[11px] font-black tabular-nums">
                   {photosOf(category.id).length}
@@ -55,10 +57,14 @@ export function PhotoGallery() {
                   <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
                     <Store className="size-6" />
                   </div>
-                  <h3 className="text-lg font-black text-primary">Photos bientôt disponibles</h3>
+                  <h3 className="text-lg font-black text-primary">
+                    {t("Photos bientôt disponibles", "Photos coming soon")}
+                  </h3>
                   <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                    La galerie {category.label.fr.toLowerCase()} de Marina Cap Monastir sera
-                    enrichie prochainement.
+                    {t(
+                      `La galerie ${category.label.fr.toLowerCase()} de Marina Cap Monastir sera enrichie prochainement.`,
+                      `New ${category.label.en.toLowerCase()} photos of Marina Cap Monastir will be added soon.`,
+                    )}
                   </p>
                 </div>
               ) : (
@@ -91,7 +97,7 @@ export function PhotoGallery() {
               <div className="relative flex items-center justify-center">
                 <img
                   src={current.src}
-                  alt={current.alt.fr}
+                  alt={pick(current.alt)}
                   className="max-h-[75vh] w-auto max-w-full rounded-md object-contain"
                 />
                 {openPhotos.length > 1 && (
@@ -103,7 +109,7 @@ export function PhotoGallery() {
               </div>
               <div className="flex items-center justify-between gap-4 px-1 pr-8 text-sm">
                 <DialogTitle className="text-sm font-semibold leading-6 text-white">
-                  {current.alt.fr}
+                  {pick(current.alt)}
                 </DialogTitle>
                 <span className="shrink-0 tabular-nums text-white/60">
                   {(open?.index ?? 0) + 1} / {openPhotos.length}
@@ -118,22 +124,23 @@ export function PhotoGallery() {
 }
 
 function GalleryTile({ photo, onOpen }: { photo: GalleryPhoto; onOpen: () => void }) {
+  const { t, pick } = useI18n();
   return (
     <button
       type="button"
       onClick={onOpen}
       className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-secondary shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      aria-label={`Agrandir : ${photo.alt.fr}`}
+      aria-label={`${t("Agrandir", "Enlarge")} : ${pick(photo.alt)}`}
     >
       <img
         src={photo.src}
-        alt={photo.alt.fr}
+        alt={pick(photo.alt)}
         loading="lazy"
         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
       <span className="absolute inset-0 flex items-end bg-gradient-to-t from-ocean/80 via-ocean/0 to-transparent p-3 text-left opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
         <span className="flex w-full items-end justify-between gap-2 text-xs font-semibold text-white">
-          {photo.alt.fr}
+          {pick(photo.alt)}
           <Expand className="size-4 shrink-0" />
         </span>
       </span>
@@ -142,12 +149,17 @@ function GalleryTile({ photo, onOpen }: { photo: GalleryPhoto; onOpen: () => voi
 }
 
 function LightboxArrow({ side, onClick }: { side: "left" | "right"; onClick: () => void }) {
+  const { t } = useI18n();
   const Icon = side === "left" ? ChevronLeft : ChevronRight;
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={side === "left" ? "Photo précédente" : "Photo suivante"}
+      aria-label={
+        side === "left"
+          ? t("Photo précédente", "Previous photo")
+          : t("Photo suivante", "Next photo")
+      }
       className={`absolute top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-primary shadow-lg transition hover:bg-white ${
         side === "left" ? "left-2" : "right-2"
       }`}

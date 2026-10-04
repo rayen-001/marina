@@ -25,6 +25,8 @@ import heroImg from "@/assets/hero-marina.jpg";
 import { RoomCard } from "@/components/room-card";
 import { boatActivities } from "@/data/activities";
 import { SiteHeader } from "@/components/site-header";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { listRoomTypes } from "@/lib/services/roomService";
 
 export const Route = createFileRoute("/")({
@@ -34,16 +36,26 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Marina Cap Monastir - Réservation appart-hôtel et port de plaisance" },
+      {
+        title: headT(
+          "Marina Cap Monastir - Réservation appart-hôtel et port de plaisance",
+          "Marina Cap Monastir - Aparthotel and marina bookings",
+        ),
+      },
       {
         name: "description",
-        content:
+        content: headT(
           "Réservez un appartement ou une place au port de plaisance à Marina Cap Monastir, avec réception, capitainerie, commerces et activités marines.",
+          "Book an apartment or a berth at Marina Cap Monastir, with reception, harbour office, shops and sea activities.",
+        ),
       },
       { property: "og:title", content: "Marina Cap Monastir" },
       {
         property: "og:description",
-        content: "Appart-hôtel et port de plaisance au bord de la Méditerranée à Monastir.",
+        content: headT(
+          "Appart-hôtel et port de plaisance au bord de la Méditerranée à Monastir.",
+          "Aparthotel and marina on the Mediterranean in Monastir.",
+        ),
       },
     ],
   }),
@@ -52,19 +64,22 @@ export const Route = createFileRoute("/")({
 
 const NEWS_PREVIEW = [
   {
-    title: "Nettoyage du fond du port",
+    title: { fr: "Nettoyage du fond du port", en: "Harbour seabed clean-up" },
     date: "2018-10-27",
     image: "/images/news/nettoyage-fond-port-2018.jpg",
     slug: "nettoyage-du-fond-du-port-27-10-2018",
   },
   {
-    title: "Opération blanche de lutte contre l'incendie",
+    title: {
+      fr: "Opération blanche de lutte contre l'incendie",
+      en: "Fire-fighting drill",
+    },
     date: "2018-11-30",
     image: "/images/news/operation-blanche-incendie-2018.jpg",
     slug: "operation-blanche-de-lutte-contre-incendie-30-11-2018",
   },
   {
-    title: "Inauguration du « Yachting Club »",
+    title: { fr: "Inauguration du « Yachting Club »", en: "Opening of the “Yachting Club”" },
     date: "2017-11-30",
     image: "/images/news/inauguration-yachting-club-2017.jpg",
     slug: "inauguration-du-yachting-club-30-11-2017",
@@ -73,6 +88,7 @@ const NEWS_PREVIEW = [
 
 function Home() {
   const { roomItems } = Route.useLoaderData();
+  const { t, pick, formatDate } = useI18n();
   const featuredRooms = roomItems.slice(0, 4);
 
   return (
@@ -92,16 +108,22 @@ function Home() {
           <div className="max-w-3xl text-white">
             <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] shadow-lg backdrop-blur">
               <MapPin className="size-4 text-accent" />
-              Monastir, Tunisie
+              {t("Monastir, Tunisie", "Monastir, Tunisia")}
             </div>
-            <h1 className="hero-title">Bienvenue à Marina Cap Monastir</h1>
+            <h1 className="hero-title">
+              {t("Bienvenue à Marina Cap Monastir", "Welcome to Marina Cap Monastir")}
+            </h1>
             <p className="mt-5 text-xl font-semibold text-accent md:text-2xl">
-              Votre séjour les pieds dans l'eau, au cœur de la Méditerranée
+              {t(
+                "Votre séjour les pieds dans l'eau, au cœur de la Méditerranée",
+                "Your waterfront stay in the heart of the Mediterranean",
+              )}
             </p>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/80 md:text-lg">
-              Studios et appartements face au port de plaisance, réception à votre écoute,
-              restaurants, commerces et activités marines : tout est réuni pour des vacances
-              inoubliables à Monastir.
+              {t(
+                "Studios et appartements face au port de plaisance, réception à votre écoute, restaurants, commerces et activités marines : tout est réuni pour des vacances inoubliables à Monastir.",
+                "Studios and apartments facing the marina, a friendly reception team, restaurants, shops and sea activities: everything you need for an unforgettable holiday in Monastir.",
+              )}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -110,21 +132,21 @@ function Home() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-black text-accent-foreground shadow-lg transition hover:-translate-y-0.5 hover:bg-white"
               >
                 <CalendarDays className="size-4" />
-                Réserver en ligne Appart-Hôtel
+                {t("Réserver en ligne Appart-Hôtel", "Book the aparthotel online")}
               </Link>
               <Link
                 to="/port-de-plaisance/reservation"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-black text-primary shadow-lg transition hover:-translate-y-0.5 hover:bg-secondary"
               >
                 <Anchor className="size-4" />
-                Réserver en ligne Port de Plaisance
+                {t("Réserver en ligne Port de Plaisance", "Book a berth online")}
               </Link>
               <Link
                 to="/contact"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-5 text-sm font-black text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18"
               >
                 <Phone className="size-4" />
-                Contacter
+                {t("Contacter", "Contact us")}
               </Link>
             </div>
           </div>
@@ -136,26 +158,43 @@ function Home() {
           <div>
             <div className="section-kicker mb-3">
               <Sparkles className="size-3.5" />
-              Présentation
+              {t("Présentation", "About")}
             </div>
-            <h2 className="section-title">Une charmante escapade de Marina à Monastir</h2>
+            <h2 className="section-title">
+              {t(
+                "Une charmante escapade de Marina à Monastir",
+                "A charming marina getaway in Monastir",
+              )}
+            </h2>
           </div>
           <p className="text-base leading-8 text-muted-foreground">
-            À l'horizon de la ville animée de Monastir, Marina Cap Monastir vous invite à découvrir
-            un complexe touristique familial, idéal pour des vacances uniques au bord de la
-            Méditerranée. Profitez d'un cadre marin, de restaurants, de commerces, d'activités et
-            d'un confort pensé pour rendre votre séjour agréable.
+            {t(
+              "À l'horizon de la ville animée de Monastir, Marina Cap Monastir vous invite à découvrir un complexe touristique familial, idéal pour des vacances uniques au bord de la Méditerranée. Profitez d'un cadre marin, de restaurants, de commerces, d'activités et d'un confort pensé pour rendre votre séjour agréable.",
+              "On the edge of lively Monastir, Marina Cap Monastir welcomes you to a family-friendly resort, ideal for a unique holiday by the Mediterranean. Enjoy the seaside setting, restaurants, shops, activities and comfort designed to make your stay a pleasure.",
+            )}
           </p>
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { title: "Des beaux paysages", icon: <Compass className="size-5" /> },
-            { title: "Divers restaurants", icon: <Utensils className="size-5" /> },
-            { title: "Activités marines", icon: <Waves className="size-5" /> },
-            { title: "Un confort sans fin", icon: <ConciergeBell className="size-5" /> },
-            { title: "Commerces et services", icon: <ShoppingBag className="size-5" /> },
-            { title: "Port de plaisance", icon: <Sailboat className="size-5" /> },
+            {
+              title: t("Des beaux paysages", "Beautiful scenery"),
+              icon: <Compass className="size-5" />,
+            },
+            {
+              title: t("Divers restaurants", "A choice of restaurants"),
+              icon: <Utensils className="size-5" />,
+            },
+            { title: t("Activités marines", "Sea activities"), icon: <Waves className="size-5" /> },
+            {
+              title: t("Un confort sans fin", "Comfort at every turn"),
+              icon: <ConciergeBell className="size-5" />,
+            },
+            {
+              title: t("Commerces et services", "Shops and services"),
+              icon: <ShoppingBag className="size-5" />,
+            },
+            { title: t("Port de plaisance", "Marina"), icon: <Sailboat className="size-5" /> },
           ].map((feature) => (
             <article key={feature.title} className="premium-card premium-card-hover rounded-lg p-5">
               <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-secondary text-accent">
@@ -172,12 +211,24 @@ function Home() {
           {[
             {
               value: "+2000",
-              label: "Clients de confiance",
+              label: t("Clients de confiance", "Happy guests"),
               icon: <CheckCircle2 className="size-5" />,
             },
-            { value: "+60", label: "Activités", icon: <Waves className="size-5" /> },
-            { value: "+200", label: "Bateaux sur le port", icon: <Sailboat className="size-5" /> },
-            { value: "+120", label: "Chambres", icon: <Building2 className="size-5" /> },
+            {
+              value: "+60",
+              label: t("Activités", "Activities"),
+              icon: <Waves className="size-5" />,
+            },
+            {
+              value: "+200",
+              label: t("Bateaux sur le port", "Boats in the marina"),
+              icon: <Sailboat className="size-5" />,
+            },
+            {
+              value: "+120",
+              label: t("Chambres", "Rooms"),
+              icon: <Building2 className="size-5" />,
+            },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -196,16 +247,18 @@ function Home() {
           <div>
             <div className="section-kicker mb-3">
               <CalendarDays className="size-3.5" />
-              Réservation
+              {t("Réservation", "Booking")}
             </div>
-            <h2 className="section-title">Comment réserver votre appartement</h2>
+            <h2 className="section-title">
+              {t("Comment réserver votre appartement", "How to book your apartment")}
+            </h2>
           </div>
           <Link
             to="/search"
             search={{ adults: 2, children: 0, roomType: "Tous" }}
             className="inline-flex h-11 w-fit items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
           >
-            Réservez maintenant
+            {t("Réservez maintenant", "Book now")}
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -213,18 +266,27 @@ function Home() {
           {[
             {
               step: "01",
-              title: "Réservation en ligne",
-              text: "Cliquez sur le bouton de réservation en ligne et choisissez vos dates, votre chambre ou appartement, puis confirmez votre demande.",
+              title: t("Réservation en ligne", "Book online"),
+              text: t(
+                "Cliquez sur le bouton de réservation en ligne et choisissez vos dates, votre chambre ou appartement, puis confirmez votre demande.",
+                "Click the online booking button, choose your dates and your room or apartment, then confirm your request.",
+              ),
             },
             {
               step: "02",
-              title: "Réservation sur place",
-              text: "Vous pouvez réserver directement auprès de l'administration ou contacter la réception pour plus d'informations.",
+              title: t("Réservation sur place", "Book on site"),
+              text: t(
+                "Vous pouvez réserver directement auprès de l'administration ou contacter la réception pour plus d'informations.",
+                "You can book directly with the administration or contact reception for more information.",
+              ),
             },
             {
               step: "03",
               title: "Marina Cap Monastir",
-              text: "Parcourez le site pour découvrir les appartements, les services, les activités et les options disponibles avant de réserver.",
+              text: t(
+                "Parcourez le site pour découvrir les appartements, les services, les activités et les options disponibles avant de réserver.",
+                "Browse the website to discover the apartments, services, activities and options available before booking.",
+              ),
             },
           ].map((item) => (
             <article key={item.step} className="premium-card premium-card-hover rounded-lg p-6">
@@ -242,12 +304,16 @@ function Home() {
             <div>
               <div className="section-kicker mb-3">
                 <Building2 className="size-3.5" />
-                Appart-Hôtel
+                {t("Appart-Hôtel", "Aparthotel")}
               </div>
-              <h2 className="section-title">Studios et appartements</h2>
+              <h2 className="section-title">
+                {t("Studios et appartements", "Studios and apartments")}
+              </h2>
               <p className="mt-3 max-w-xl text-base text-muted-foreground">
-                Types d'hébergement issus du contenu officiel Marina Cap Monastir, modernisés pour
-                une réservation directe.
+                {t(
+                  "Studios et appartements au cœur de la marina, à réserver directement en ligne.",
+                  "Studios and apartments in the heart of the marina, bookable directly online.",
+                )}
               </p>
             </div>
             <Link
@@ -255,7 +321,7 @@ function Home() {
               search={{ adults: 2, children: 0, roomType: "Tous" }}
               className="inline-flex h-11 w-fit items-center gap-2 rounded-lg border border-primary/20 bg-card px-5 text-sm font-bold text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10"
             >
-              Voir tous les hébergements
+              {t("Voir tous les hébergements", "See all accommodation")}
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -271,9 +337,11 @@ function Home() {
         <div className="mb-10 text-center">
           <div className="section-kicker mx-auto mb-3 justify-center">
             <Waves className="size-3.5" />
-            Activités
+            {t("Activités", "Activities")}
           </div>
-          <h2 className="section-title mx-auto">Découvrez Marina Cap Monastir</h2>
+          <h2 className="section-title mx-auto">
+            {t("Découvrez Marina Cap Monastir", "Discover Marina Cap Monastir")}
+          </h2>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
           <Link
@@ -283,24 +351,32 @@ function Home() {
             <div className="mb-5 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
               <Sailboat className="size-6" />
             </div>
-            <h3 className="text-xl font-black text-primary">Excursions en bateau</h3>
+            <h3 className="text-xl font-black text-primary">
+              {t("Excursions en bateau", "Boat trips")}
+            </h3>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {boatActivities.map((activity) => activity.title.fr).join(", ")}.
+              {boatActivities.map((activity) => pick(activity.title)).join(", ")}.
             </p>
             <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-accent">
-              Voir toutes les sorties
+              {t("Voir toutes les sorties", "See all boat trips")}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </span>
           </Link>
           {[
             {
-              title: "Vues distinctives",
-              text: "Chambres et appartements avec vues agréables sur le port et l'environnement marin.",
+              title: t("Vues distinctives", "Outstanding views"),
+              text: t(
+                "Chambres et appartements avec vues agréables sur le port et l'environnement marin.",
+                "Rooms and apartments with lovely views over the marina and the sea.",
+              ),
               icon: <Compass className="size-6" />,
             },
             {
-              title: "Divers commerces",
-              text: "Restaurants, cafés, marchés et commerces au caractère moderne et traditionnel.",
+              title: t("Divers commerces", "Shops of every kind"),
+              text: t(
+                "Restaurants, cafés, marchés et commerces au caractère moderne et traditionnel.",
+                "Restaurants, cafés, markets and shops, both modern and traditional.",
+              ),
               icon: <ShoppingBag className="size-6" />,
             },
           ].map((activity) => (
@@ -323,21 +399,26 @@ function Home() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-accent">
               <Anchor className="size-3.5" />
-              Port de plaisance
+              {t("Port de plaisance", "Marina")}
             </div>
-            <h2 className="text-3xl font-black md:text-5xl">
-              Port d'escale, de passage et d'hivernage
+            <h2 className="section-title text-white">
+              {t(
+                "Port d'escale, de passage et d'hivernage",
+                "A port of call, transit and wintering",
+              )}
             </h2>
             <p className="mt-5 text-base leading-8 text-white/72">
-              Le port de plaisance de Marina Cap Monastir accueille plaisanciers, clubs nautiques et
-              séjours au long cours dans un cadre surveillé et certifié.
+              {t(
+                "Le port de plaisance de Marina Cap Monastir accueille plaisanciers, clubs nautiques et séjours au long cours dans un cadre surveillé et certifié.",
+                "The Marina Cap Monastir harbour welcomes yachtsmen, sailing clubs and long stays in a supervised, certified setting.",
+              )}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 to="/port-de-plaisance"
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-sm font-bold text-primary transition hover:-translate-y-0.5 hover:bg-secondary"
               >
-                Découvrir le port
+                {t("Découvrir le port", "Discover the marina")}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
@@ -345,16 +426,16 @@ function Home() {
                 className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/15"
               >
                 <Map className="size-4" />
-                Plan du port
+                {t("Plan du port", "Marina map")}
               </Link>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              "300 anneaux",
-              "Surveillance 24h/24",
-              "Certification ISO 14001 V 2015",
-              "Capitainerie",
+              t("300 anneaux", "300 berths"),
+              t("Surveillance 24h/24", "24/7 security"),
+              t("Certification ISO 14001 V 2015", "ISO 14001:2015 certified"),
+              t("Capitainerie", "Harbour office"),
             ].map((item) => (
               <div key={item} className="rounded-lg border border-white/12 bg-white/[0.07] p-5">
                 <ShieldCheck className="mb-3 size-5 text-accent" />
@@ -370,23 +451,23 @@ function Home() {
           <div className="grid grid-cols-2 gap-4">
             {[
               {
-                title: "Belles vues",
-                subtitle: "Beaucoup de souvenirs",
+                title: t("Belles vues", "Beautiful views"),
+                subtitle: t("Beaucoup de souvenirs", "Lasting memories"),
                 icon: <Eye className="size-5" />,
               },
               {
-                title: "Plus de chambres",
-                subtitle: "Plus de confort",
+                title: t("Plus de chambres", "More rooms"),
+                subtitle: t("Plus de confort", "More comfort"),
                 icon: <Building2 className="size-5" />,
               },
               {
-                title: "Activités marines",
-                subtitle: "Profitez davantage",
+                title: t("Activités marines", "Sea activities"),
+                subtitle: t("Profitez davantage", "Enjoy even more"),
                 icon: <Waves className="size-5" />,
               },
               {
-                title: "Voyages",
-                subtitle: "Bateau, Yacht...",
+                title: t("Voyages", "Trips"),
+                subtitle: t("Bateau, Yacht...", "Boat, yacht..."),
                 icon: <Sailboat className="size-5" />,
               },
             ].map((item) => (
@@ -402,21 +483,25 @@ function Home() {
           <div>
             <div className="section-kicker mb-3">
               <ShieldCheck className="size-3.5" />
-              Notre engagement
+              {t("Notre engagement", "Our commitment")}
             </div>
             <h2 className="section-title">
-              Marina Cap Monastir cherche à offrir le meilleur services à tous ses clients
+              {t(
+                "Marina Cap Monastir s'engage à offrir le meilleur service à tous ses clients",
+                "Marina Cap Monastir is committed to giving every guest the best service",
+              )}
             </h2>
             <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground">
-              Nous développons des programmes qui donnent énergie et confort pour passer une bonne
-              journée et garder un beau souvenir pour chaque visiteur. Profitez des plus belles
-              activités avec nous.
+              {t(
+                "Nous développons des programmes qui donnent énergie et confort pour passer une bonne journée et garder un beau souvenir pour chaque visiteur. Profitez des plus belles activités avec nous.",
+                "We create programmes that bring energy and comfort, so every visitor enjoys a great day and leaves with fond memories. Enjoy the best activities with us.",
+              )}
             </p>
             <Link
               to="/contact"
               className="mt-7 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
             >
-              Contacter
+              {t("Contacter", "Contact us")}
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -428,15 +513,15 @@ function Home() {
           <div>
             <div className="section-kicker mb-3">
               <Newspaper className="size-3.5" />
-              Actualités
+              {t("Actualités", "News")}
             </div>
-            <h2 className="section-title">Explorez nos Actualités</h2>
+            <h2 className="section-title">{t("Explorez nos Actualités", "Explore our news")}</h2>
           </div>
           <Link
             to="/actualites"
             className="inline-flex h-11 w-fit items-center gap-2 rounded-lg border border-primary/20 bg-card px-5 text-sm font-bold text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10"
           >
-            En savoir plus
+            {t("En savoir plus", "Learn more")}
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -447,17 +532,13 @@ function Home() {
               to="/actualites"
               className="premium-card premium-card-hover block overflow-hidden rounded-lg"
             >
-              <img src={item.image} alt={item.title} className="h-48 w-full object-cover" />
+              <img src={item.image} alt={pick(item.title)} className="h-48 w-full object-cover" />
               <div className="p-5">
                 <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-accent">
                   <CalendarDays className="size-3.5" />
-                  {new Intl.DateTimeFormat("fr-FR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  }).format(new Date(`${item.date}T12:00:00`))}
+                  {formatDate(item.date, { day: "2-digit", month: "long", year: "numeric" })}
                 </div>
-                <h3 className="mt-2 text-lg font-black text-primary">{item.title}</h3>
+                <h3 className="mt-2 text-lg font-black text-primary">{pick(item.title)}</h3>
               </div>
             </Link>
           ))}
@@ -475,10 +556,13 @@ function Home() {
                 <span className="text-lg font-black text-primary">Marina Cap Monastir</span>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Appart-hôtel, port de plaisance et hospitalité méditerranéenne à Monastir, Tunisie.
+                {t(
+                  "Appart-hôtel, port de plaisance et hospitalité méditerranéenne à Monastir, Tunisie.",
+                  "Aparthotel, marina and Mediterranean hospitality in Monastir, Tunisia.",
+                )}
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                BP.N°60 - 5000 Monastir - Tunisie
+                {t("BP.N°60 - 5000 Monastir - Tunisie", "PO Box 60 - 5000 Monastir - Tunisia")}
               </p>
               <a
                 href="https://www.facebook.com/CAPmarinamonastir11"
@@ -499,7 +583,7 @@ function Home() {
               <ul className="space-y-2 text-sm font-semibold text-muted-foreground">
                 <li>
                   <Link to="/" className="hover:text-primary">
-                    Accueil
+                    {t("Accueil", "Home")}
                   </Link>
                 </li>
                 <li>
@@ -508,12 +592,12 @@ function Home() {
                     search={{ adults: 2, children: 0, roomType: "Tous" }}
                     className="hover:text-primary"
                   >
-                    Appart-Hôtel
+                    {t("Appart-Hôtel", "Aparthotel")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/port-de-plaisance" className="hover:text-primary">
-                    Port de Plaisance
+                    {t("Port de Plaisance", "Marina")}
                   </Link>
                 </li>
                 <li>
@@ -522,32 +606,32 @@ function Home() {
                     search={{ adults: 2, children: 0, roomType: "Tous" }}
                     className="hover:text-primary"
                   >
-                    Réservation Appart-Hôtel
+                    {t("Réservation Appart-Hôtel", "Aparthotel booking")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/port-de-plaisance/reservation" className="hover:text-primary">
-                    Réservation Port de Plaisance
+                    {t("Réservation Port de Plaisance", "Berth booking")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/port-de-plaisance/plan" className="hover:text-primary">
-                    Plan du Port
+                    {t("Plan du Port", "Marina map")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/activites" className="hover:text-primary">
-                    Activités
+                    {t("Activités", "Activities")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/presentation" className="hover:text-primary">
-                    Présentation
+                    {t("Présentation", "About")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/contact" className="hover:text-primary">
-                    Contacter
+                    {t("Contacter", "Contact us")}
                   </Link>
                 </li>
               </ul>
@@ -556,7 +640,7 @@ function Home() {
             {/* Contact Appart-Hôtel */}
             <div>
               <h4 className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-primary">
-                Appart-Hôtel
+                {t("Appart-Hôtel", "Aparthotel")}
               </h4>
               <ul className="space-y-2 text-sm font-semibold text-muted-foreground">
                 <li>
@@ -565,7 +649,7 @@ function Home() {
                     (+216) 73 46 23 05
                   </a>
                 </li>
-                <li className="pl-5 text-xs text-muted-foreground/70">Fax: (+216) 73 46 49 97</li>
+                <li className="pl-5 text-xs text-muted-foreground/70">Fax : (+216) 73 46 49 97</li>
                 <li>
                   <a
                     href="mailto:reservation@marinamonastir.tn"
@@ -590,7 +674,7 @@ function Home() {
             {/* Contact Capitainerie + Newsletter */}
             <div>
               <h4 className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-primary">
-                Capitainerie
+                {t("Capitainerie", "Harbour office")}
               </h4>
               <ul className="space-y-2 text-sm font-semibold text-muted-foreground">
                 <li>
@@ -619,20 +703,24 @@ function Home() {
               {/* Newsletter */}
               <div className="mt-6 rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-semibold leading-5 text-muted-foreground">
-                  Recevez les actualités, offres et informations de Marina Cap Monastir.
+                  {t(
+                    "Recevez les actualités, offres et informations de Marina Cap Monastir.",
+                    "Get Marina Cap Monastir news, offers and updates.",
+                  )}
                 </p>
                 <a
                   href="mailto:reservation@marinamonastir.tn?subject=Newsletter"
                   className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-white transition hover:bg-ocean"
                 >
-                  S'abonner
+                  {t("S'abonner", "Subscribe")}
                 </a>
               </div>
             </div>
           </div>
 
           <div className="border-t border-border py-5 text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Marina Cap Monastir · Tous droits réservés
+            © {new Date().getFullYear()} Marina Cap Monastir ·{" "}
+            {t("Tous droits réservés", "All rights reserved")}
           </div>
         </div>
       </footer>

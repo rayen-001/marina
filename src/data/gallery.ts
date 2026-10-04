@@ -1,4 +1,4 @@
-import type { Localized } from "./activities";
+import type { Localized } from "@/lib/i18n/locale";
 
 export type GalleryCategory = "port" | "hebergement" | "commerces" | "evenements";
 

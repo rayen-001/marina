@@ -26,19 +26,33 @@ import {
   signOut,
   type SessionProfile,
 } from "@/lib/auth/profilesAuth";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import { FloatingBookButton } from "./floating-book-button";
+import { LanguageSwitch } from "./language-switch";
 
-const portLinks: { label: string; to: string }[] = [
-  { label: "Présentation du Port", to: "/port-de-plaisance" },
-  { label: "Plan du Port", to: "/port-de-plaisance/plan" },
-  { label: "Réservation Port de Plaisance", to: "/port-de-plaisance/reservation" },
-  { label: "Formalités d'entrée et de sortie", to: "/port-de-plaisance/formalites" },
-  { label: "Tarifs Port", to: "/port-de-plaisance/tarifs" },
-];
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function getPortLinks(t: Translate): { label: string; to: string }[] {
+  return [
+    { label: t("Présentation du Port", "About the marina"), to: "/port-de-plaisance" },
+    { label: t("Plan du Port", "Marina map"), to: "/port-de-plaisance/plan" },
+    {
+      label: t("Réservation Port de Plaisance", "Berth booking"),
+      to: "/port-de-plaisance/reservation",
+    },
+    {
+      label: t("Formalités d'entrée et de sortie", "Entry & exit formalities"),
+      to: "/port-de-plaisance/formalites",
+    },
+    { label: t("Tarifs Port", "Marina rates"), to: "/port-de-plaisance/tarifs" },
+  ];
+}
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
+  const portLinks = getPortLinks(t);
 
   return (
     <>
@@ -55,28 +69,28 @@ export function SiteHeader() {
                 Marina Cap Monastir
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Appart-hôtel & port
+                {t("Appart-hôtel & port", "Aparthotel & marina")}
               </div>
             </div>
           </Link>
 
           <nav className="hidden items-center gap-4 whitespace-nowrap text-sm font-semibold xl:flex 2xl:gap-6">
             <Link to="/" className="text-foreground/75 transition-colors hover:text-primary">
-              Accueil
+              {t("Accueil", "Home")}
             </Link>
             <Link
               to="/search"
               search={{ adults: 2, children: 0, roomType: "Tous" }}
               className="text-foreground/75 transition-colors hover:text-primary"
             >
-              Appart-Hôtel
+              {t("Appart-Hôtel", "Aparthotel")}
             </Link>
             <div className="group relative">
               <Link
                 to="/port-de-plaisance"
                 className="inline-flex items-center gap-1 text-foreground/75 transition-colors hover:text-primary"
               >
-                Port de Plaisance
+                {t("Port de Plaisance", "Marina")}
                 <ChevronDown className="size-3.5" />
               </Link>
               <div className="invisible absolute left-0 top-full w-80 translate-y-2 rounded-lg border border-border bg-white p-2 opacity-0 shadow-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
@@ -95,46 +109,47 @@ export function SiteHeader() {
               to="/activites"
               className="text-foreground/75 transition-colors hover:text-primary"
             >
-              Activités
+              {t("Activités", "Activities")}
             </Link>
             <Link
               to="/presentation"
               className="text-foreground/75 transition-colors hover:text-primary"
             >
-              Présentation
+              {t("Présentation", "About")}
             </Link>
             <Link
               to="/actualites"
               className="text-foreground/75 transition-colors hover:text-primary"
             >
-              Actualités
+              {t("Actualités", "News")}
             </Link>
             <Link to="/contact" className="text-foreground/75 transition-colors hover:text-primary">
-              Contacter
+              {t("Contacter", "Contact us")}
             </Link>
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitch className="hidden sm:inline-flex" />
             <Link
               to="/search"
               search={{ adults: 2, children: 0, roomType: "Tous" }}
               className="hidden h-10 items-center gap-2 whitespace-nowrap rounded-lg bg-accent px-4 text-sm font-black text-accent-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-md sm:inline-flex"
             >
               <CalendarCheck className="size-4" />
-              Réserver
+              {t("Réserver", "Book")}
             </Link>
             <a
               href="/contact?service=reception"
-              title="Réception"
-              aria-label="Réception"
+              title={t("Réception", "Reception")}
+              aria-label={t("Réception", "Reception")}
               className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
             >
               <Phone className="size-4" />
             </a>
             <Link
               to="/port-de-plaisance/reservation"
-              title="Capitainerie"
-              aria-label="Capitainerie"
+              title={t("Capitainerie", "Harbour office")}
+              aria-label={t("Capitainerie", "Harbour office")}
               className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
             >
               <ShipWheel className="size-4" />
@@ -162,18 +177,18 @@ export function SiteHeader() {
                 className="mb-2 flex h-12 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-black text-accent-foreground shadow-sm"
               >
                 <CalendarCheck className="size-4" />
-                Réserver un appartement
+                {t("Réserver un appartement", "Book an apartment")}
               </Link>
-              <MobileLink to="/" label="Accueil" onNavigate={() => setOpen(false)} />
+              <MobileLink to="/" label={t("Accueil", "Home")} onNavigate={() => setOpen(false)} />
               <MobileLink
                 to="/search"
-                label="Appart-Hôtel"
+                label={t("Appart-Hôtel", "Aparthotel")}
                 search={{ adults: 2, children: 0, roomType: "Tous" }}
                 onNavigate={() => setOpen(false)}
               />
               <MobileLink
                 to="/port-de-plaisance"
-                label="Port de Plaisance"
+                label={t("Port de Plaisance", "Marina")}
                 onNavigate={() => setOpen(false)}
               />
               <div className="ml-3 border-l border-border pl-3">
@@ -188,14 +203,26 @@ export function SiteHeader() {
                   </Link>
                 ))}
               </div>
-              <MobileLink to="/activites" label="Activités" onNavigate={() => setOpen(false)} />
               <MobileLink
-                to="/presentation"
-                label="Présentation"
+                to="/activites"
+                label={t("Activités", "Activities")}
                 onNavigate={() => setOpen(false)}
               />
-              <MobileLink to="/actualites" label="Actualités" onNavigate={() => setOpen(false)} />
-              <MobileLink to="/contact" label="Contacter" onNavigate={() => setOpen(false)} />
+              <MobileLink
+                to="/presentation"
+                label={t("Présentation", "About")}
+                onNavigate={() => setOpen(false)}
+              />
+              <MobileLink
+                to="/actualites"
+                label={t("Actualités", "News")}
+                onNavigate={() => setOpen(false)}
+              />
+              <MobileLink
+                to="/contact"
+                label={t("Contacter", "Contact us")}
+                onNavigate={() => setOpen(false)}
+              />
               <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
                 <a
                   href="/contact?service=reception"
@@ -203,7 +230,7 @@ export function SiteHeader() {
                   className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-white shadow-sm"
                 >
                   <Phone className="size-4" />
-                  Réception
+                  {t("Réception", "Reception")}
                 </a>
                 <Link
                   to="/port-de-plaisance/reservation"
@@ -211,10 +238,11 @@ export function SiteHeader() {
                   className="flex h-11 items-center justify-center gap-2 rounded-lg border border-primary/30 text-sm font-bold text-primary"
                 >
                   <Anchor className="size-4" />
-                  Capitainerie
+                  {t("Capitainerie", "Harbour office")}
                 </Link>
               </div>
               <MobileRegisterLink onNavigate={() => setOpen(false)} />
+              <LanguageSwitch className="mt-2 h-11 w-full sm:hidden" />
             </nav>
           </div>
         )}
@@ -266,6 +294,7 @@ function useSessionProfile() {
 
 function AccountNav() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { loading, context } = useSessionProfile();
 
   const logout = async () => {
@@ -289,7 +318,7 @@ function AccountNav() {
         className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-md sm:px-4"
       >
         <User className="size-4" />
-        <span className="hidden whitespace-nowrap sm:inline">Connexion</span>
+        <span className="hidden whitespace-nowrap sm:inline">{t("Connexion", "Sign in")}</span>
       </Link>
     );
   }
@@ -315,41 +344,44 @@ function AccountNav() {
         <DropdownMenuSeparator />
         {capitainerie ? (
           <DropdownMenuItem asChild>
-            <Link to="/admin/port-tarifs">Tarifs Port</Link>
+            <Link to="/admin/port-tarifs">{t("Tarifs Port", "Marina rates")}</Link>
           </DropdownMenuItem>
         ) : admin ? (
           <>
             <DropdownMenuItem asChild>
-              <Link to="/admin">Tableau de bord</Link>
+              <Link to="/admin">{t("Tableau de bord", "Dashboard")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/admin/messages">Messages</Link>
+              <Link to="/admin/messages">{t("Messages", "Messages")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/admin/settings">Administration</Link>
+              <Link to="/admin/settings">{t("Administration", "Administration")}</Link>
             </DropdownMenuItem>
           </>
         ) : (
           <>
             <DropdownMenuItem asChild>
-              <Link to="/client">Mon espace</Link>
+              <Link to="/client">{t("Mon espace", "My account")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/client/reservations">Mes réservations</Link>
+              <Link to="/client/reservations">{t("Mes réservations", "My bookings")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/client/messages">Messages</Link>
+              <Link to="/client/messages">{t("Messages", "Messages")}</Link>
             </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => void logout()}>Déconnexion</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void logout()}>
+          {t("Déconnexion", "Sign out")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 function MobileRegisterLink({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useI18n();
   const { loading, context } = useSessionProfile();
   if (loading || context) return null;
 
@@ -360,7 +392,7 @@ function MobileRegisterLink({ onNavigate }: { onNavigate: () => void }) {
       className="mt-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-primary/30 text-sm font-bold text-primary"
     >
       <UserPlus className="size-4" />
-      Créer un compte
+      {t("Créer un compte", "Create an account")}
     </Link>
   );
 }
