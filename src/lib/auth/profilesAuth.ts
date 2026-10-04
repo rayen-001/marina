@@ -252,7 +252,8 @@ export function mapSupabaseError(error: unknown) {
 
 async function requireSupabaseClient() {
   const supabase = await getSupabaseOrNull();
-  if (!supabase) throw new Error("Supabase n'est pas configure.");
+  if (!supabase)
+    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
   return supabase;
 }
 

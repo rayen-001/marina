@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { tr, type Locale } from "@/lib/i18n/locale";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 import type { DayAvailability } from "@/lib/services/rateCalendarService";
 import type {
@@ -173,11 +176,11 @@ const BULK_INVENTORY_MODE_OPTIONS: Array<{ value: BulkInventoryMode; label: stri
   { value: "closed", label: "Fermé" },
 ];
 
-const VIEW_OPTIONS: Array<{ value: CalendarViewMode; label: string }> = [
-  { value: "14_days", label: "14 jours" },
-  { value: "month", label: "Mois" },
-  { value: "3_months", label: "3 mois" },
-  { value: "year", label: "Année" },
+const VIEW_OPTIONS: Array<{ value: CalendarViewMode; label: { fr: string; en: string } }> = [
+  { value: "14_days", label: { fr: "14 jours", en: "14 days" } },
+  { value: "month", label: { fr: "Mois", en: "Month" } },
+  { value: "3_months", label: { fr: "3 mois", en: "3 months" } },
+  { value: "year", label: { fr: "Année", en: "Year" } },
 ];
 
 const AVAILABLE_YEARS = [2026, 2027, 2028];
@@ -196,10 +199,54 @@ const MONTH_NAMES = [
   "Décembre",
 ];
 
+const CALENDAR_STATUS_LABELS: Record<string, { fr: string; en: string }> = {
+  available: { fr: "Disponible", en: "Available" },
+  partially_reserved: { fr: "Partiellement réservé", en: "Partly booked" },
+  not_available: { fr: "Indisponible", en: "Unavailable" },
+  closed: { fr: "Fermé", en: "Closed" },
+  maintenance: { fr: "Maintenance", en: "Maintenance" },
+  reserved: { fr: "Réservé", en: "Booked" },
+};
+
+const INVENTORY_MODE_LABELS: Record<string, { fr: string; en: string }> = {
+  auto: { fr: "Automatique", en: "Automatic" },
+  all: { fr: "Toutes les chambres", en: "All rooms" },
+  quantity: { fr: "Quantité disponible", en: "Available quantity" },
+  specific_units: { fr: "Chambres précises", en: "Specific rooms" },
+  closed: { fr: "Fermé", en: "Closed" },
+};
+
+const MONTH_NAMES_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+function monthName(index: number, locale: Locale) {
+  return (locale === "en" ? MONTH_NAMES_EN : MONTH_NAMES)[index];
+}
+
+function calendarStatusLabel(status: string, locale: Locale) {
+  return CALENDAR_STATUS_LABELS[status]?.[locale] ?? status;
+}
+
+function inventoryModeLabel(mode: string, locale: Locale) {
+  return INVENTORY_MODE_LABELS[mode]?.[locale] ?? mode;
+}
+
 export const Route = createFileRoute("/admin/calendar")({
   loader: () => loadAdminCalendarData(getDefaultCalendarRange()),
   head: () => ({
-    meta: [{ title: "Calendrier - Marina Cap Monastir" }],
+    meta: [{ title: headT("Calendrier - Marina Cap Monastir", "Calendar - Marina Cap Monastir") }],
   }),
   component: AdminCalendar,
 });
@@ -207,6 +254,7 @@ export const Route = createFileRoute("/admin/calendar")({
 function AdminCalendar() {
   const initialData = Route.useLoaderData();
   const router = useRouter();
+  const { t, pick, locale } = useI18n();
   const todayIso = useMemo(() => toIsoDate(new Date()), []);
   const initialPeriod = useMemo(() => getInitialPeriodState(todayIso), [todayIso]);
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
@@ -255,7 +303,10 @@ function AdminCalendar() {
     [calendarData.rooms, selectedCell],
   );
 
-  const monthSections = useMemo(() => groupDaysByMonth(calendarData.days), [calendarData.days]);
+  const monthSections = useMemo(
+    () => groupDaysByMonth(calendarData.days, locale),
+    [calendarData.days, locale],
+  );
 
   const refetchCalendar = async () => {
     const next = await loadAdminCalendarData(periodRange);
@@ -330,7 +381,7 @@ function AdminCalendar() {
 
       if (result.error) throw result.error;
 
-      toast.success("Disponibilité enregistrée.");
+      toast.success(t("Disponibilité enregistrée.", "Availability saved."));
       await refetchCalendar();
       setCellEditorOpen(false);
     } catch (error) {
@@ -419,7 +470,7 @@ function AdminCalendar() {
 
       if (result.error) throw result.error;
 
-      toast.success("Période enregistrée.");
+      toast.success(t("Période enregistrée.", "Period saved."));
       await refetchCalendar();
       setBulkEditorOpen(false);
     } catch (error) {
@@ -433,7 +484,12 @@ function AdminCalendar() {
   const generateMissingUnits = async (room: AdminCalendarRoom) => {
     const rows = buildMissingUnitRows(room);
     if (rows.length === 0) {
-      toast.info("Toutes les unités existent déjà pour ce type de chambre.");
+      toast.info(
+        t(
+          "Toutes les unités existent déjà pour ce type de chambre.",
+          "All units already exist for this room type.",
+        ),
+      );
       return;
     }
 
@@ -444,11 +500,14 @@ function AdminCalendar() {
 
       if (result.error) throw result.error;
 
-      toast.success(`${rows.length} unité(s) créée(s).`);
+      toast.success(t(`${rows.length} unité(s) créée(s).`, `${rows.length} unit(s) created.`));
       await refetchCalendar();
     } catch (error) {
       console.error("[AdminCalendar] room_units insert error", error);
-      toast.error(getErrorDetail(error) ?? "Impossible de générer les unités.");
+      toast.error(
+        getErrorDetail(error) ??
+          t("Impossible de générer les unités.", "Could not generate the units."),
+      );
     } finally {
       setGeneratingUnitsFor(null);
     }
@@ -507,12 +566,15 @@ function AdminCalendar() {
     }));
   };
 
-  const periodLabel = getPeriodLabel(viewMode, periodRange);
+  const periodLabel = getPeriodLabel(viewMode, periodRange, t("au", "to"));
 
   return (
     <AdminLayout
-      title="Calendrier de disponibilité"
-      description="Vue grille par type de chambre et par date, avec édition directe des tarifs, statuts, inventaire et règles de séjour."
+      title={t("Calendrier de disponibilité", "Availability calendar")}
+      description={t(
+        "Vue grille par type de chambre et par date, avec édition directe des tarifs, statuts, inventaire et règles de séjour.",
+        "Grid view by room type and date, with direct editing of rates, statuses, inventory and stay rules.",
+      )}
       onReservationCreated={refetchCalendar}
       actions={
         <div className="flex flex-wrap items-center gap-2">
@@ -523,7 +585,7 @@ function AdminCalendar() {
             icon={<CalendarRange className="size-4" />}
             disabled={!calendarData.supabaseConfigured || Boolean(calendarData.loadError)}
           >
-            Modifier une période
+            {t("Modifier une période", "Edit a period")}
           </AdminButton>
         </div>
       }
@@ -533,7 +595,12 @@ function AdminCalendar() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 size-5 shrink-0" />
             <div>
-              <div className="font-bold">Impossible de charger le calendrier depuis Supabase.</div>
+              <div className="font-bold">
+                {t(
+                  "Impossible de charger le calendrier depuis Supabase.",
+                  "Could not load the calendar from Supabase.",
+                )}
+              </div>
               <p className="mt-1 leading-6">{calendarData.loadError}</p>
               {calendarData.loadErrorDetail && (
                 <p className="mt-2 rounded-md bg-background/70 p-2 font-mono text-xs text-foreground">
@@ -547,7 +614,9 @@ function AdminCalendar() {
 
       {(calendarData.blockLoadError || calendarData.unitLoadError) && (
         <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          <div className="font-bold">Calendrier chargé partiellement.</div>
+          <div className="font-bold">
+            {t("Calendrier chargé partiellement.", "Calendar partially loaded.")}
+          </div>
           {calendarData.blockLoadError && <p className="mt-1">{calendarData.blockLoadError}</p>}
           {calendarData.unitLoadError && <p className="mt-1">{calendarData.unitLoadError}</p>}
         </div>
@@ -567,7 +636,7 @@ function AdminCalendar() {
                     : "border-border bg-background text-primary hover:bg-secondary"
                 }`}
               >
-                {option.label}
+                {pick(option.label)}
               </button>
             ))}
           </div>
@@ -575,13 +644,13 @@ function AdminCalendar() {
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={goToPreviousPeriod}>
               <ChevronLeft className="size-4" />
-              Précédent
+              {t("Précédent", "Previous")}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={goToToday}>
-              Aujourd'hui
+              {t("Aujourd'hui", "Today")}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={goToNextPeriod}>
-              Suivant
+              {t("Suivant", "Next")}
               <ChevronRight className="size-4" />
             </Button>
 
@@ -592,7 +661,7 @@ function AdminCalendar() {
             >
               {MONTH_NAMES.map((month, index) => (
                 <option key={month} value={index + 1}>
-                  {month}
+                  {monthName(index, locale)}
                 </option>
               ))}
             </select>
@@ -612,9 +681,13 @@ function AdminCalendar() {
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           <span className="font-semibold text-primary">{periodLabel}</span>
-          <span>{calendarData.days.length} jour(s)</span>
-          <span>{calendarData.rooms.length} type(s) de chambre</span>
-          {calendarLoading && <span>Chargement...</span>}
+          <span>
+            {calendarData.days.length} {t("jour(s)", "day(s)")}
+          </span>
+          <span>
+            {calendarData.rooms.length} {t("type(s) de chambre", "room type(s)")}
+          </span>
+          {calendarLoading && <span>{t("Chargement...", "Loading...")}</span>}
         </div>
       </div>
 
@@ -634,37 +707,56 @@ function AdminCalendar() {
 
       {calendarData.rooms.length === 0 && !calendarData.loadError && (
         <div className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-          Aucun type de chambre trouvé dans Supabase.
+          {t("Aucun type de chambre trouvé dans Supabase.", "No room types found in Supabase.")}
         </div>
       )}
 
       <Dialog open={cellEditorOpen} onOpenChange={setCellEditorOpen}>
         <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier la disponibilité</DialogTitle>
+            <DialogTitle>{t("Modifier la disponibilité", "Edit availability")}</DialogTitle>
             <DialogDescription>
-              {selectedRoom?.name ?? "Type de chambre"} · {selectedCell?.date ?? "-"}
+              {selectedRoom?.name ?? t("Type de chambre", "Room type")} ·{" "}
+              {selectedCell?.date ?? "-"}
             </DialogDescription>
           </DialogHeader>
 
           {selectedCell && (
             <form onSubmit={saveCell} className="space-y-5">
               <div className="grid gap-3 rounded-lg border border-border bg-secondary/35 p-4 text-sm sm:grid-cols-2">
-                <InfoLine label="Type de chambre" value={selectedRoom?.name ?? "-"} />
-                <InfoLine label="Date sélectionnée" value={selectedCell.date} />
                 <InfoLine
-                  label="Disponibles / total"
+                  label={t("Type de chambre", "Room type")}
+                  value={selectedRoom?.name ?? "-"}
+                />
+                <InfoLine
+                  label={t("Date sélectionnée", "Selected date")}
+                  value={selectedCell.date}
+                />
+                <InfoLine
+                  label={t("Disponibles / total", "Available / total")}
                   value={`${selectedCell.availableUnits}/${selectedCell.totalUnits}`}
                 />
-                <InfoLine label="Prix actuel" value={`${Math.round(selectedCell.price)} DT`} />
-                <InfoLine label="Statut actuel" value={selectedCell.status} />
-                <InfoLine label="Minimum de nuits" value={String(selectedCell.minNights)} />
-                <InfoLine label="Mode inventaire" value={selectedCell.inventoryMode} />
-                <InfoLine label="Note" value={selectedCell.note || "-"} wide />
+                <InfoLine
+                  label={t("Prix actuel", "Current price")}
+                  value={`${Math.round(selectedCell.price)} DT`}
+                />
+                <InfoLine
+                  label={t("Statut actuel", "Current status")}
+                  value={calendarStatusLabel(selectedCell.status, locale)}
+                />
+                <InfoLine
+                  label={t("Minimum de nuits", "Minimum nights")}
+                  value={String(selectedCell.minNights)}
+                />
+                <InfoLine
+                  label={t("Mode inventaire", "Inventory mode")}
+                  value={inventoryModeLabel(selectedCell.inventoryMode, locale)}
+                />
+                <InfoLine label={t("Note", "Note")} value={selectedCell.note || "-"} wide />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <AdminField label="Prix">
+                <AdminField label={t("Prix", "Price")}>
                   <Input
                     type="number"
                     min={0}
@@ -675,7 +767,7 @@ function AdminCalendar() {
                     required
                   />
                 </AdminField>
-                <AdminField label="Statut">
+                <AdminField label={t("Statut", "Status")}>
                   <select
                     value={cellForm.status}
                     onChange={(event) =>
@@ -688,12 +780,12 @@ function AdminCalendar() {
                   >
                     {CALENDAR_STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
-                        {status}
+                        {calendarStatusLabel(status, locale)}
                       </option>
                     ))}
                   </select>
                 </AdminField>
-                <AdminField label="Minimum de nuits">
+                <AdminField label={t("Minimum de nuits", "Minimum nights")}>
                   <Input
                     type="number"
                     min={1}
@@ -704,7 +796,7 @@ function AdminCalendar() {
                     required
                   />
                 </AdminField>
-                <AdminField label="Note">
+                <AdminField label={t("Note", "Note")}>
                   <Textarea
                     value={cellForm.note}
                     onChange={(event) =>
@@ -717,14 +809,19 @@ function AdminCalendar() {
 
               <div className="rounded-lg border border-border bg-card p-4">
                 <div className="mb-4">
-                  <h3 className="text-sm font-bold text-primary">Nombre de chambres disponibles</h3>
+                  <h3 className="text-sm font-bold text-primary">
+                    {t("Nombre de chambres disponibles", "Number of rooms available")}
+                  </h3>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Le mode choisi contrôle le calcul de disponibilité pour cette date.
+                    {t(
+                      "Le mode choisi contrôle le calcul de disponibilité pour cette date.",
+                      "The selected mode controls how availability is calculated for this date.",
+                    )}
                   </p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <AdminField label="Mode">
+                  <AdminField label={t("Mode", "Mode")}>
                     <select
                       value={cellForm.inventoryMode}
                       onChange={(event) =>
@@ -734,14 +831,14 @@ function AdminCalendar() {
                     >
                       {INVENTORY_MODE_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
-                          {option.label}
+                          {inventoryModeLabel(option.value, locale)}
                         </option>
                       ))}
                     </select>
                   </AdminField>
 
                   {cellForm.inventoryMode === "quantity" && (
-                    <AdminField label="Nombre disponible">
+                    <AdminField label={t("Nombre disponible", "Number available")}>
                       <Input
                         type="number"
                         min={0}
@@ -764,8 +861,10 @@ function AdminCalendar() {
                     {selectedRoom.units.length < selectedRoom.totalUnits && (
                       <div className="flex flex-col gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
                         <span>
-                          {selectedRoom.units.length}/{selectedRoom.totalUnits} unités existent pour
-                          ce type de chambre.
+                          {t(
+                            `${selectedRoom.units.length}/${selectedRoom.totalUnits} unités existent pour ce type de chambre.`,
+                            `${selectedRoom.units.length}/${selectedRoom.totalUnits} units exist for this room type.`,
+                          )}
                         </span>
                         <Button
                           type="button"
@@ -775,7 +874,7 @@ function AdminCalendar() {
                           onClick={() => generateMissingUnits(selectedRoom)}
                         >
                           <Plus className="size-4" />
-                          Générer les unités manquantes
+                          {t("Générer les unités manquantes", "Generate missing units")}
                         </Button>
                       </div>
                     )}
@@ -798,7 +897,9 @@ function AdminCalendar() {
                             className="size-4 accent-primary"
                           />
                           <span>
-                            <span className="block">Unité {unit.unit_number}</span>
+                            <span className="block">
+                              {t("Unité", "Unit")} {unit.unit_number}
+                            </span>
                             <span className="text-xs font-medium text-muted-foreground">
                               {unit.status}
                             </span>
@@ -807,7 +908,10 @@ function AdminCalendar() {
                       ))}
                       {selectedRoom.units.length === 0 && (
                         <div className="rounded-md border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
-                          Aucune unité n'existe encore pour ce type de chambre.
+                          {t(
+                            "Aucune unité n'existe encore pour ce type de chambre.",
+                            "No units exist yet for this room type.",
+                          )}
                         </div>
                       )}
                     </div>
@@ -817,11 +921,11 @@ function AdminCalendar() {
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setCellEditorOpen(false)}>
-                  Annuler
+                  {t("Annuler", "Cancel")}
                 </Button>
                 <Button type="submit" loading={cellSaving}>
                   <Save className="size-4" />
-                  Enregistrer
+                  {t("Enregistrer", "Save")}
                 </Button>
               </DialogFooter>
             </form>
@@ -832,14 +936,17 @@ function AdminCalendar() {
       <Dialog open={bulkEditorOpen} onOpenChange={setBulkEditorOpen}>
         <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier une période</DialogTitle>
+            <DialogTitle>{t("Modifier une période", "Edit a period")}</DialogTitle>
             <DialogDescription>
-              Appliquez les mêmes règles à plusieurs types de chambre et dates.
+              {t(
+                "Appliquez les mêmes règles à plusieurs types de chambre et dates.",
+                "Apply the same rules to several room types and dates.",
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={saveBulk} className="space-y-5">
-            <AdminField label="Types de chambre sélectionnés">
+            <AdminField label={t("Types de chambre sélectionnés", "Selected room types")}>
               <div className="grid max-h-48 gap-2 overflow-auto rounded-lg border border-border bg-secondary/20 p-3 sm:grid-cols-2">
                 {calendarData.rooms.map((room) => (
                   <label
@@ -855,7 +962,8 @@ function AdminCalendar() {
                     <span>
                       <span className="block">{room.name}</span>
                       <span className="text-xs font-medium text-muted-foreground">
-                        {room.totalUnits} unités · {Math.round(room.pricePerNight)} DT par défaut
+                        {room.totalUnits} {t("unités", "units")} · {Math.round(room.pricePerNight)}{" "}
+                        DT {t("par défaut", "default")}
                       </span>
                     </span>
                   </label>
@@ -864,7 +972,7 @@ function AdminCalendar() {
             </AdminField>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <AdminField label="Date de début">
+              <AdminField label={t("Date de début", "Start date")}>
                 <Input
                   type="date"
                   value={bulkForm.startDate}
@@ -874,7 +982,7 @@ function AdminCalendar() {
                   required
                 />
               </AdminField>
-              <AdminField label="Date de fin">
+              <AdminField label={t("Date de fin", "End date")}>
                 <Input
                   type="date"
                   value={bulkForm.endDate}
@@ -884,7 +992,7 @@ function AdminCalendar() {
                   required
                 />
               </AdminField>
-              <AdminField label="Prix">
+              <AdminField label={t("Prix", "Price")}>
                 <Input
                   type="number"
                   min={0}
@@ -895,7 +1003,7 @@ function AdminCalendar() {
                   required
                 />
               </AdminField>
-              <AdminField label="Statut">
+              <AdminField label={t("Statut", "Status")}>
                 <select
                   value={bulkForm.status}
                   onChange={(event) =>
@@ -908,12 +1016,12 @@ function AdminCalendar() {
                 >
                   {CALENDAR_STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {calendarStatusLabel(status, locale)}
                     </option>
                   ))}
                 </select>
               </AdminField>
-              <AdminField label="Minimum de nuits">
+              <AdminField label={t("Minimum de nuits", "Minimum nights")}>
                 <Input
                   type="number"
                   min={1}
@@ -924,7 +1032,7 @@ function AdminCalendar() {
                   required
                 />
               </AdminField>
-              <AdminField label="Note">
+              <AdminField label={t("Note", "Note")}>
                 <Input
                   value={bulkForm.note}
                   onChange={(event) =>
@@ -932,7 +1040,7 @@ function AdminCalendar() {
                   }
                 />
               </AdminField>
-              <AdminField label="Mode inventaire">
+              <AdminField label={t("Mode inventaire", "Inventory mode")}>
                 <select
                   value={bulkForm.inventoryMode}
                   onChange={(event) =>
@@ -953,13 +1061,13 @@ function AdminCalendar() {
                 >
                   {BULK_INVENTORY_MODE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {inventoryModeLabel(option.value, locale)}
                     </option>
                   ))}
                 </select>
               </AdminField>
               {bulkForm.inventoryMode === "quantity" && (
-                <AdminField label="Nombre disponible">
+                <AdminField label={t("Nombre disponible", "Number available")}>
                   <Input
                     type="number"
                     min={0}
@@ -978,10 +1086,10 @@ function AdminCalendar() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setBulkEditorOpen(false)}>
-                Annuler
+                {t("Annuler", "Cancel")}
               </Button>
               <Button type="submit" loading={bulkSaving}>
-                Appliquer
+                {t("Appliquer", "Apply")}
               </Button>
             </DialogFooter>
           </form>
@@ -1006,6 +1114,7 @@ function CalendarMonthSection({
   compact: boolean;
   onCellClick: (cell: CalendarCell) => void;
 }) {
+  const { t, locale } = useI18n();
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
       <div className="border-b border-border bg-secondary/55 px-4 py-3">
@@ -1015,7 +1124,9 @@ function CalendarMonthSection({
         <table className={`w-full text-sm ${compact ? "min-w-[1060px]" : "min-w-[1180px]"}`}>
           <thead className="bg-secondary text-xs uppercase tracking-[0.12em] text-muted-foreground">
             <tr>
-              <th className="sticky left-0 z-10 bg-secondary px-4 py-3 text-left">Chambre</th>
+              <th className="sticky left-0 z-10 bg-secondary px-4 py-3 text-left">
+                {t("Chambre", "Room")}
+              </th>
               {days.map((day) => (
                 <th
                   key={day}
@@ -1035,7 +1146,9 @@ function CalendarMonthSection({
                 <tr key={`${room.id}-${title}`} className="border-t border-border">
                   <td className="sticky left-0 z-10 bg-card px-4 py-3">
                     <div className="font-semibold text-primary">{room.name}</div>
-                    <div className="text-xs text-muted-foreground">{room.totalUnits} unités</div>
+                    <div className="text-xs text-muted-foreground">
+                      {room.totalUnits} {t("unités", "units")}
+                    </div>
                   </td>
                   {days.map((day) => {
                     const cell = cellsByDate.get(day);
@@ -1057,11 +1170,11 @@ function CalendarMonthSection({
                             </span>
                           )}
                           <span className="mt-1 block truncate rounded px-1.5 py-0.5 text-[10px] font-bold">
-                            {cell.effectiveStatus}
+                            {calendarStatusLabel(cell.effectiveStatus, locale)}
                           </span>
                           {cell.hasCustomRate && cell.minNights > 1 && (
                             <span className="mt-1 block text-[10px] font-semibold">
-                              min {cell.minNights} nuits
+                              min {cell.minNights} {t("nuits", "nights")}
                             </span>
                           )}
                         </button>
@@ -1090,8 +1203,10 @@ async function loadAdminCalendarData(range = getDefaultCalendarRange()): Promise
     return {
       days,
       rooms: [],
-      loadError:
+      loadError: tr(
         "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
+        "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+      ),
       loadErrorDetail: null,
       blockLoadError: null,
       unitLoadError: null,
@@ -1150,10 +1265,10 @@ async function loadAdminCalendarData(range = getDefaultCalendarRange()): Promise
     if (reservationsResult.error) throw reservationsResult.error;
 
     const blockLoadError = blocksResult.error
-      ? `Les blocs de disponibilité n'ont pas pu être chargés: ${getErrorDetail(blocksResult.error)}`
+      ? `${tr("Les blocs de disponibilité n'ont pas pu être chargés :", "Availability blocks could not be loaded:")} ${getErrorDetail(blocksResult.error)}`
       : null;
     const unitLoadError = unitsResult.error
-      ? `Les unités de chambre n'ont pas pu être chargées: ${getErrorDetail(unitsResult.error)}`
+      ? `${tr("Les unités de chambre n'ont pas pu être chargées :", "Room units could not be loaded:")} ${getErrorDetail(unitsResult.error)}`
       : null;
 
     if (blocksResult.error) {
@@ -1367,7 +1482,10 @@ async function fetchCalendarReservations(
 async function requireAdminSupabase() {
   if (!isSupabaseConfigured()) {
     throw new Error(
-      "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
+      tr(
+        "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
+        "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+      ),
     );
   }
 
@@ -1577,9 +1695,13 @@ function toEditableStatus(status: DayAvailability): EditableCalendarStatus {
 function validateRateForm(form: CellFormState, totalUnits?: number) {
   const price = Number(form.price);
   const minNights = Number(form.minNights);
-  if (!Number.isFinite(price) || price < 0) return "Le prix doit être positif.";
+  if (!Number.isFinite(price) || price < 0)
+    return tr("Le prix doit être positif.", "The price must be positive.");
   if (!Number.isInteger(minNights) || minNights < 1) {
-    return "Le minimum de nuits doit être supérieur ou égal à 1.";
+    return tr(
+      "Le minimum de nuits doit être supérieur ou égal à 1.",
+      "Minimum nights must be 1 or more.",
+    );
   }
 
   return validateInventoryForm(
@@ -1599,15 +1721,21 @@ function validateInventoryForm(
   if (inventoryMode === "quantity") {
     const quantity = Number(unitsAvailableOverride);
     if (!Number.isInteger(quantity) || quantity < 0) {
-      return "Le nombre disponible doit être un entier positif.";
+      return tr(
+        "Le nombre disponible doit être un entier positif.",
+        "The available number must be a positive whole number.",
+      );
     }
     if (typeof totalUnits === "number" && quantity > totalUnits) {
-      return "Le nombre disponible ne peut pas dépasser le total d'unités.";
+      return tr(
+        "Le nombre disponible ne peut pas dépasser le total d'unités.",
+        "The available number cannot exceed the total number of units.",
+      );
     }
   }
 
   if (inventoryMode === "specific_units" && selectedUnitIds.length === 0) {
-    return "Sélectionnez au moins une unité.";
+    return tr("Sélectionnez au moins une unité.", "Select at least one unit.");
   }
 
   return null;
@@ -1616,9 +1744,14 @@ function validateInventoryForm(
 function validateBulkForm(form: BulkFormState) {
   const rateError = validateRateForm({ ...form, selectedUnitIds: [] }, undefined);
   if (rateError) return rateError;
-  if (form.roomTypeIds.length === 0) return "Sélectionnez au moins un type de chambre.";
-  if (!form.startDate || !form.endDate) return "Sélectionnez une période.";
-  if (form.startDate > form.endDate) return "La date de fin doit être après la date de début.";
+  if (form.roomTypeIds.length === 0)
+    return tr("Sélectionnez au moins un type de chambre.", "Select at least one room type.");
+  if (!form.startDate || !form.endDate) return tr("Sélectionnez une période.", "Select a period.");
+  if (form.startDate > form.endDate)
+    return tr(
+      "La date de fin doit être après la date de début.",
+      "The end date must be after the start date.",
+    );
   return null;
 }
 
@@ -1940,7 +2073,7 @@ function buildMissingUnitRows(room: AdminCalendarRoom) {
   return rows;
 }
 
-function groupDaysByMonth(days: string[]) {
+function groupDaysByMonth(days: string[], locale: Locale) {
   const sections = new Map<string, string[]>();
 
   for (const day of days) {
@@ -1955,7 +2088,7 @@ function groupDaysByMonth(days: string[]) {
     const month = Number(monthKey.slice(5, 7));
     return {
       monthKey,
-      title: `${MONTH_NAMES[month - 1]} ${year}`,
+      title: `${monthName(month - 1, locale)} ${year}`,
       days: sectionDays,
     };
   });
@@ -1966,10 +2099,10 @@ function formatDayHeader(date: string) {
   return `${String(day.getDate()).padStart(2, "0")}/${String(day.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getPeriodLabel(viewMode: CalendarViewMode, range: CalendarRangeValue) {
+function getPeriodLabel(viewMode: CalendarViewMode, range: CalendarRangeValue, separator: string) {
   if (viewMode === "year") return range.startDate.slice(0, 4);
   if (range.startDate === range.endDate) return range.startDate;
-  return `${range.startDate} au ${range.endDate}`;
+  return `${range.startDate} ${separator} ${range.endDate}`;
 }
 
 function cellClass(status: DayAvailability) {
@@ -2013,10 +2146,13 @@ function InfoLine({ label, value, wide }: { label: string; value: string; wide?:
 
 function getSupabaseErrorMessage(error: unknown) {
   if (isPermissionError(error)) {
-    return "Permission Supabase refusée. Vérifiez les policies room_rate_calendar.";
+    return tr(
+      "Permission Supabase refusée. Vérifiez les policies room_rate_calendar.",
+      "Supabase permission denied. Check the room_rate_calendar policies.",
+    );
   }
 
-  return getErrorDetail(error) ?? "Erreur Supabase inconnue.";
+  return getErrorDetail(error) ?? tr("Erreur Supabase inconnue.", "Unknown Supabase error.");
 }
 
 function getErrorDetail(error: unknown) {
