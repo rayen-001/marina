@@ -95,6 +95,32 @@ const SUBJECT_EN: Record<string, string> = {
   "Demande spéciale": "Special request",
 };
 
+// Alert titles follow the alert type so they can be shown in either language
+// (descriptions are stored data and stay as written).
+const ALERT_TITLES: Record<string, Record<Locale, string>> = {
+  payment_pending: { fr: "Paiement en attente", en: "Payment pending" },
+  arrival_today: { fr: "Arrivée aujourd'hui", en: "Arrival today" },
+  departure_today: { fr: "Départ aujourd'hui", en: "Departure today" },
+  overbooking_risk: { fr: "Risque de survente", en: "Overbooking risk" },
+  maintenance_room: { fr: "Chambre en maintenance", en: "Room under maintenance" },
+  channel_sync_error: { fr: "Erreur de synchronisation channel", en: "Channel sync error" },
+  invoice_not_generated: { fr: "Facture à générer", en: "Invoice to generate" },
+};
+
+const ALERT_SEVERITY: Record<string, Record<Locale, string>> = {
+  critical: { fr: "critique", en: "critical" },
+  warning: { fr: "attention", en: "warning" },
+  info: { fr: "info", en: "info" },
+};
+
+export function localizeAlertTitle(alert: { type: string; title: string }, locale: Locale) {
+  return ALERT_TITLES[alert.type]?.[locale] ?? alert.title;
+}
+
+export function localizeAlertSeverity(severity: string, locale: Locale) {
+  return ALERT_SEVERITY[severity]?.[locale] ?? severity;
+}
+
 export function localizeSubject(subject: string, locale: Locale) {
   return locale === "fr" ? subject : (SUBJECT_EN[subject] ?? subject);
 }

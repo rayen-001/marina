@@ -26,7 +26,7 @@ import { StatusBadge } from "@/components/admin/status-badge";
 import type { Guest, Invoice, Payment, Reservation, Room } from "@/data/hotel";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getChannelLabels } from "@/lib/i18n/labels";
+import { getChannelLabels, localizeAlertSeverity, localizeAlertTitle } from "@/lib/i18n/labels";
 import { tr } from "@/lib/i18n/locale";
 import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
@@ -346,24 +346,6 @@ function formatModuleName(module: string) {
   return label ? tr(label.fr, label.en) : module;
 }
 
-// Alert titles follow the alert type so they can be shown in either language
-// (descriptions are stored data and stay as written).
-const ALERT_TITLES: Record<string, { fr: string; en: string }> = {
-  payment_pending: { fr: "Paiement en attente", en: "Payment pending" },
-  arrival_today: { fr: "Arrivée aujourd'hui", en: "Arrival today" },
-  departure_today: { fr: "Départ aujourd'hui", en: "Departure today" },
-  overbooking_risk: { fr: "Risque de survente", en: "Overbooking risk" },
-  maintenance_room: { fr: "Chambre en maintenance", en: "Room under maintenance" },
-  channel_sync_error: { fr: "Erreur de synchronisation channel", en: "Channel sync error" },
-  invoice_not_generated: { fr: "Facture à générer", en: "Invoice to generate" },
-};
-
-const ALERT_SEVERITY: Record<string, { fr: string; en: string }> = {
-  critical: { fr: "critique", en: "critical" },
-  warning: { fr: "attention", en: "warning" },
-  info: { fr: "info", en: "info" },
-};
-
 // ── Route ──────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/admin")({
@@ -596,7 +578,7 @@ function AdminDashboard() {
                 <div key={alert.id} className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="font-black text-primary">
-                      {ALERT_TITLES[alert.type] ? pick(ALERT_TITLES[alert.type]) : alert.title}
+                      {localizeAlertTitle(alert, locale)}
                     </span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-black ${
@@ -607,9 +589,7 @@ function AdminDashboard() {
                             : "bg-sky-50 text-sky-800"
                       }`}
                     >
-                      {ALERT_SEVERITY[alert.severity]
-                        ? pick(ALERT_SEVERITY[alert.severity])
-                        : alert.severity}
+                      {localizeAlertSeverity(alert.severity, locale)}
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">

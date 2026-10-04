@@ -3,6 +3,10 @@ import { AlertTriangle, CheckCircle2, ExternalLink, RefreshCw } from "lucide-rea
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { channelConnections, channelLabels, type ChannelConnection } from "@/data/hotel";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { getChannelLabels } from "@/lib/i18n/labels";
+import { localizeRoomName } from "@/lib/i18n/rooms";
 import { listRoomTypes } from "@/lib/services/roomService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type { Tables } from "@/lib/supabase/types";
@@ -13,7 +17,7 @@ import * as expedia from "@/lib/channels/expediaAdapter";
 
 export const Route = createFileRoute("/admin/channels")({
   head: () => ({
-    meta: [{ title: "Channels - Marina Cap Monastir" }],
+    meta: [{ title: headT("Channels - Marina Cap Monastir", "Channels - Marina Cap Monastir") }],
   }),
   loader: loadChannelPageData,
   component: AdminChannels,
@@ -30,11 +34,23 @@ type ChannelLog = {
 
 function AdminChannels() {
   const { connections, mappings, roomOptions, logs, usingMockLogs } = Route.useLoaderData();
+  const { t, locale } = useI18n();
+  const labels = getChannelLabels(locale);
+  const syncStatusLabel = (status: string) =>
+    ({
+      synced: t("Synchronisé", "Synced"),
+      warning: t("Avertissement", "Warning"),
+      error: t("Erreur", "Error"),
+      not_mapped: t("Non relié", "Not mapped"),
+    })[status] ?? status;
 
   return (
     <AdminLayout
-      title="Channel manager"
-      description="Prototype professionnel pour Booking.com, Airbnb et Expedia. Aucun appel API réel n'est effectué."
+      title={t("Channel manager", "Channel manager")}
+      description={t(
+        "Prototype professionnel pour Booking.com, Airbnb et Expedia. Aucun appel API réel n'est effectué.",
+        "Professional prototype for Booking.com, Airbnb and Expedia. No real API calls are made.",
+      )}
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {connections
@@ -48,16 +64,22 @@ function AdminChannels() {
                 <div>
                   <h2 className="text-lg font-bold text-primary">{channel.name}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Commission: {channel.commissionRate ?? 0}% · Sync:{" "}
-                    {channel.lastSync ?? "jamais"}
+                    {t("Commission", "Commission")} : {channel.commissionRate ?? 0}% ·{" "}
+                    {t("Sync", "Sync")} : {channel.lastSync ?? t("jamais", "never")}
                   </p>
                 </div>
                 <StatusBadge kind="channel" value={channel.status} />
               </div>
               <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs">
-                <Metric label="Importées" value={channel.importedReservationsCount ?? 0} />
-                <Metric label="Dispos" value={channel.pushedAvailabilityCount ?? 0} />
-                <Metric label="Prix" value={channel.pushedPricesCount ?? 0} />
+                <Metric
+                  label={t("Importées", "Imported")}
+                  value={channel.importedReservationsCount ?? 0}
+                />
+                <Metric
+                  label={t("Dispos", "Availability")}
+                  value={channel.pushedAvailabilityCount ?? 0}
+                />
+                <Metric label={t("Prix", "Prices")} value={channel.pushedPricesCount ?? 0} />
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 <button
@@ -65,14 +87,14 @@ function AdminChannels() {
                   className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-semibold text-primary"
                 >
                   <RefreshCw className="size-4" />
-                  Sync now
+                  {t("Synchroniser", "Sync now")}
                 </button>
                 <button
                   type="button"
                   className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-semibold text-primary"
                 >
                   <ExternalLink className="size-4" />
-                  Configurer
+                  {t("Configurer", "Configure")}
                 </button>
               </div>
               <div className="mt-4 space-y-2">
@@ -89,19 +111,24 @@ function AdminChannels() {
 
       <section className="mt-6 rounded-lg border border-border bg-card shadow-sm">
         <div className="border-b border-border p-5">
-          <h2 className="text-lg font-bold text-primary">Mapping chambres / listings</h2>
+          <h2 className="text-lg font-bold text-primary">
+            {t("Mapping chambres / listings", "Room / listing mapping")}
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Chaque type local peut être relié à un identifiant externe par canal.
+            {t(
+              "Chaque type local peut être relié à un identifiant externe par canal.",
+              "Each local room type can be linked to an external ID per channel.",
+            )}
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-secondary text-xs uppercase tracking-[0.12em] text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">Type local</th>
-                <th className="px-4 py-3">Channel</th>
-                <th className="px-4 py-3">Listing ID</th>
-                <th className="px-4 py-3">Statut sync</th>
+                <th className="px-4 py-3">{t("Type local", "Local type")}</th>
+                <th className="px-4 py-3">{t("Channel", "Channel")}</th>
+                <th className="px-4 py-3">{t("Listing ID", "Listing ID")}</th>
+                <th className="px-4 py-3">{t("Statut sync", "Sync status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,14 +136,16 @@ function AdminChannels() {
                 const room = roomOptions.find((item) => item.id === mapping.roomTypeId);
                 return (
                   <tr key={mapping.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-semibold text-primary">{room?.name}</td>
-                    <td className="px-4 py-3">{mapping.channel}</td>
+                    <td className="px-4 py-3 font-semibold text-primary">
+                      {room ? localizeRoomName(room, locale) : ""}
+                    </td>
+                    <td className="px-4 py-3">{labels[mapping.channel] ?? mapping.channel}</td>
                     <td className="px-4 py-3 text-muted-foreground">{mapping.externalListingId}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-md px-2.5 py-1 text-xs font-semibold ${mapping.syncStatus === "synced" ? "bg-emerald-50 text-emerald-800" : mapping.syncStatus === "warning" ? "bg-amber-50 text-amber-800" : "bg-secondary text-muted-foreground"}`}
                       >
-                        {mapping.syncStatus}
+                        {syncStatusLabel(mapping.syncStatus)}
                       </span>
                     </td>
                   </tr>
@@ -129,7 +158,9 @@ function AdminChannels() {
 
       <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
         <h2 className="text-lg font-bold text-primary">
-          {usingMockLogs ? "Logs adaptateurs mock" : "Logs synchronisation"}
+          {usingMockLogs
+            ? t("Logs adaptateurs mock", "Mock adapter logs")
+            : t("Logs synchronisation", "Sync logs")}
         </h2>
         <div className="mt-4 space-y-2">
           {logs.map((log, index) => (
@@ -140,9 +171,10 @@ function AdminChannels() {
           ))}
         </div>
         <p className="mt-4 text-xs leading-5 text-muted-foreground">
-          TODO: une synchronisation réelle exige identifiants officiels, accès partenaire, OAuth/API
-          keys, webhooks, limites de débit, retry logic, Booking.com Connectivity API, Airbnb
-          official/partner API et Expedia Rapid / Partner Central API.
+          {t(
+            "Une synchronisation réelle exige identifiants officiels, accès partenaire, OAuth/API keys, webhooks, limites de débit, retry logic, Booking.com Connectivity API, Airbnb official/partner API et Expedia Rapid / Partner Central API.",
+            "Real synchronisation requires official credentials, partner access, OAuth/API keys, webhooks, rate limits, retry logic, the Booking.com Connectivity API, the Airbnb official/partner API and Expedia Rapid / Partner Central API.",
+          )}
         </p>
       </section>
     </AdminLayout>

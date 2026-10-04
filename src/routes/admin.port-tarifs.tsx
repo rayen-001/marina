@@ -4,6 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminLayout } from "@/components/admin/admin-layout";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { tr } from "@/lib/i18n/locale";
 import {
   createPortTariff,
   listPortTariffs,
@@ -20,12 +23,17 @@ export const Route = createFileRoute("/admin/port-tarifs")({
     } catch (error) {
       return {
         tariffs: [] as PortTariff[],
-        error: error instanceof Error ? error.message : "Erreur Supabase inconnue.",
+        error:
+          error instanceof Error
+            ? error.message
+            : tr("Erreur Supabase inconnue.", "Unknown Supabase error."),
       };
     }
   },
   head: () => ({
-    meta: [{ title: "Tarifs Port - Marina Cap Monastir" }],
+    meta: [
+      { title: headT("Tarifs Port - Marina Cap Monastir", "Marina rates - Marina Cap Monastir") },
+    ],
   }),
   component: AdminPortTarifsPage,
 });
@@ -112,6 +120,8 @@ function draftToInput(draft: Draft): PortTariffInput {
 function AdminPortTarifsPage() {
   const loaderData = Route.useLoaderData();
   const router = useRouter();
+  const { t } = useI18n();
+  const unknownError = t("Erreur Supabase inconnue.", "Unknown Supabase error.");
   const [drafts, setDrafts] = useState<Draft[]>(loaderData.tariffs.map(toDraft));
   const [savingId, setSavingId] = useState<string | null>(null);
 
@@ -133,7 +143,7 @@ function AdminPortTarifsPage() {
 
   const saveRow = async (draft: Draft) => {
     if (!draft.category.trim()) {
-      toast.error("La catégorie est obligatoire.");
+      toast.error(t("La catégorie est obligatoire.", "The category is required."));
       return;
     }
 
@@ -144,9 +154,9 @@ function AdminPortTarifsPage() {
         ? await createPortTariff(input)
         : await updatePortTariff(draft.id, input);
       setDrafts((current) => current.map((item) => (item.id === draft.id ? toDraft(saved) : item)));
-      toast.success("Tarif enregistré.");
+      toast.success(t("Tarif enregistré.", "Rate saved."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur Supabase inconnue.");
+      toast.error(error instanceof Error ? error.message : unknownError);
     } finally {
       setSavingId(null);
     }
@@ -162,9 +172,13 @@ function AdminPortTarifsPage() {
     try {
       const saved = await updatePortTariff(draft.id, { active: !draft.active });
       setDrafts((current) => current.map((item) => (item.id === draft.id ? toDraft(saved) : item)));
-      toast.success(saved.active ? "Tarif réactivé." : "Tarif désactivé.");
+      toast.success(
+        saved.active
+          ? t("Tarif réactivé.", "Rate reactivated.")
+          : t("Tarif désactivé.", "Rate deactivated."),
+      );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur Supabase inconnue.");
+      toast.error(error instanceof Error ? error.message : unknownError);
     } finally {
       setSavingId(null);
     }
@@ -172,11 +186,14 @@ function AdminPortTarifsPage() {
 
   return (
     <AdminLayout
-      title="Gestion des Tarifs Port"
-      description="Modifiez les tarifs de la Capitainerie affichés sur le site public."
+      title={t("Gestion des Tarifs Port", "Marina rate management")}
+      description={t(
+        "Modifiez les tarifs de la Capitainerie affichés sur le site public.",
+        "Edit the harbour office rates shown on the public website.",
+      )}
       actions={
         <AdminButton variant="primary" onClick={addRow} icon={<Plus className="size-4" />}>
-          Ajouter un tarif
+          {t("Ajouter un tarif", "Add a rate")}
         </AdminButton>
       }
     >
@@ -190,7 +207,7 @@ function AdminPortTarifsPage() {
             onClick={() => void router.invalidate()}
             icon={<RefreshCw className="size-3.5" />}
           >
-            Réessayer
+            {t("Réessayer", "Try again")}
           </AdminButton>
         </div>
       )}
@@ -200,29 +217,32 @@ function AdminPortTarifsPage() {
         <div className="p-4 md:p-6">
           <div className="mb-4 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-accent">
             <Anchor className="size-3.5" />
-            Tarifs d'accostage
+            {t("Tarifs d'accostage", "Berthing rates")}
           </div>
 
           {drafts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-primary/20 bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
-              Aucun tarif enregistré. Ajoutez une première ligne de tarif.
+              {t(
+                "Aucun tarif enregistré. Ajoutez une première ligne de tarif.",
+                "No rates saved yet. Add a first rate row.",
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1180px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border bg-secondary/60 text-xs font-black uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="px-3 py-3">Catégorie</th>
-                    <th className="px-3 py-3">Long. min (m)</th>
-                    <th className="px-3 py-3">Long. max (m)</th>
-                    <th className="px-3 py-3">Prix jour</th>
-                    <th className="px-3 py-3">Prix mois</th>
-                    <th className="px-3 py-3">Prix an</th>
-                    <th className="px-3 py-3">Hivernage</th>
-                    <th className="px-3 py-3">Devise</th>
-                    <th className="px-3 py-3">Note</th>
-                    <th className="px-3 py-3">Actif</th>
-                    <th className="px-3 py-3">Actions</th>
+                    <th className="px-3 py-3">{t("Catégorie", "Category")}</th>
+                    <th className="px-3 py-3">{t("Long. min (m)", "Min. length (m)")}</th>
+                    <th className="px-3 py-3">{t("Long. max (m)", "Max. length (m)")}</th>
+                    <th className="px-3 py-3">{t("Prix jour", "Daily price")}</th>
+                    <th className="px-3 py-3">{t("Prix mois", "Monthly price")}</th>
+                    <th className="px-3 py-3">{t("Prix an", "Yearly price")}</th>
+                    <th className="px-3 py-3">{t("Hivernage", "Wintering")}</th>
+                    <th className="px-3 py-3">{t("Devise", "Currency")}</th>
+                    <th className="px-3 py-3">{t("Note", "Note")}</th>
+                    <th className="px-3 py-3">{t("Actif", "Active")}</th>
+                    <th className="px-3 py-3">{t("Actions", "Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,7 +255,7 @@ function AdminPortTarifsPage() {
                             updateDraft(draft.id, { category: event.target.value })
                           }
                           className="admin-input h-10 w-44"
-                          placeholder="Ex: 7,5 m à 8,49 m"
+                          placeholder={t("Ex : 7,5 m à 8,49 m", "e.g. 7.5 m to 8.49 m")}
                         />
                       </td>
                       <td className="px-3 py-2">
@@ -318,7 +338,7 @@ function AdminPortTarifsPage() {
                           value={draft.note}
                           onChange={(event) => updateDraft(draft.id, { note: event.target.value })}
                           className="admin-input h-10 w-40"
-                          placeholder="Observation"
+                          placeholder={t("Observation", "Note")}
                         />
                       </td>
                       <td className="px-3 py-2">
@@ -331,7 +351,7 @@ function AdminPortTarifsPage() {
                             }
                             className="size-4"
                           />
-                          {draft.active ? "Actif" : "Inactif"}
+                          {draft.active ? t("Actif", "Active") : t("Inactif", "Inactive")}
                         </label>
                       </td>
                       <td className="px-3 py-2">
@@ -343,7 +363,7 @@ function AdminPortTarifsPage() {
                             onClick={() => void saveRow(draft)}
                             icon={<Save className="size-3.5" />}
                           >
-                            Enregistrer
+                            {t("Enregistrer", "Save")}
                           </AdminButton>
                           {draft.isNew ? (
                             <AdminButton
@@ -352,7 +372,7 @@ function AdminPortTarifsPage() {
                               onClick={() => removeUnsavedRow(draft.id)}
                               icon={<Trash2 className="size-3.5" />}
                             >
-                              Annuler
+                              {t("Annuler", "Cancel")}
                             </AdminButton>
                           ) : (
                             <AdminButton
@@ -362,7 +382,9 @@ function AdminPortTarifsPage() {
                               onClick={() => void toggleActive(draft)}
                               icon={<PowerOff className="size-3.5" />}
                             >
-                              {draft.active ? "Désactiver" : "Réactiver"}
+                              {draft.active
+                                ? t("Désactiver", "Deactivate")
+                                : t("Réactiver", "Reactivate")}
                             </AdminButton>
                           )}
                         </div>
