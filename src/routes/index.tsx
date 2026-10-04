@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import heroImg from "@/assets/hero-marina.jpg";
 import { RoomCard } from "@/components/room-card";
+import { boatActivities } from "@/data/activities";
 import { SiteHeader } from "@/components/site-header";
 import { listRoomTypes } from "@/lib/services/roomService";
 
@@ -275,12 +276,23 @@ function Home() {
           <h2 className="section-title mx-auto">Découvrez Marina Cap Monastir</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
+          <Link
+            to="/activites"
+            className="premium-card premium-card-hover group flex flex-col rounded-lg p-6"
+          >
+            <div className="mb-5 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
+              <Sailboat className="size-6" />
+            </div>
+            <h3 className="text-xl font-black text-primary">Excursions en bateau</h3>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              {boatActivities.map((activity) => activity.title.fr).join(", ")}.
+            </p>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-accent">
+              Voir toutes les sorties
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
           {[
-            {
-              title: "Navire Barbaros",
-              text: "Excursions quotidiennes avec repas, spectacles et ambiance estivale.",
-              icon: <Sailboat className="size-6" />,
-            },
             {
               title: "Vues distinctives",
               text: "Chambres et appartements avec vues agréables sur le port et l'environnement marin.",
@@ -521,6 +533,11 @@ function Home() {
                 <li>
                   <Link to="/port-de-plaisance/plan" className="hover:text-primary">
                     Plan du Port
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/activites" className="hover:text-primary">
+                    Activités
                   </Link>
                 </li>
                 <li>

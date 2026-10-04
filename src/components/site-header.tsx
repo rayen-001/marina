@@ -92,6 +92,12 @@ export function SiteHeader() {
               </div>
             </div>
             <Link
+              to="/activites"
+              className="text-foreground/75 transition-colors hover:text-primary"
+            >
+              Activités
+            </Link>
+            <Link
               to="/presentation"
               className="text-foreground/75 transition-colors hover:text-primary"
             >
@@ -182,6 +188,7 @@ export function SiteHeader() {
                   </Link>
                 ))}
               </div>
+              <MobileLink to="/activites" label="Activités" onNavigate={() => setOpen(false)} />
               <MobileLink
                 to="/presentation"
                 label="Présentation"
@@ -364,7 +371,14 @@ function MobileLink({
   search,
   onNavigate,
 }: {
-  to: "/" | "/search" | "/port-de-plaisance" | "/presentation" | "/actualites" | "/contact";
+  to:
+    | "/"
+    | "/search"
+    | "/port-de-plaisance"
+    | "/activites"
+    | "/presentation"
+    | "/actualites"
+    | "/contact";
   label: string;
   search?: { adults: number; children: number; roomType: string };
   onNavigate: () => void;

@@ -19,6 +19,7 @@ import { Route as ConfirmationRouteImport } from './routes/confirmation'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActualitesRouteImport } from './routes/actualites'
+import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as RoomIdRouteImport } from './routes/room.$id'
@@ -96,6 +97,11 @@ const AdminRoute = AdminRouteImport.update({
 const ActualitesRoute = ActualitesRouteImport.update({
   id: '/actualites',
   path: '/actualites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivitesRoute = ActivitesRouteImport.update({
+  id: '/activites',
+  path: '/activites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -243,6 +249,7 @@ const AdminCalendarRoute = AdminCalendarRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/actualites': typeof ActualitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/client': typeof ClientRouteWithChildren
@@ -283,6 +290,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/actualites': typeof ActualitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/confirmation': typeof ConfirmationRoute
@@ -323,6 +331,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/actualites': typeof ActualitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/client': typeof ClientRouteWithChildren
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activites'
     | '/actualites'
     | '/admin'
     | '/client'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activites'
     | '/actualites'
     | '/admin'
     | '/confirmation'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activites'
     | '/actualites'
     | '/admin'
     | '/client'
@@ -485,6 +497,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivitesRoute: typeof ActivitesRoute
   ActualitesRoute: typeof ActualitesRoute
   AdminRoute: typeof AdminRouteWithChildren
   ClientRoute: typeof ClientRouteWithChildren
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/actualites'
       fullPath: '/actualites'
       preLoaderRoute: typeof ActualitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activites': {
+      id: '/activites'
+      path: '/activites'
+      fullPath: '/activites'
+      preLoaderRoute: typeof ActivitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -848,6 +868,7 @@ const PortDePlaisanceRouteWithChildren = PortDePlaisanceRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivitesRoute: ActivitesRoute,
   ActualitesRoute: ActualitesRoute,
   AdminRoute: AdminRouteWithChildren,
   ClientRoute: ClientRouteWithChildren,
