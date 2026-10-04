@@ -4,6 +4,9 @@ import type React from "react";
 import { useState } from "react";
 import logoUrl from "@/assets/marina-logo.png";
 import { getClientSessionProfile, linkGuestReservationsToClient, registerClient } from "@/lib/auth/clientAuth";
+import { LanguageSwitch } from "@/components/language-switch";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 
 type RegisterSearch = {
@@ -21,7 +24,14 @@ export const Route = createFileRoute("/register")({
         : undefined,
   }),
   head: () => ({
-    meta: [{ title: "Créer un compte - Marina Cap Monastir" }],
+    meta: [
+      {
+        title: headT(
+          "Créer un compte - Marina Cap Monastir",
+          "Create an account - Marina Cap Monastir",
+        ),
+      },
+    ],
   }),
   component: RegisterPage,
 });
@@ -29,6 +39,7 @@ export const Route = createFileRoute("/register")({
 function RegisterPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const { t } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -45,7 +56,7 @@ function RegisterPage() {
     setMessage("");
 
     if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.");
+      setError(t("Les mots de passe ne correspondent pas.", "Passwords do not match."));
       return;
     }
 
@@ -53,13 +64,18 @@ function RegisterPage() {
     try {
       const result = await registerClient({ fullName, email, phone, password });
       if (result.needsEmailConfirmation) {
-        setMessage("Vérifiez votre email pour activer votre compte, puis connectez-vous.");
+        setMessage(
+          t(
+            "Vérifiez votre email pour activer votre compte, puis connectez-vous.",
+            "Check your email to activate your account, then sign in.",
+          ),
+        );
         return;
       }
       await linkGuestReservationsToClient();
       navigate({ to: (search.redirect ?? "/client") as never });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Inscription impossible.");
+      setError(err instanceof Error ? err.message : t("Inscription impossible.", "Sign-up failed."));
     } finally {
       setLoading(false);
     }
@@ -76,14 +92,18 @@ function RegisterPage() {
           />
           <div>
             <div className="font-black">Marina Cap Monastir</div>
-            <div className="text-xs text-white/70">Portail client</div>
+            <div className="text-xs text-white/70">{t("Portail client", "Guest portal")}</div>
           </div>
         </Link>
         <div>
-          <h1 className="max-w-xl text-5xl font-black leading-tight">Créez votre accès client.</h1>
+          <h1 className="max-w-xl text-5xl font-black leading-tight">
+            {t("Créez votre accès client.", "Create your guest account.")}
+          </h1>
           <p className="mt-5 max-w-xl text-sm leading-7 text-white/70">
-            Le portail relie automatiquement vos réservations si l'email correspond à une
-            réservation déjà enregistrée.
+            {t(
+              "Le portail relie automatiquement vos réservations si l'email correspond à une réservation déjà enregistrée.",
+              "The portal automatically links your bookings when the email matches an existing booking.",
+            )}
           </p>
         </div>
       </section>
@@ -98,25 +118,36 @@ function RegisterPage() {
               <UserPlus className="size-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-primary">Créer un compte</h1>
-              <p className="text-sm text-muted-foreground">Activez votre espace personnel.</p>
+              <h1 className="text-2xl font-black text-primary">
+                {t("Créer un compte", "Create an account")}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {t("Activez votre espace personnel.", "Activate your personal space.")}
+              </p>
             </div>
+            <LanguageSwitch className="ml-auto" />
           </div>
 
           {!configured && (
             <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">
-              Supabase n'est pas configuré. La création de compte nécessite Supabase Auth.
+              {t(
+                "Supabase n'est pas configuré. La création de compte nécessite Supabase Auth.",
+                "Supabase is not configured. Creating an account requires Supabase Auth.",
+              )}
             </p>
           )}
 
           {search.redirect?.startsWith("/book/") && (
             <p className="mb-4 rounded-md bg-primary/8 p-3 text-sm font-medium text-primary">
-              Vous devez vous connecter ou créer un compte avant de confirmer votre réservation.
+              {t(
+                "Vous devez vous connecter ou créer un compte avant de confirmer votre réservation.",
+                "Please sign in or create an account before confirming your booking.",
+              )}
             </p>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <RegisterField label="Nom complet">
+            <RegisterField label={t("Nom complet", "Full name")}>
               <input
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
@@ -125,7 +156,7 @@ function RegisterPage() {
                 required
               />
             </RegisterField>
-            <RegisterField label="Téléphone">
+            <RegisterField label={t("Téléphone", "Phone")}>
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
@@ -134,7 +165,7 @@ function RegisterPage() {
                 required
               />
             </RegisterField>
-            <RegisterField label="Email">
+            <RegisterField label={t("Email", "Email")}>
               <input
                 type="email"
                 value={email}
@@ -145,7 +176,7 @@ function RegisterPage() {
               />
             </RegisterField>
             <div />
-            <RegisterField label="Mot de passe">
+            <RegisterField label={t("Mot de passe", "Password")}>
               <input
                 type="password"
                 value={password}
@@ -156,7 +187,7 @@ function RegisterPage() {
                 required
               />
             </RegisterField>
-            <RegisterField label="Confirmer">
+            <RegisterField label={t("Confirmer", "Confirm")}>
               <input
                 type="password"
                 value={confirmPassword}
@@ -192,7 +223,7 @@ function RegisterPage() {
                 }}
                 className="mt-3 inline-flex h-9 items-center gap-2 rounded-md bg-emerald-700 px-4 text-xs font-bold text-white shadow hover:bg-emerald-800"
               >
-                J'ai confirmé mon email — Se connecter
+                {t("J'ai confirmé mon email — Se connecter", "I've confirmed my email — Sign in")}
               </button>
             </div>
           )}
@@ -207,19 +238,19 @@ function RegisterPage() {
             disabled={loading || !configured}
             className="mt-5 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Création..." : "Créer mon compte"}
+            {loading ? t("Création...", "Creating...") : t("Créer mon compte", "Create my account")}
           </button>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
             <Link to="/" className="font-semibold text-muted-foreground hover:text-primary">
-              Retour au site
+              {t("Retour au site", "Back to the website")}
             </Link>
             <Link
               to="/login"
               search={search.redirect ? { redirect: search.redirect } : undefined}
               className="font-black text-primary hover:text-accent"
             >
-              J'ai déjà un compte
+              {t("J'ai déjà un compte", "I already have an account")}
             </Link>
           </div>
         </form>

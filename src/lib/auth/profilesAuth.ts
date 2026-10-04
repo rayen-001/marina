@@ -1,6 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 import type { Session, User } from "@supabase/supabase-js";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
+import { tr } from "@/lib/i18n/locale";
 import type { Tables, TablesInsert } from "@/lib/supabase/types";
 
 export type ProfileRole = "admin" | "owner" | "client" | "capitainerie";
@@ -58,13 +59,13 @@ export async function signInWithPasswordAndProfile(email: string, password: stri
     password,
   });
 
-  if (error) throw new Error(error.message || "Connexion impossible.");
-  if (!data.user || !data.session) throw new Error("Connexion impossible.");
+  if (error) throw new Error(error.message || tr("Connexion impossible.", "Sign-in failed."));
+  if (!data.user || !data.session) throw new Error(tr("Connexion impossible.", "Sign-in failed."));
 
   const profile = await fetchProfileForUser(data.user);
   if (!profile) {
     await supabase.auth.signOut();
-    throw new Error("Profil utilisateur introuvable.");
+    throw new Error(tr("Profil utilisateur introuvable.", "User profile not found."));
   }
 
   if (import.meta.env.DEV) {
@@ -103,8 +104,8 @@ export async function registerClient(input: ClientRegisterInput): Promise<Client
     },
   });
 
-  if (error) throw new Error(error.message || "Inscription impossible.");
-  if (!data.user) throw new Error("Inscription impossible.");
+  if (error) throw new Error(error.message || tr("Inscription impossible.", "Sign-up failed."));
+  if (!data.user) throw new Error(tr("Inscription impossible.", "Sign-up failed."));
 
   if (!data.session) {
     return { needsEmailConfirmation: true, profile: null };
@@ -121,14 +122,15 @@ export async function sendPasswordReset(email: string, redirectPath = "/login") 
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
     redirectTo,
   });
-  if (error) throw new Error(error.message || "Reinitialisation impossible.");
+  if (error)
+    throw new Error(error.message || tr("Réinitialisation impossible.", "Password reset failed."));
 }
 
 export async function signOut() {
   const supabase = await getSupabaseOrNull();
   if (!supabase) return;
   const { error } = await supabase.auth.signOut();
-  if (error) throw new Error(error.message || "Deconnexion impossible.");
+  if (error) throw new Error(error.message || tr("Déconnexion impossible.", "Sign-out failed."));
 }
 
 export async function getCurrentSessionProfile(): Promise<SessionProfile | null> {
@@ -213,12 +215,12 @@ export async function ensureClientProfile(
 ) {
   const supabase = await requireSupabaseClient();
   const email = (fallback?.email ?? user.email ?? "").trim().toLowerCase();
-  if (!email) throw new Error("Email client introuvable.");
+  if (!email) throw new Error(tr("Email client introuvable.", "Guest email not found."));
 
   const existing = await fetchProfileForUser(user);
   if (existing) {
     if (existing.role !== "client") {
-      throw new Error("Ce compte n'est pas un compte client.");
+      throw new Error(tr("Ce compte n'est pas un compte client.", "This is not a guest account."));
     }
     return existing;
   }

@@ -11,6 +11,9 @@ import {
   signInWithPasswordAndProfile,
   type ProfileRole,
 } from "@/lib/auth/profilesAuth";
+import { LanguageSwitch } from "@/components/language-switch";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 
 type LoginSearch = {
@@ -28,7 +31,7 @@ export const Route = createFileRoute("/login")({
         : undefined,
   }),
   head: () => ({
-    meta: [{ title: "Connexion - Marina Cap Monastir" }],
+    meta: [{ title: headT("Connexion - Marina Cap Monastir", "Sign in - Marina Cap Monastir") }],
   }),
   component: LoginPage,
 });
@@ -36,6 +39,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,7 +76,7 @@ function LoginPage() {
       if (context.profile.role === "client") await linkGuestReservationsToClient();
       navigateToRole(navigate, context.profile.role, search.redirect);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Connexion impossible.");
+      setError(err instanceof Error ? err.message : t("Connexion impossible.", "Sign-in failed."));
     } finally {
       setLoading(false);
     }
@@ -89,7 +93,7 @@ function LoginPage() {
           />
           <div>
             <div className="font-black">Marina Cap Monastir</div>
-            <div className="text-xs text-white/70">Admin & client</div>
+            <div className="text-xs text-white/70">{t("Admin & client", "Admin & guests")}</div>
           </div>
         </Link>
         <div>
@@ -98,11 +102,16 @@ function LoginPage() {
             Supabase Auth
           </div>
           <h1 className="max-w-xl text-5xl font-black leading-tight">
-            Acces securise aux espaces Marina Cap Monastir.
+            {t(
+              "Accès sécurisé aux espaces Marina Cap Monastir.",
+              "Secure access to your Marina Cap Monastir account.",
+            )}
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-7 text-white/70">
-            Utilisez le meme formulaire pour l'administration et le portail client. Le role du
-            profil determine automatiquement l'espace d'arrivee.
+            {t(
+              "Utilisez le même formulaire pour l'administration et le portail client. Le rôle du profil détermine automatiquement l'espace d'arrivée.",
+              "Use the same form for the administration and the guest portal. Your profile role decides where you land.",
+            )}
           </p>
         </div>
       </section>
@@ -117,34 +126,42 @@ function LoginPage() {
               <LockKeyhole className="size-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-primary">Connexion</h1>
-              <p className="text-sm text-muted-foreground">Email et mot de passe Supabase.</p>
+              <h1 className="text-2xl font-black text-primary">{t("Connexion", "Sign in")}</h1>
+              <p className="text-sm text-muted-foreground">
+                {t("Email et mot de passe.", "Email and password.")}
+              </p>
             </div>
+            <LanguageSwitch className="ml-auto" />
           </div>
 
           {!configured && (
             <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">
-              Supabase n'est pas configure. La connexion necessite VITE_SUPABASE_URL et
-              VITE_SUPABASE_ANON_KEY.
+              {t(
+                "Supabase n'est pas configuré. La connexion nécessite VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
+                "Supabase is not configured. Signing in requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+              )}
             </p>
           )}
 
           {search.redirect?.startsWith("/book/") && (
             <p className="mb-4 rounded-md bg-primary/8 p-3 text-sm font-medium text-primary">
-              Vous devez vous connecter ou creer un compte avant de confirmer votre reservation.
+              {t(
+                "Vous devez vous connecter ou créer un compte avant de confirmer votre réservation.",
+                "Please sign in or create an account before confirming your booking.",
+              )}
             </p>
           )}
 
           <label className="block">
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Email
+              {t("Email", "Email")}
             </span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="admin-input"
-              placeholder="nom@example.com"
+              placeholder={t("nom@exemple.com", "name@example.com")}
               autoComplete="email"
               required
             />
@@ -152,7 +169,7 @@ function LoginPage() {
 
           <label className="mt-4 block">
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Mot de passe
+              {t("Mot de passe", "Password")}
             </span>
             <input
               type="password"
@@ -176,19 +193,21 @@ function LoginPage() {
             disabled={loading || checkingSession || !configured}
             className="mt-5 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading || checkingSession ? "Verification..." : "Se connecter"}
+            {loading || checkingSession
+              ? t("Vérification...", "Checking...")
+              : t("Se connecter", "Sign in")}
           </button>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
             <Link to="/" className="font-semibold text-muted-foreground hover:text-primary">
-              Retour au site public
+              {t("Retour au site public", "Back to the website")}
             </Link>
             <Link
               to="/register"
               search={search.redirect ? { redirect: search.redirect } : undefined}
               className="font-black text-primary hover:text-accent"
             >
-              Creer un compte
+              {t("Créer un compte", "Create an account")}
             </Link>
           </div>
         </form>

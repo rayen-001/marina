@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Anchor, CheckCircle2, Mail, Phone, Sailboat, User } from "lucide-react";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { tr } from "@/lib/i18n/locale";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 
 type FormData = {
@@ -69,39 +72,47 @@ const initialForm: FormData = {
 
 function validate(form: FormData): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (!form.lastName.trim()) errors.lastName = "Nom requis";
-  if (!form.firstName.trim()) errors.firstName = "Prénom requis";
-  if (!form.dateOfBirth) errors.dateOfBirth = "Date de naissance requise";
-  if (!form.nationality.trim()) errors.nationality = "Nationalité requise";
-  if (!form.phone.trim()) errors.phone = "Téléphone requis";
+  if (!form.lastName.trim()) errors.lastName = tr("Nom requis", "Last name required");
+  if (!form.firstName.trim()) errors.firstName = tr("Prénom requis", "First name required");
+  if (!form.dateOfBirth)
+    errors.dateOfBirth = tr("Date de naissance requise", "Date of birth required");
+  if (!form.nationality.trim())
+    errors.nationality = tr("Nationalité requise", "Nationality required");
+  if (!form.phone.trim()) errors.phone = tr("Téléphone requis", "Phone required");
   if (!form.email.trim()) {
-    errors.email = "Email requis";
+    errors.email = tr("Email requis", "Email required");
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = "Email invalide";
+    errors.email = tr("Email invalide", "Invalid email");
   }
-  if (form.email !== form.confirmEmail) errors.confirmEmail = "Les emails ne correspondent pas";
-  if (!form.boatName.trim()) errors.boatName = "Nom du bateau requis";
-  if (!form.flag.trim()) errors.flag = "Pavillon requis";
+  if (form.email !== form.confirmEmail) {
+    errors.confirmEmail = tr("Les emails ne correspondent pas", "Emails do not match");
+  }
+  if (!form.boatName.trim()) errors.boatName = tr("Nom du bateau requis", "Boat name required");
+  if (!form.flag.trim()) errors.flag = tr("Pavillon requis", "Flag required");
   const length = parseFloat(form.length);
   if (!form.length || isNaN(length) || length <= 0)
-    errors.length = "Longueur invalide (doit être > 0)";
+    errors.length = tr("Longueur invalide (doit être > 0)", "Invalid length (must be > 0)");
   const width = parseFloat(form.width);
-  if (!form.width || isNaN(width) || width <= 0) errors.width = "Largeur invalide (doit être > 0)";
+  if (!form.width || isNaN(width) || width <= 0)
+    errors.width = tr("Largeur invalide (doit être > 0)", "Invalid width (must be > 0)");
   const draught = parseFloat(form.draught);
   if (!form.draught || isNaN(draught) || draught <= 0)
-    errors.draught = "Tirant d'eau invalide (doit être > 0)";
-  if (!form.boatType) errors.boatType = "Type de bateau requis";
-  if (!form.checkIn) errors.checkIn = "Date d'arrivée requise";
-  if (!form.checkOut) errors.checkOut = "Date de sortie requise";
+    errors.draught = tr("Tirant d'eau invalide (doit être > 0)", "Invalid draught (must be > 0)");
+  if (!form.boatType) errors.boatType = tr("Type de bateau requis", "Boat type required");
+  if (!form.checkIn) errors.checkIn = tr("Date d'arrivée requise", "Arrival date required");
+  if (!form.checkOut) errors.checkOut = tr("Date de sortie requise", "Departure date required");
   if (form.checkIn && form.checkOut && form.checkOut <= form.checkIn)
-    errors.checkOut = "La date de sortie doit être après la date d'arrivée";
+    errors.checkOut = tr(
+      "La date de sortie doit être après la date d'arrivée",
+      "The departure date must be after the arrival date",
+    );
   const deposit = parseFloat(form.depositAmount);
   if (!form.depositAmount || isNaN(deposit) || deposit <= 0) {
-    errors.depositAmount = "Acompte requis";
+    errors.depositAmount = tr("Acompte requis", "Deposit required");
   } else if (form.depositCurrency === "EUR" && deposit < 300) {
-    errors.depositAmount = "Acompte minimum 300 €";
+    errors.depositAmount = tr("Acompte minimum 300 €", "Minimum deposit €300");
   } else if (form.depositCurrency === "TND" && deposit < 1000) {
-    errors.depositAmount = "Acompte minimum 1 000 TND";
+    errors.depositAmount = tr("Acompte minimum 1 000 TND", "Minimum deposit 1,000 TND");
   }
   return errors;
 }
@@ -123,25 +134,31 @@ async function sendCapitainerieEmail(
       return {
         emailSent: false,
         error: error.message,
-        instructions:
-          "Verifiez que l'Edge Function send-capitainerie-reservation-email est deployee et que EMAIL_PROVIDER_API_KEY ou les identifiants SMTP sont configures.",
+        instructions: tr(
+          "Vérifiez que l'Edge Function send-capitainerie-reservation-email est déployée et que EMAIL_PROVIDER_API_KEY ou les identifiants SMTP sont configurés.",
+          "Check that the send-capitainerie-reservation-email Edge Function is deployed and that EMAIL_PROVIDER_API_KEY or the SMTP credentials are configured.",
+        ),
       };
     }
 
     return (
       data ?? {
         emailSent: false,
-        instructions:
-          "L'Edge Function n'a pas retourne de reponse. La reservation sera sauvegardee en fallback.",
+        instructions: tr(
+          "L'Edge Function n'a pas retourné de réponse. La réservation sera sauvegardée en fallback.",
+          "The Edge Function returned no response. The booking will be saved as a fallback.",
+        ),
       }
     );
   } catch (error) {
     console.error("[Capitainerie] Email submit failed", error);
     return {
       emailSent: false,
-      error: error instanceof Error ? error.message : "Erreur inconnue",
-      instructions:
-        "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP, CAPITAINERIE_EMAIL et redeployez l'Edge Function send-capitainerie-reservation-email.",
+      error: error instanceof Error ? error.message : tr("Erreur inconnue", "Unknown error"),
+      instructions: tr(
+        "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP, CAPITAINERIE_EMAIL et redéployez l'Edge Function send-capitainerie-reservation-email.",
+        "Set EMAIL_PROVIDER_API_KEY or the SMTP credentials and CAPITAINERIE_EMAIL, then redeploy the send-capitainerie-reservation-email Edge Function.",
+      ),
     };
   }
 }
@@ -174,11 +191,18 @@ function buildCapitainerieEmailPayload(form: FormData) {
 export const Route = createFileRoute("/port-de-plaisance/reservation")({
   head: () => ({
     meta: [
-      { title: "Réservation Port de Plaisance — Marina Cap Monastir" },
+      {
+        title: headT(
+          "Réservation Port de Plaisance — Marina Cap Monastir",
+          "Berth booking — Marina Cap Monastir",
+        ),
+      },
       {
         name: "description",
-        content:
+        content: headT(
           "Réservez votre place au port de plaisance de Marina Cap Monastir. Formulaire de réservation pour plaisanciers, escale, passage, hivernage.",
+          "Book your berth at the Marina Cap Monastir harbour. Booking form for boaters: stopover, transit, wintering.",
+        ),
       },
     ],
   }),
@@ -186,6 +210,7 @@ export const Route = createFileRoute("/port-de-plaisance/reservation")({
 });
 
 function ReservationPortPage() {
+  const { t, locale } = useI18n();
   const [form, setForm] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -246,8 +271,10 @@ function ReservationPortPage() {
           depositAmount: form.depositAmount,
           depositCurrency: form.depositCurrency,
           deliveryMode: "mailto",
-          setupInstructions:
-            "Supabase n'est pas configure. Configurez Supabase et l'Edge Function send-capitainerie-reservation-email pour envoyer l'email serveur automatiquement.",
+          setupInstructions: t(
+            "Supabase n'est pas configuré. Configurez Supabase et l'Edge Function send-capitainerie-reservation-email pour envoyer l'email serveur automatiquement.",
+            "Supabase is not configured. Set up Supabase and the send-capitainerie-reservation-email Edge Function to send the email automatically.",
+          ),
         });
         setSubmitting(false);
         return;
@@ -297,7 +324,10 @@ function ReservationPortPage() {
         if (import.meta.env.DEV) console.error("Port reservation RPC error:", error);
         throw new Error(
           error.message ||
-            "Erreur lors de l'envoi. Veuillez réessayer ou contacter la capitainerie.",
+            t(
+              "Erreur lors de l'envoi. Veuillez réessayer ou contacter la capitainerie.",
+              "Sending failed. Please try again or contact the harbour office.",
+            ),
         );
       }
 
@@ -312,10 +342,16 @@ function ReservationPortPage() {
         deliveryMode: "database_fallback",
         setupInstructions:
           emailResult.instructions ??
-          "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP, CAPITAINERIE_EMAIL et redeployez l'Edge Function send-capitainerie-reservation-email.",
+          t(
+            "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP, CAPITAINERIE_EMAIL et redéployez l'Edge Function send-capitainerie-reservation-email.",
+            "Set EMAIL_PROVIDER_API_KEY or the SMTP credentials and CAPITAINERIE_EMAIL, then redeploy the send-capitainerie-reservation-email Edge Function.",
+          ),
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur inattendue. Veuillez réessayer.";
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("Erreur inattendue. Veuillez réessayer.", "Unexpected error. Please try again.");
       setSubmitError(message);
     } finally {
       setSubmitting(false);
@@ -338,11 +374,11 @@ function ReservationPortPage() {
         <div className="relative mx-auto max-w-4xl px-4 md:px-6">
           <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] backdrop-blur">
             <Anchor className="size-3.5 text-accent" />
-            Port de Plaisance
+            {t("Port de Plaisance", "Marina")}
           </div>
-          <h1 className="page-title">Réservation Port de Plaisance</h1>
+          <h1 className="page-title">{t("Réservation Port de Plaisance", "Berth booking")}</h1>
           <p className="mt-3 text-base text-white/75">
-            Saisissez vos coordonnées / Enter your details
+            {t("Saisissez vos coordonnées / Enter your details", "Enter your details")}
           </p>
         </div>
       </section>
@@ -358,14 +394,19 @@ function ReservationPortPage() {
                   <User className="size-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-primary">Coordonnées client</h2>
-                  <p className="text-sm text-muted-foreground">Client information</p>
+                  <h2 className="text-xl font-black text-primary">
+                    {t("Coordonnées client", "Client information")}
+                  </h2>
+                  {/* English subtitle kept on the French page (bilingual form) */}
+                  {locale === "fr" && (
+                    <p className="text-sm text-muted-foreground">Client information</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <FormField
-                  label="Nom / Name"
+                  label={t("Nom / Name", "Last name")}
                   id="lastName"
                   value={form.lastName}
                   error={errors.lastName}
@@ -374,7 +415,7 @@ function ReservationPortPage() {
                   placeholder="DUPONT"
                 />
                 <FormField
-                  label="Prénom / First Name"
+                  label={t("Prénom / First Name", "First name")}
                   id="firstName"
                   value={form.firstName}
                   error={errors.firstName}
@@ -383,7 +424,7 @@ function ReservationPortPage() {
                   placeholder="Jean"
                 />
                 <FormField
-                  label="Date de naissance / Date of Birth"
+                  label={t("Date de naissance / Date of Birth", "Date of birth")}
                   id="dateOfBirth"
                   type="date"
                   value={form.dateOfBirth}
@@ -392,7 +433,7 @@ function ReservationPortPage() {
                   onChange={(v) => setField("dateOfBirth", v)}
                 />
                 <FormField
-                  label="Nationalité / Nationality"
+                  label={t("Nationalité / Nationality", "Nationality")}
                   id="nationality"
                   value={form.nationality}
                   error={errors.nationality}
@@ -401,7 +442,7 @@ function ReservationPortPage() {
                   placeholder="Tunisia"
                 />
                 <FormField
-                  label="Téléphone / Phone"
+                  label={t("Téléphone / Phone", "Phone")}
                   id="phone"
                   type="tel"
                   value={form.phone}
@@ -418,18 +459,18 @@ function ReservationPortPage() {
                   error={errors.email}
                   required
                   onChange={(v) => setField("email", v)}
-                  placeholder="nom@exemple.com"
+                  placeholder={t("nom@exemple.com", "name@example.com")}
                 />
                 <div className="sm:col-span-2">
                   <FormField
-                    label="Confirmer Email / Confirm Email"
+                    label={t("Confirmer Email / Confirm Email", "Confirm email")}
                     id="confirmEmail"
                     type="email"
                     value={form.confirmEmail}
                     error={errors.confirmEmail}
                     required
                     onChange={(v) => setField("confirmEmail", v)}
-                    placeholder="nom@exemple.com"
+                    placeholder={t("nom@exemple.com", "name@example.com")}
                   />
                 </div>
               </div>
@@ -445,14 +486,18 @@ function ReservationPortPage() {
                   <Sailboat className="size-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-primary">Informations sur le Bateau</h2>
-                  <p className="text-sm text-muted-foreground">Boat information</p>
+                  <h2 className="text-xl font-black text-primary">
+                    {t("Informations sur le Bateau", "Boat information")}
+                  </h2>
+                  {locale === "fr" && (
+                    <p className="text-sm text-muted-foreground">Boat information</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <FormField
-                  label="Nom du bateau / Boat Name"
+                  label={t("Nom du bateau / Boat Name", "Boat name")}
                   id="boatName"
                   value={form.boatName}
                   error={errors.boatName}
@@ -461,16 +506,16 @@ function ReservationPortPage() {
                   placeholder="Sea Dream"
                 />
                 <FormField
-                  label="Pavillon / Flag"
+                  label={t("Pavillon / Flag", "Flag")}
                   id="flag"
                   value={form.flag}
                   error={errors.flag}
                   required
                   onChange={(v) => setField("flag", v)}
-                  placeholder="Tunisie"
+                  placeholder={t("Tunisie", "Tunisia")}
                 />
                 <FormField
-                  label="Longueur / Length (m)"
+                  label={t("Longueur / Length (m)", "Length (m)")}
                   id="length"
                   type="number"
                   min="0"
@@ -482,7 +527,7 @@ function ReservationPortPage() {
                   placeholder="12.0"
                 />
                 <FormField
-                  label="Largeur / Width (m)"
+                  label={t("Largeur / Width (m)", "Width (m)")}
                   id="width"
                   type="number"
                   min="0"
@@ -494,7 +539,7 @@ function ReservationPortPage() {
                   placeholder="4.0"
                 />
                 <FormField
-                  label="Tirant d'eau / Draught (m)"
+                  label={t("Tirant d'eau / Draught (m)", "Draught (m)")}
                   id="draught"
                   type="number"
                   min="0"
@@ -524,13 +569,13 @@ function ReservationPortPage() {
                         : "border-border focus:border-primary/50"
                     }`}
                   >
-                    <option value="">Sélectionner / Select</option>
-                    <option value="Monocoque">Monocoque</option>
+                    <option value="">{t("Sélectionner / Select", "Select")}</option>
+                    <option value="Monocoque">{t("Monocoque", "Monohull")}</option>
                     <option value="Catamaran">Catamaran</option>
                     <option value="Yacht">Yacht</option>
-                    <option value="Bateau moteur">Bateau moteur</option>
-                    <option value="Voilier">Voilier</option>
-                    <option value="Autre">Autre</option>
+                    <option value="Bateau moteur">{t("Bateau moteur", "Motorboat")}</option>
+                    <option value="Voilier">{t("Voilier", "Sailboat")}</option>
+                    <option value="Autre">{t("Autre", "Other")}</option>
                   </select>
                   {errors.boatType && (
                     <p data-field-error className="mt-1 text-xs text-red-500">
@@ -540,7 +585,7 @@ function ReservationPortPage() {
                 </div>
 
                 <FormField
-                  label="Date d'arrivée / Check-in Date"
+                  label={t("Date d'arrivée / Check-in Date", "Arrival date")}
                   id="checkIn"
                   type="date"
                   value={form.checkIn}
@@ -549,7 +594,7 @@ function ReservationPortPage() {
                   onChange={(v) => setField("checkIn", v)}
                 />
                 <FormField
-                  label="Date de sortie / Check-out Date"
+                  label={t("Date de sortie / Check-out Date", "Departure date")}
                   id="checkOut"
                   type="date"
                   value={form.checkOut}
@@ -561,7 +606,11 @@ function ReservationPortPage() {
                 {/* Deposit */}
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-sm font-semibold text-foreground">
-                    Acompte / Deposit (Min 300€ / 1 000 TND) *
+                    {t(
+                      "Acompte / Deposit (Min 300€ / 1 000 TND)",
+                      "Deposit (min €300 / 1,000 TND)",
+                    )}{" "}
+                    *
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -599,14 +648,17 @@ function ReservationPortPage() {
                     htmlFor="specialRequirements"
                     className="mb-1.5 block text-sm font-semibold text-foreground"
                   >
-                    Besoins spéciaux / Special Requirements
+                    {t("Besoins spéciaux / Special Requirements", "Special requirements")}
                   </label>
                   <textarea
                     id="specialRequirements"
                     value={form.specialRequirements}
                     onChange={(e) => setField("specialRequirements", e.target.value)}
                     rows={4}
-                    placeholder="Let us know if you have any special requirements..."
+                    placeholder={t(
+                      "Indiquez-nous vos besoins particuliers...",
+                      "Let us know if you have any special requirements...",
+                    )}
                     className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
@@ -621,7 +673,10 @@ function ReservationPortPage() {
                       className="size-4 rounded border-border accent-primary"
                     />
                     <span className="text-sm font-semibold text-foreground">
-                      S'abonner à la newsletter / Subscribe to newsletter
+                      {t(
+                        "S'abonner à la newsletter / Subscribe to newsletter",
+                        "Subscribe to the newsletter",
+                      )}
                     </span>
                   </label>
                 </div>
@@ -643,11 +698,15 @@ function ReservationPortPage() {
               disabled={submitting}
               className="h-14 w-full rounded-xl bg-primary text-base font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-ocean disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Envoi en cours..." : "Book Now / Réserver"}
+              {submitting
+                ? t("Envoi en cours...", "Sending...")
+                : t("Book Now / Réserver", "Book now")}
             </button>
             <p className="mt-3 text-center text-sm text-muted-foreground">
-              Un membre de l'équipe de la capitainerie vous contactera pour confirmer votre
-              réservation.
+              {t(
+                "Un membre de l'équipe de la capitainerie vous contactera pour confirmer votre réservation.",
+                "A member of the harbour office team will contact you to confirm your booking.",
+              )}
             </p>
           </div>
         </form>
@@ -656,8 +715,12 @@ function ReservationPortPage() {
         <div className="mt-10 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <div className="h-1 bg-gradient-to-r from-primary to-turquoise" />
           <div className="p-6">
-            <h3 className="font-black text-primary">Capitainerie Marina Cap Monastir</h3>
-            <p className="mt-1 text-sm text-muted-foreground">BP.N°60 - 5000 Monastir - Tunisie</p>
+            <h3 className="font-black text-primary">
+              {t("Capitainerie Marina Cap Monastir", "Marina Cap Monastir harbour office")}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("BP.N°60 - 5000 Monastir - Tunisie", "PO Box 60 - 5000 Monastir - Tunisia")}
+            </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <a
                 href="tel:+21673462305"
@@ -694,12 +757,8 @@ function ReservationPortPage() {
 }
 
 function SuccessCard({ success }: { success: SuccessData }) {
-  const fmt = (d: string) =>
-    new Date(d + "T12:00:00").toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+  const { t, formatDate } = useI18n();
+  const fmt = (d: string) => formatDate(d, { day: "2-digit", month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-background">
@@ -711,7 +770,9 @@ function SuccessCard({ success }: { success: SuccessData }) {
             <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="size-8 text-green-600" />
             </div>
-            <h1 className="text-3xl font-black text-primary">Demande envoyée</h1>
+            <h1 className="text-3xl font-black text-primary">
+              {t("Demande envoyée", "Request sent")}
+            </h1>
             <p className="hidden">
               {success.reservationNumber.endsWith("-MAIL")
                 ? "Votre client de messagerie a été ouvert avec les détails pré-remplis. Envoyez l'email pour finaliser votre demande."
@@ -721,16 +782,23 @@ function SuccessCard({ success }: { success: SuccessData }) {
             </p>
 
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Votre demande a \u00e9t\u00e9 envoy\u00e9e \u00e0 la capitainerie. Nous vous
-              contacterons bient\u00f4t.
+              {t(
+                "Votre demande a été envoyée à la capitainerie. Nous vous contacterons bientôt.",
+                "Your request has been sent to the harbour office. We will contact you soon.",
+              )}
             </p>
 
             {success.deliveryMode !== "email" && (
               <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-sm leading-6 text-amber-900">
-                <div className="font-black">Configuration email requise</div>
+                <div className="font-black">
+                  {t("Configuration email requise", "Email setup required")}
+                </div>
                 <p className="mt-1">
                   {success.setupInstructions ??
-                    "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP et CAPITAINERIE_EMAIL dans les secrets Supabase. La demande a ete sauvegardee en fallback."}
+                    t(
+                      "Configurez EMAIL_PROVIDER_API_KEY ou les identifiants SMTP et CAPITAINERIE_EMAIL dans les secrets Supabase. La demande a été sauvegardée en fallback.",
+                      "Set EMAIL_PROVIDER_API_KEY or the SMTP credentials and CAPITAINERIE_EMAIL in the Supabase secrets. The request was saved as a fallback.",
+                    )}
                 </p>
               </div>
             )}
@@ -739,23 +807,27 @@ function SuccessCard({ success }: { success: SuccessData }) {
             <div className="mt-8 rounded-xl border border-border bg-secondary/40 p-5 text-left">
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="font-semibold text-muted-foreground">N° de réservation</dt>
+                  <dt className="font-semibold text-muted-foreground">
+                    {t("N° de réservation", "Booking no.")}
+                  </dt>
                   <dd className="font-black text-primary">{success.reservationNumber}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="font-semibold text-muted-foreground">Bateau</dt>
+                  <dt className="font-semibold text-muted-foreground">{t("Bateau", "Boat")}</dt>
                   <dd className="font-semibold">{success.boatName}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="font-semibold text-muted-foreground">Arrivée</dt>
+                  <dt className="font-semibold text-muted-foreground">{t("Arrivée", "Arrival")}</dt>
                   <dd className="font-semibold">{fmt(success.checkIn)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="font-semibold text-muted-foreground">Départ</dt>
+                  <dt className="font-semibold text-muted-foreground">
+                    {t("Départ", "Departure")}
+                  </dt>
                   <dd className="font-semibold">{fmt(success.checkOut)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="font-semibold text-muted-foreground">Acompte</dt>
+                  <dt className="font-semibold text-muted-foreground">{t("Acompte", "Deposit")}</dt>
                   <dd className="font-semibold">
                     {success.depositAmount} {success.depositCurrency}
                   </dd>
@@ -765,7 +837,9 @@ function SuccessCard({ success }: { success: SuccessData }) {
 
             {/* Contact capitainerie */}
             <div className="mt-6 rounded-xl border border-primary/15 bg-primary/5 p-5 text-left">
-              <h3 className="font-black text-primary">Contacter la capitainerie</h3>
+              <h3 className="font-black text-primary">
+                {t("Contacter la capitainerie", "Contact the harbour office")}
+              </h3>
               <div className="mt-3 space-y-2">
                 <a
                   href="tel:+21673462305"
@@ -796,7 +870,7 @@ function SuccessCard({ success }: { success: SuccessData }) {
                 href="/"
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
               >
-                Retour à l'accueil
+                {t("Retour à l'accueil", "Back to home")}
               </a>
             </div>
           </div>
