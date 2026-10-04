@@ -45,7 +45,7 @@ function TarifsPortPage() {
             <Anchor className="size-3.5 text-accent" />
             Port de Plaisance
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Tarifs du Port</h1>
+          <h1 className="page-title">Tarifs du Port</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
             Tarifs d'accostage 2025 en dinar tunisien (TND).
           </p>

@@ -167,9 +167,7 @@ function BookPage() {
                 <UserRound className="size-3.5" />
                 Informations client
               </div>
-              <h1 className="text-3xl font-black text-primary md:text-4xl">
-                Finaliser la réservation
-              </h1>
+              <h1 className="page-title text-primary">Finaliser la réservation</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Ces informations seront utilisées pour la confirmation et l'accueil à la réception.
               </p>

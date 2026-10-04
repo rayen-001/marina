@@ -129,9 +129,7 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 ))}
               </span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-primary md:text-5xl">
-              {room.name}
-            </h1>
+            <h1 className="page-title text-primary">{room.name}</h1>
           </div>
           <div
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold ${

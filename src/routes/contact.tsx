@@ -88,9 +88,9 @@ function ContactPage() {
           <div className="relative mx-auto max-w-7xl px-4 py-20 text-white md:px-6">
             <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] shadow-lg backdrop-blur">
               <ShipWheel className="size-4 text-accent" />
-              Contact
+              Contacter
             </div>
-            <h1 className="max-w-3xl text-4xl font-black md:text-6xl">
+            <h1 className="hero-title max-w-3xl">
               Contacter Marina Cap Monastir
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/78">

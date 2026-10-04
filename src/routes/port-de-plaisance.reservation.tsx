@@ -340,7 +340,7 @@ function ReservationPortPage() {
             <Anchor className="size-3.5 text-accent" />
             Port de Plaisance
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Réservation Port de Plaisance</h1>
+          <h1 className="page-title">Réservation Port de Plaisance</h1>
           <p className="mt-3 text-base text-white/75">
             Saisissez vos coordonnées / Enter your details
           </p>

@@ -16,7 +16,6 @@ import {
   Phone,
   Sailboat,
   ShieldCheck,
-  ShipWheel,
   ShoppingBag,
   Sparkles,
   Utensils,
@@ -25,13 +24,12 @@ import {
 import heroImg from "@/assets/hero-marina.jpg";
 import { RoomCard } from "@/components/room-card";
 import { SiteHeader } from "@/components/site-header";
-import { getHotelSettings } from "@/lib/services/settingsService";
 import { listRoomTypes } from "@/lib/services/roomService";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [settings, roomItems] = await Promise.all([getHotelSettings(), listRoomTypes()]);
-    return { settings, roomItems };
+    const roomItems = await listRoomTypes();
+    return { roomItems };
   },
   head: () => ({
     meta: [
@@ -73,7 +71,7 @@ const NEWS_PREVIEW = [
 ];
 
 function Home() {
-  const { settings, roomItems } = Route.useLoaderData();
+  const { roomItems } = Route.useLoaderData();
   const featuredRooms = roomItems.slice(0, 4);
 
   return (
@@ -95,45 +93,37 @@ function Home() {
               <MapPin className="size-4 text-accent" />
               Monastir, Tunisie
             </div>
-            <h1 className="text-4xl font-black leading-tight tracking-normal md:text-6xl">
-              Réservez Appartement / Port de plaisance à Marina Cap Monastir
-            </h1>
-            <p className="mt-4 text-xl font-semibold text-accent">
-              Séjournez au cœur de Marina Cap Monastir
+            <h1 className="hero-title">Bienvenue à Marina Cap Monastir</h1>
+            <p className="mt-5 text-xl font-semibold text-accent md:text-2xl">
+              Votre séjour les pieds dans l'eau, au cœur de la Méditerranée
             </p>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/80 md:text-lg">
-              Appart-hôtel au port de plaisance de Monastir, chambres, suites et appartements au
-              bord de la Méditerranée, avec réception, restaurants, commerces et activités marines.
+              Studios et appartements face au port de plaisance, réception à votre écoute,
+              restaurants, commerces et activités marines : tout est réuni pour des vacances
+              inoubliables à Monastir.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="tel:+21673462305"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-black text-accent-foreground shadow-lg transition hover:-translate-y-0.5 hover:bg-white"
-              >
-                <Phone className="size-4" />
-                Contacter Réception
-              </a>
-              <a
-                href={`mailto:${settings.capitainerieEmail}`}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-5 text-sm font-black text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18"
-              >
-                <ShipWheel className="size-4" />
-                Contact Capitainerie
-              </a>
               <Link
                 to="/search"
                 search={{ adults: 2, children: 0, roomType: "Tous" }}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-black text-primary shadow-lg transition hover:-translate-y-0.5 hover:bg-secondary"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-black text-accent-foreground shadow-lg transition hover:-translate-y-0.5 hover:bg-white"
               >
                 <CalendarDays className="size-4" />
                 Réserver en ligne Appart-Hôtel
               </Link>
               <Link
                 to="/port-de-plaisance/reservation"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-accent/50 bg-accent/10 px-5 text-sm font-black text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-accent/20"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-black text-primary shadow-lg transition hover:-translate-y-0.5 hover:bg-secondary"
               >
                 <Anchor className="size-4" />
                 Réserver en ligne Port de Plaisance
+              </Link>
+              <Link
+                to="/contact"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-5 text-sm font-black text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18"
+              >
+                <Phone className="size-4" />
+                Contacter
               </Link>
             </div>
           </div>
@@ -414,7 +404,7 @@ function Home() {
               to="/contact"
               className="mt-7 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
             >
-              Entrer en contact
+              Contacter
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -459,33 +449,6 @@ function Home() {
               </div>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section id="contact" className="mx-auto max-w-7xl px-4 py-20 md:px-6">
-        <div className="premium-card grid gap-8 rounded-lg p-6 md:grid-cols-2 md:p-8">
-          <div>
-            <div className="section-kicker mb-3">Contact</div>
-            <h2 className="section-title">Réception et capitainerie</h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">
-              Une demande de séjour, d'escale ou de réservation port? Contactez directement l'équipe
-              concernée.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ContactMini
-              title="Appart Hôtel / Réception"
-              phone={settings.phone}
-              tel="+21673462305"
-              email={settings.email}
-            />
-            <ContactMini
-              title="Capitainerie"
-              phone={settings.capitaineriePhones.join(" / ")}
-              tel="+21673462066"
-              email={settings.capitainerieEmail}
-            />
-          </div>
         </div>
       </section>
 
@@ -567,7 +530,7 @@ function Home() {
                 </li>
                 <li>
                   <Link to="/contact" className="hover:text-primary">
-                    Contact
+                    Contacter
                   </Link>
                 </li>
               </ul>
@@ -656,36 +619,6 @@ function Home() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function ContactMini({
-  title,
-  phone,
-  tel,
-  email,
-}: {
-  title: string;
-  phone: string;
-  tel: string;
-  email: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
-      <h3 className="font-black text-primary">{title}</h3>
-      <a
-        href={`tel:${tel}`}
-        className="mt-3 block text-sm font-semibold text-foreground hover:text-accent"
-      >
-        {phone}
-      </a>
-      <a
-        href={`mailto:${email}`}
-        className="mt-1 block text-sm font-semibold text-primary hover:text-accent"
-      >
-        {email}
-      </a>
     </div>
   );
 }

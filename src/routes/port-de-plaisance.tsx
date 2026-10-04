@@ -47,9 +47,7 @@ function PortDePlaisancePage() {
               <Anchor className="size-4 text-accent" />
               Port de Plaisance
             </div>
-            <h1 className="max-w-3xl text-4xl font-black md:text-6xl">
-              Marina Cap Monastir côté mer
-            </h1>
+            <h1 className="hero-title max-w-3xl">Marina Cap Monastir côté mer</h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-white/78">
               Le port de plaisance de Marina Cap Monastir est à la fois un port d'escale, de
               passage, d'hivernage et de régates. Il constitue un point de rencontre privilégié pour

@@ -95,7 +95,7 @@ function ActualitesPage() {
             <Newspaper className="size-3.5" />
             Actualités
           </div>
-          <h1 className="section-title">Actualités Marina Cap Monastir</h1>
+          <h1 className="page-title text-primary">Actualités Marina Cap Monastir</h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
             Retrouvez les événements, opérations d'entretien du port et temps forts de la vie de la
             marina.

@@ -57,7 +57,7 @@ function FormalitesPage() {
             <FileCheck2 className="size-3.5 text-accent" />
             Port de Plaisance
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Formalités d'entrée et de sortie</h1>
+          <h1 className="page-title">Formalités d'entrée et de sortie</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
             Procédures et documents requis pour les plaisanciers à Marina Cap Monastir.
           </p>

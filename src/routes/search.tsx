@@ -197,9 +197,7 @@ function SearchPage() {
               <SearchIcon className="size-3.5" />
               Résultats de recherche
             </div>
-            <h1 className="text-3xl font-black text-primary md:text-4xl">
-              Studios et appartements disponibles
-            </h1>
+            <h1 className="page-title text-primary">Studios et appartements disponibles</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               <span className="font-semibold text-primary">{filtered.length}</span> résultat
               {filtered.length > 1 ? "s" : ""} · {search.adults} adulte

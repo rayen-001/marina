@@ -67,7 +67,7 @@ export function RoomCard({
 
           <div className="absolute bottom-3 left-3">
             <div className="rounded-lg bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur">
-              <span className="text-xs font-semibold text-muted-foreground">Dès </span>
+              <span className="text-xs font-semibold text-muted-foreground">À partir de </span>
               <span className="text-base font-black text-primary">
                 {formatCurrency(room.pricePerNight)}
               </span>

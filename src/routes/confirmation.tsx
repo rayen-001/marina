@@ -132,7 +132,7 @@ function ConfirmationPage() {
               <CheckCircle2 className="size-10" strokeWidth={1.5} />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-primary md:text-4xl animate-fade-up-delay-1">
+          <h1 className="page-title text-primary animate-fade-up-delay-1">
             Réservation confirmée !
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground animate-fade-up-delay-2">

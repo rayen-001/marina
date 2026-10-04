@@ -47,9 +47,7 @@ function PresentationPage() {
           <div className="luxury-hero-overlay absolute inset-0" />
           <div className="relative mx-auto max-w-7xl px-4 py-24 text-white md:px-6">
             <div className="section-kicker mb-4 text-accent">Présentation</div>
-            <h1 className="max-w-3xl text-4xl font-black md:text-6xl">
-              Une charmante escapade de Marina à Monastir
-            </h1>
+            <h1 className="hero-title max-w-3xl">Une charmante escapade de Marina à Monastir</h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-white/78">
               À l'horizon de la ville animée de Monastir, Marina Cap Monastir vous invite à
               découvrir un complexe touristique familial, idéal pour des vacances uniques au bord de

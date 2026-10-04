@@ -150,7 +150,7 @@ function PlanPortPage() {
             <Map className="size-3.5 text-accent" />
             Port de Plaisance
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Plan du Port</h1>
+          <h1 className="page-title">Plan du Port</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
             Marina Cap Monastir — Port de Plaisance
           </p>

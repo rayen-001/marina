@@ -99,7 +99,7 @@ export function SiteHeader() {
             Actualités
           </Link>
           <Link to="/contact" className="text-foreground/75 transition-colors hover:text-primary">
-            Contact
+            Contacter
           </Link>
         </nav>
 
@@ -160,7 +160,7 @@ export function SiteHeader() {
             </div>
             <MobileLink to="/presentation" label="Présentation" onNavigate={() => setOpen(false)} />
             <MobileLink to="/actualites" label="Actualités" onNavigate={() => setOpen(false)} />
-            <MobileLink to="/contact" label="Contact" onNavigate={() => setOpen(false)} />
+            <MobileLink to="/contact" label="Contacter" onNavigate={() => setOpen(false)} />
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
               <a
                 href="/contact?service=reception"
