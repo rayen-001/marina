@@ -105,18 +105,21 @@ function Home() {
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background to-transparent" />
 
         <div className="relative mx-auto flex min-h-[calc(100vh-4.25rem)] max-w-7xl items-center px-4 py-20 md:px-6">
-          <div className="max-w-3xl text-white">
+          <div className="max-w-4xl text-white">
             <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] shadow-lg backdrop-blur">
               <MapPin className="size-4 text-accent" />
               {t("Monastir, Tunisie", "Monastir, Tunisia")}
             </div>
             <h1 className="hero-title">
-              {t("Bienvenue à Marina Cap Monastir", "Welcome to Marina Cap Monastir")}
+              {t(
+                "L'Excellence d'un Séjour & d'une Escale Unique à Monastir",
+                "An Exceptional Stay & a Unique Stopover in Monastir",
+              )}
             </h1>
             <p className="mt-5 text-xl font-semibold text-accent md:text-2xl">
               {t(
-                "Votre séjour les pieds dans l'eau, au cœur de la Méditerranée",
-                "Your waterfront stay in the heart of the Mediterranean",
+                "Vivez La Marina — Appart-Hôtel d'Exception & Port de Plaisance sur la Méditerranée",
+                "Live La Marina — An Exceptional Aparthotel & Yacht Harbour on the Mediterranean",
               )}
             </p>
             <p className="mt-5 max-w-2xl text-base leading-8 text-white/80 md:text-lg">

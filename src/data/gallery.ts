@@ -1,3 +1,4 @@
+import { Coffee, ShoppingBag, Store, Utensils, type LucideIcon } from "lucide-react";
 import type { Localized } from "@/lib/i18n/locale";
 
 export type GalleryCategory = "port" | "hebergement" | "commerces" | "evenements";
@@ -13,6 +14,35 @@ export type GalleryPhoto = {
   src: string;
   category: GalleryCategory;
   alt: Localized;
+};
+
+export type GalleryComingSoon = {
+  title: Localized;
+  cards: Array<{ id: string; icon: LucideIcon; label: Localized }>;
+};
+
+// Shown in a tab while it has no real photo yet; disappears as soon as photos are added below.
+export const galleryComingSoon: Partial<Record<GalleryCategory, GalleryComingSoon>> = {
+  commerces: {
+    title: {
+      fr: "Boutiques, Restaurants & Commerces de La Marina — Visuels bientôt disponibles",
+      en: "Shops, Restaurants & Businesses of La Marina — Photos coming soon",
+    },
+    cards: [
+      { id: "boutiques", icon: ShoppingBag, label: { fr: "Boutiques", en: "Boutiques" } },
+      { id: "restaurants", icon: Utensils, label: { fr: "Restaurants", en: "Restaurants" } },
+      {
+        id: "cafes",
+        icon: Coffee,
+        label: { fr: "Cafés & glaciers", en: "Cafés & ice-cream parlours" },
+      },
+      {
+        id: "services",
+        icon: Store,
+        label: { fr: "Services de proximité", en: "Local services" },
+      },
+    ],
+  },
 };
 
 // Only real Marina Cap Monastir photos, filed by what they actually show.

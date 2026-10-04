@@ -4,8 +4,6 @@ import {
   CalendarCheck,
   ChevronDown,
   Menu,
-  Phone,
-  ShipWheel,
   User,
   UserPlus,
   UserRound,
@@ -138,22 +136,15 @@ export function SiteHeader() {
               <CalendarCheck className="size-4" />
               {t("Réserver", "Book")}
             </Link>
-            <a
-              href="/contact?service=reception"
-              title={t("Réception", "Reception")}
-              aria-label={t("Réception", "Reception")}
-              className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
-            >
-              <Phone className="size-4" />
-            </a>
             <Link
               to="/port-de-plaisance/reservation"
-              title={t("Capitainerie", "Harbour office")}
-              aria-label={t("Capitainerie", "Harbour office")}
-              className="hidden size-10 items-center justify-center rounded-lg border border-primary/25 text-primary transition-all hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
+              title={t("Réserver une place au port", "Book a berth")}
+              className="hidden h-10 items-center gap-2 whitespace-nowrap rounded-lg border border-primary/25 px-3 text-sm font-black text-primary transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 sm:inline-flex"
             >
-              <ShipWheel className="size-4" />
+              <Anchor className="size-4" />
+              {t("Port", "Berth")}
             </Link>
+            <LanguageSwitch variant="segmented" className="sm:hidden" />
             <AccountNav />
             <button
               type="button"
@@ -170,15 +161,26 @@ export function SiteHeader() {
         {open && (
           <div className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-border bg-white px-4 py-4 shadow-lg xl:hidden">
             <nav className="grid gap-1">
-              <Link
-                to="/search"
-                search={{ adults: 2, children: 0, roomType: "Tous" }}
-                onClick={() => setOpen(false)}
-                className="mb-2 flex h-12 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-black text-accent-foreground shadow-sm"
-              >
-                <CalendarCheck className="size-4" />
-                {t("Réserver un appartement", "Book an apartment")}
-              </Link>
+              <LanguageSwitch variant="segmented" className="mb-3 h-11 w-full" />
+              <div className="mb-2 grid grid-cols-2 gap-2">
+                <Link
+                  to="/search"
+                  search={{ adults: 2, children: 0, roomType: "Tous" }}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg bg-accent px-2 py-2.5 text-center text-sm font-black leading-tight text-accent-foreground shadow-sm"
+                >
+                  <CalendarCheck className="size-5" />
+                  {t("Réserver un appartement", "Book an apartment")}
+                </Link>
+                <Link
+                  to="/port-de-plaisance/reservation"
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg bg-primary px-2 py-2.5 text-center text-sm font-black leading-tight text-primary-foreground shadow-sm"
+                >
+                  <Anchor className="size-5" />
+                  {t("Réserver au port", "Book a berth")}
+                </Link>
+              </div>
               <MobileLink to="/" label={t("Accueil", "Home")} onNavigate={() => setOpen(false)} />
               <MobileLink
                 to="/search"
@@ -223,26 +225,7 @@ export function SiteHeader() {
                 label={t("Contacter", "Contact us")}
                 onNavigate={() => setOpen(false)}
               />
-              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-3">
-                <a
-                  href="/contact?service=reception"
-                  onClick={() => setOpen(false)}
-                  className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-white shadow-sm"
-                >
-                  <Phone className="size-4" />
-                  {t("Réception", "Reception")}
-                </a>
-                <Link
-                  to="/port-de-plaisance/reservation"
-                  onClick={() => setOpen(false)}
-                  className="flex h-11 items-center justify-center gap-2 rounded-lg border border-primary/30 text-sm font-bold text-primary"
-                >
-                  <Anchor className="size-4" />
-                  {t("Capitainerie", "Harbour office")}
-                </Link>
-              </div>
               <MobileRegisterLink onNavigate={() => setOpen(false)} />
-              <LanguageSwitch className="mt-2 h-11 w-full sm:hidden" />
             </nav>
           </div>
         )}

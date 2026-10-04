@@ -1,11 +1,13 @@
-import { ChevronLeft, ChevronRight, Expand, Store } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, ImageOff, Store } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   galleryCategories,
+  galleryComingSoon,
   galleryPhotos,
   type GalleryCategory,
+  type GalleryComingSoon,
   type GalleryPhoto,
 } from "@/data/gallery";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -52,7 +54,9 @@ export function PhotoGallery() {
           const photos = photosOf(category.id);
           return (
             <TabsContent key={category.id} value={category.id} className="mt-8">
-              {photos.length === 0 ? (
+              {photos.length === 0 && galleryComingSoon[category.id] ? (
+                <ComingSoonGrid content={galleryComingSoon[category.id]!} />
+              ) : photos.length === 0 ? (
                 <div className="premium-card mx-auto flex max-w-xl flex-col items-center rounded-lg px-6 py-12 text-center">
                   <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
                     <Store className="size-6" />
@@ -120,6 +124,40 @@ export function PhotoGallery() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function ComingSoonGrid({ content }: { content: GalleryComingSoon }) {
+  const { t, pick } = useI18n();
+  return (
+    <div>
+      <p className="mx-auto mb-6 max-w-3xl text-center text-base font-black leading-7 text-primary">
+        {pick(content.title)}
+      </p>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {content.cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={card.id}
+              className="relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-ocean via-primary to-turquoise p-4 text-center text-white shadow-[var(--shadow-soft)]"
+            >
+              <div className="marina-pattern absolute inset-0 opacity-40" />
+              <div className="relative flex size-14 items-center justify-center rounded-full bg-white/95 text-primary shadow-lg">
+                <Icon className="size-7" />
+              </div>
+              <div className="relative mt-3 text-sm font-black md:text-base">
+                {pick(card.label)}
+              </div>
+              <span className="relative mt-2 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] backdrop-blur">
+                <ImageOff className="size-3" />
+                {t("Visuels bientôt disponibles", "Photos coming soon")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

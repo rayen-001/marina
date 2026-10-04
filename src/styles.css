@@ -224,6 +224,13 @@
     text-wrap: balance;
   }
 
+  /* Keep the last content above the phone booking bar (components/floating-book-button.tsx). */
+  @media (max-width: 639px) {
+    body:has(.floating-book-bar) {
+      padding-bottom: 5.5rem;
+    }
+  }
+
   .gold-rule {
     position: relative;
   }
