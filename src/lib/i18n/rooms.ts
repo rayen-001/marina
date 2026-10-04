@@ -39,8 +39,21 @@ const SLUG_BY_ID: Record<string, string> = {
   "de47c5a0-5915-4e45-a355-bcda4a85bb5d": "appartement-s2",
 };
 
-function englishRoom(room: Pick<Room, "slug" | "id">) {
-  return ROOM_EN[room.slug ?? ""] ?? ROOM_EN[SLUG_BY_ID[room.id] ?? ""];
+// Some screens only know the French room name (e.g. message threads).
+const SLUG_BY_NAME: Record<string, string> = {
+  Studio: "studio",
+  "Appartement Économique S+1": "appartement-economique-s1",
+  "Appartement Economique S+1": "appartement-economique-s1",
+  "Appartement Standard S+1": "appartement-standard-s1",
+  "Appartement S+2": "appartement-s2",
+};
+
+function englishRoom(room: Pick<Room, "slug" | "id"> & { name?: string }) {
+  return (
+    ROOM_EN[room.slug ?? ""] ??
+    ROOM_EN[SLUG_BY_ID[room.id] ?? ""] ??
+    ROOM_EN[SLUG_BY_NAME[room.name ?? ""] ?? ""]
+  );
 }
 
 const ROOM_TYPE_EN: Record<Room["type"], string> = {

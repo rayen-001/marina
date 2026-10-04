@@ -72,3 +72,29 @@ export function getChannelLabels(locale: Locale) {
 export function getPaymentMethodLabels(locale: Locale) {
   return paymentMethodLabels[locale];
 }
+
+/** English counterpart of CLIENT_MESSAGING_LOCKED_REASON (lib/services/messageService.ts). */
+export const CLIENT_MESSAGING_LOCKED_REASON_EN =
+  "You need an aparthotel booking before contacting the administration.";
+
+// Conversation subjects are stored in French (they are read by the reception team);
+// this only changes how they are displayed.
+const SUBJECT_EN: Record<string, string> = {
+  "Demande générale": "General enquiry",
+  "Question réservation": "Booking question",
+  "Paiement & Facture": "Payment & invoice",
+  "Arrivée / Check-in": "Arrival / Check-in",
+  "Demandes spéciales": "Special requests",
+  "Reception Marina": "Marina reception",
+  "Conversation client": "Guest conversation",
+  Conversation: "Conversation",
+  "Contact Reception": "Contact reception",
+  "Réservation Appart-Hôtel": "Aparthotel booking",
+  "Réservation Port de Plaisance": "Berth booking",
+  Capitainerie: "Harbour office",
+  "Demande spéciale": "Special request",
+};
+
+export function localizeSubject(subject: string, locale: Locale) {
+  return locale === "fr" ? subject : (SUBJECT_EN[subject] ?? subject);
+}
