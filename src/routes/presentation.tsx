@@ -5,6 +5,7 @@ import {
   Award,
   Compass,
   ConciergeBell,
+  Images,
   MapPin,
   Sailboat,
   ShieldCheck,
@@ -14,6 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 import heroImg from "@/assets/hero-marina.jpg";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { SiteHeader } from "@/components/site-header";
 
 const ISO_IMAGE = "/images/port/certification-iso14001.png";
@@ -84,8 +86,24 @@ function PresentationPage() {
           </Link>
         </section>
 
-        {/* Port de plaisance — real official presentation */}
         <section className="bg-secondary/50 py-16">
+          <div className="mx-auto max-w-7xl px-4 md:px-6">
+            <div className="mb-8 text-center">
+              <div className="section-kicker mx-auto mb-3 justify-center">
+                <Images className="size-3.5" />
+                Galerie
+              </div>
+              <h2 className="section-title mx-auto">La Marina en images</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-muted-foreground">
+                Paysages, hébergements, commerces et temps forts de Marina Cap Monastir.
+              </p>
+            </div>
+            <PhotoGallery />
+          </div>
+        </section>
+
+        {/* Port de plaisance — real official presentation */}
+        <section className="py-16">
           <div className="mx-auto max-w-7xl px-4 md:px-6">
             <div className="mb-8">
               <div className="section-kicker mb-3">
