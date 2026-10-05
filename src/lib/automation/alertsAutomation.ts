@@ -1,4 +1,5 @@
 import { channelConnections, reservations, rooms, roomsAvailable } from "@/data/hotel";
+import { translateDemoText } from "@/lib/i18n/labels";
 import type { AutomationAlert } from "@/lib/types/hotel";
 import { detectReservationsWithoutInvoice } from "./invoiceAutomation";
 import { detectUnpaidReservations } from "./paymentAutomation";
@@ -87,6 +88,7 @@ export function createHotelOperationAlerts(
           severity: "critical",
           title: "Erreur de synchronisation channel",
           description: error,
+          descriptionEn: translateDemoText(error, "en"),
           createdAt,
         }),
       ),

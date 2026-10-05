@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/admin/status-badge";
 import { channelConnections, channelLabels, type ChannelConnection } from "@/data/hotel";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getChannelLabels } from "@/lib/i18n/labels";
+import { getChannelLabels, localizeLogLevel, translateDemoText } from "@/lib/i18n/labels";
 import { localizeRoomName } from "@/lib/i18n/rooms";
 import { listRoomTypes } from "@/lib/services/roomService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
@@ -99,10 +99,10 @@ function AdminChannels() {
               </div>
               <div className="mt-4 space-y-2">
                 {(channel.errors ?? []).map((error) => (
-                  <Notice key={error} tone="error" text={error} />
+                  <Notice key={error} tone="error" text={translateDemoText(error, locale)} />
                 ))}
                 {(channel.warnings ?? []).map((warning) => (
-                  <Notice key={warning} tone="warning" text={warning} />
+                  <Notice key={warning} tone="warning" text={translateDemoText(warning, locale)} />
                 ))}
               </div>
             </article>
@@ -165,8 +165,8 @@ function AdminChannels() {
         <div className="mt-4 space-y-2">
           {logs.map((log, index) => (
             <div key={index} className="rounded-md border border-border bg-background p-3 text-sm">
-              <span className="font-semibold text-primary">{log.channel}</span> · {log.level}:{" "}
-              {log.message}
+              <span className="font-semibold text-primary">{log.channel}</span> ·{" "}
+              {localizeLogLevel(log.level, locale)} : {translateDemoText(log.message, locale)}
             </div>
           ))}
         </div>

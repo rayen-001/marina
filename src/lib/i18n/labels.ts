@@ -128,6 +128,39 @@ export function localizeAlertSeverity(severity: string, locale: Locale) {
   return ALERT_SEVERITY[severity]?.[locale] ?? severity;
 }
 
+// Fixed French texts of the channel-manager prototype (lib/channels adapters and the
+// channel connections in data/hotel.ts). Any other text (e.g. stored sync logs) is shown as is.
+const DEMO_TEXT_EN: Record<string, string> = {
+  "Connexion Airbnb non configurée.": "Airbnb connection not configured.",
+  "API partenaire Airbnb requise avant toute synchronisation réelle.":
+    "Airbnb partner API required before any real synchronisation.",
+  "Connexion Booking.com simulée.": "Simulated Booking.com connection.",
+  "Disponibilités simulées envoyées vers Booking.com.":
+    "Simulated availability sent to Booking.com.",
+  "Parité tarifaire à vérifier avant connexion réelle.": "Rate parity to check before going live.",
+  "Connexion Expedia en attente.": "Expedia connection pending.",
+  "Identifiants Expedia absents dans cette maquette locale.":
+    "Expedia credentials missing in this local prototype.",
+  "Vérifier la parité tarifaire sur les appartements S+1.":
+    "Check rate parity on the one-bedroom (S+1) apartments.",
+  "Connexion API partenaire requise.": "Partner API connection required.",
+  "Dernière synchronisation non configurée.": "Last synchronisation not configured.",
+};
+
+const LOG_LEVEL: Record<string, Record<Locale, string>> = {
+  info: { fr: "info", en: "info" },
+  warning: { fr: "avertissement", en: "warning" },
+  error: { fr: "erreur", en: "error" },
+};
+
+export function translateDemoText(text: string, locale: Locale) {
+  return locale === "fr" ? text : (DEMO_TEXT_EN[text] ?? text);
+}
+
+export function localizeLogLevel(level: string, locale: Locale) {
+  return LOG_LEVEL[level]?.[locale] ?? level;
+}
+
 export function localizeSubject(subject: string, locale: Locale) {
   return locale === "fr" ? subject : (SUBJECT_EN[subject] ?? subject);
 }
