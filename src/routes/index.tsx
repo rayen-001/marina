@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CheckCircle2,
   Compass,
-  ConciergeBell,
   Eye,
   Facebook,
   Mail,
@@ -18,12 +17,14 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sparkles,
-  Utensils,
   Waves,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import heroImg from "@/assets/hero-marina.jpg";
+import { HighlightCard } from "@/components/highlight-card";
 import { RoomCard } from "@/components/room-card";
 import { boatActivities } from "@/data/activities";
+import { marinaHighlights } from "@/data/highlights";
 import { SiteHeader } from "@/components/site-header";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -179,32 +180,8 @@ function Home() {
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              title: t("Des beaux paysages", "Beautiful scenery"),
-              icon: <Compass className="size-5" />,
-            },
-            {
-              title: t("Divers restaurants", "A choice of restaurants"),
-              icon: <Utensils className="size-5" />,
-            },
-            { title: t("Activités marines", "Sea activities"), icon: <Waves className="size-5" /> },
-            {
-              title: t("Un confort sans fin", "Comfort at every turn"),
-              icon: <ConciergeBell className="size-5" />,
-            },
-            {
-              title: t("Commerces et services", "Shops and services"),
-              icon: <ShoppingBag className="size-5" />,
-            },
-            { title: t("Port de plaisance", "Marina"), icon: <Sailboat className="size-5" /> },
-          ].map((feature) => (
-            <article key={feature.title} className="premium-card premium-card-hover rounded-lg p-5">
-              <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-secondary text-accent">
-                {feature.icon}
-              </div>
-              <h3 className="text-base font-black text-primary">{feature.title}</h3>
-            </article>
+          {marinaHighlights.map((highlight) => (
+            <HighlightCard key={highlight.id} highlight={highlight} />
           ))}
         </div>
       </section>
@@ -349,21 +326,25 @@ function Home() {
         <div className="grid gap-5 md:grid-cols-3">
           <Link
             to="/activites"
-            className="premium-card premium-card-hover group flex flex-col rounded-lg p-6"
+            className="premium-card premium-card-hover group flex flex-col overflow-hidden rounded-lg"
           >
-            <div className="mb-5 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
-              <Sailboat className="size-6" />
+            <DiscoverMedia
+              image="/images/home/feature-barbaros.png"
+              alt={t("Le navire Barbaros", "The Barbaros ship")}
+              icon={<Sailboat className="size-8" />}
+            />
+            <div className="flex flex-1 flex-col p-6">
+              <h3 className="text-xl font-black text-primary">
+                {t("Excursions en bateau", "Boat trips")}
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                {boatActivities.map((activity) => pick(activity.title)).join(", ")}.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-black text-accent">
+                {t("Voir toutes les sorties", "See all boat trips")}
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </span>
             </div>
-            <h3 className="text-xl font-black text-primary">
-              {t("Excursions en bateau", "Boat trips")}
-            </h3>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {boatActivities.map((activity) => pick(activity.title)).join(", ")}.
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-accent">
-              {t("Voir toutes les sorties", "See all boat trips")}
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </span>
           </Link>
           {[
             {
@@ -372,7 +353,9 @@ function Home() {
                 "Chambres et appartements avec vues agréables sur le port et l'environnement marin.",
                 "Rooms and apartments with lovely views over the marina and the sea.",
               ),
-              icon: <Compass className="size-6" />,
+              icon: <Compass className="size-8" />,
+              image: "/images/rooms/appartement-economique-s1.jpg",
+              alt: t("Terrasse avec vue sur le port", "Terrace overlooking the marina"),
             },
             {
               title: t("Divers commerces", "Shops of every kind"),
@@ -380,18 +363,20 @@ function Home() {
                 "Restaurants, cafés, marchés et commerces au caractère moderne et traditionnel.",
                 "Restaurants, cafés, markets and shops, both modern and traditional.",
               ),
-              icon: <ShoppingBag className="size-6" />,
+              icon: <ShoppingBag className="size-8" />,
+              image: undefined,
+              alt: "",
             },
           ].map((activity) => (
             <article
               key={activity.title}
-              className="premium-card premium-card-hover rounded-lg p-6"
+              className="premium-card premium-card-hover group flex flex-col overflow-hidden rounded-lg"
             >
-              <div className="mb-5 flex size-12 items-center justify-center rounded-lg bg-secondary text-accent">
-                {activity.icon}
+              <DiscoverMedia image={activity.image} alt={activity.alt} icon={activity.icon} />
+              <div className="p-6">
+                <h3 className="text-xl font-black text-primary">{activity.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{activity.text}</p>
               </div>
-              <h3 className="text-xl font-black text-primary">{activity.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">{activity.text}</p>
             </article>
           ))}
         </div>
@@ -727,6 +712,29 @@ function Home() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/** Top of a "Découvrez" card: real photo, or an illustrated panel until a photo exists. */
+function DiscoverMedia({ image, alt, icon }: { image?: string; alt: string; icon: ReactNode }) {
+  return (
+    <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
+      {image ? (
+        <img
+          src={image}
+          alt={alt}
+          loading="lazy"
+          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-ocean via-primary to-turquoise">
+          <div className="marina-pattern absolute inset-0 opacity-40" />
+          <div className="relative flex size-16 items-center justify-center rounded-full bg-white/95 text-primary shadow-lg">
+            {icon}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

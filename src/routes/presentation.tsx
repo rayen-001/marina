@@ -3,20 +3,17 @@ import {
   Anchor,
   ArrowRight,
   Award,
-  Compass,
-  ConciergeBell,
   Images,
   MapPin,
-  Sailboat,
   ShieldCheck,
-  ShoppingBag,
-  Utensils,
   Waves,
   Wrench,
 } from "lucide-react";
 import heroImg from "@/assets/hero-marina.jpg";
+import { HighlightCard } from "@/components/highlight-card";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { SiteHeader } from "@/components/site-header";
+import { marinaHighlights } from "@/data/highlights";
 import { headT } from "@/lib/i18n/head";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
@@ -71,35 +68,8 @@ function PresentationPage() {
 
         <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: t("Des beaux paysages", "Beautiful scenery"),
-                icon: <Compass className="size-5" />,
-              },
-              {
-                title: t("Divers restaurants", "A choice of restaurants"),
-                icon: <Utensils className="size-5" />,
-              },
-              {
-                title: t("Activités marines", "Sea activities"),
-                icon: <Waves className="size-5" />,
-              },
-              {
-                title: t("Un confort sans fin", "Comfort at every turn"),
-                icon: <ConciergeBell className="size-5" />,
-              },
-              {
-                title: t("Commerces et services", "Shops and services"),
-                icon: <ShoppingBag className="size-5" />,
-              },
-              { title: t("Port de plaisance", "Marina"), icon: <Sailboat className="size-5" /> },
-            ].map((item) => (
-              <article key={item.title} className="premium-card premium-card-hover rounded-lg p-6">
-                <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-secondary text-accent">
-                  {item.icon}
-                </div>
-                <h2 className="text-lg font-black text-primary">{item.title}</h2>
-              </article>
+            {marinaHighlights.map((highlight) => (
+              <HighlightCard key={highlight.id} highlight={highlight} headingLevel="h2" />
             ))}
           </div>
           <Link
