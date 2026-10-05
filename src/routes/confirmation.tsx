@@ -38,8 +38,8 @@ export const Route = createFileRoute("/confirmation")({
       {
         name: "description",
         content: headT(
-          "Votre réservation Marina Cap Monastir est confirmée.",
-          "Your Marina Cap Monastir booking is confirmed.",
+          "Récapitulatif de votre réservation Marina Cap Monastir.",
+          "Your Marina Cap Monastir booking summary.",
         ),
       },
     ],
@@ -132,6 +132,9 @@ function ConfirmationPage() {
   }
 
   const remaining = Math.max(0, reservation.total - reservation.deposit);
+  // New guest bookings start as "pending" until reception confirms them.
+  const awaitingConfirmation = reservation.status === "pending";
+  const cancelled = reservation.status === "cancelled" || reservation.status === "no_show";
   const reservationStatusLabels = getReservationStatusLabels(locale);
   const paymentStatusLabels = getPaymentStatusLabels(locale);
 
@@ -147,13 +150,27 @@ function ConfirmationPage() {
             </div>
           </div>
           <h1 className="page-title text-primary animate-fade-up-delay-1">
-            {t("Réservation confirmée !", "Booking confirmed!")}
+            {awaitingConfirmation
+              ? t("Demande de réservation envoyée !", "Booking request sent!")
+              : cancelled
+                ? t("Réservation annulée", "Booking cancelled")
+                : t("Réservation confirmée !", "Booking confirmed!")}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground animate-fade-up-delay-2">
-            {t(
-              "Votre séjour à Marina Cap Monastir est enregistré. Présentez ce numéro de confirmation à la réception lors de votre arrivée.",
-              "Your stay at Marina Cap Monastir has been recorded. Show this confirmation number at reception when you arrive.",
-            )}
+            {awaitingConfirmation
+              ? t(
+                  "Votre demande de séjour à Marina Cap Monastir est bien enregistrée. La réception va la confirmer très prochainement : conservez ce numéro de réservation.",
+                  "Your stay request at Marina Cap Monastir has been recorded. Reception will confirm it shortly: keep this booking number.",
+                )
+              : cancelled
+                ? t(
+                    "Cette réservation a été annulée. Contactez la réception pour toute question.",
+                    "This booking has been cancelled. Contact reception if you have any questions.",
+                  )
+                : t(
+                    "Votre séjour à Marina Cap Monastir est enregistré. Présentez ce numéro de confirmation à la réception lors de votre arrivée.",
+                    "Your stay at Marina Cap Monastir has been recorded. Show this confirmation number at reception when you arrive.",
+                  )}
           </p>
         </div>
 

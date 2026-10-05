@@ -19,7 +19,7 @@ export const Route = createFileRoute("/contact")({
   },
   head: () => ({
     meta: [
-      { title: headT("Contact - Marina Cap Monastir", "Contact us - Marina Cap Monastir") },
+      { title: headT("Contacter - Marina Cap Monastir", "Contact us - Marina Cap Monastir") },
       {
         name: "description",
         content: headT(
