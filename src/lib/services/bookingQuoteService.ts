@@ -7,6 +7,7 @@ import {
   type DateRangeRules,
   type NightlyRateBreakdown,
 } from "@/lib/services/rateCalendarService";
+import { tr } from "@/lib/i18n/locale";
 import { getRoomAvailability } from "@/lib/services/roomService";
 
 export type BookingQuote = {
@@ -56,7 +57,10 @@ export async function getBookingQuote(
       minNights: 1,
       rules: emptyRules,
       nightlyRates: [],
-      reason: "La date de départ doit être supérieure à la date d'arrivée.",
+      reason: tr(
+        "La date de départ doit être supérieure à la date d'arrivée.",
+        "The check-out date must be after the check-in date.",
+      ),
     };
   }
 
@@ -83,21 +87,26 @@ function getUnbookableReason(
   availability: number,
   rules: DateRangeRules,
 ) {
-  if (breakdown.nights <= 0) return "Sélectionnez des dates valides.";
+  if (breakdown.nights <= 0) return tr("Sélectionnez des dates valides.", "Select valid dates.");
   if (rules.blockingDates.length > 0) {
     return formatBlockedDatesMessage(rules.blockingDates);
   }
   if (breakdown.nights < rules.minNights) {
-    return `Séjour minimum de ${rules.minNights} nuit${rules.minNights > 1 ? "s" : ""} sur ces dates.`;
+    return tr(
+      `Séjour minimum de ${rules.minNights} nuit${rules.minNights > 1 ? "s" : ""} sur ces dates.`,
+      `Minimum stay of ${rules.minNights} night${rules.minNights > 1 ? "s" : ""} on these dates.`,
+    );
   }
-  if (availability <= 0) return "Aucune unité disponible pour ces dates.";
+  if (availability <= 0) {
+    return tr("Aucune unité disponible pour ces dates.", "No units available for these dates.");
+  }
   return null;
 }
 
 function formatBlockedDatesMessage(
   blockingDates: Array<{ date: string; availabilityStatus: string }>,
 ): string {
-  if (blockingDates.length === 0) return "Dates indisponibles.";
+  if (blockingDates.length === 0) return tr("Dates indisponibles.", "Dates unavailable.");
 
   const dates = blockingDates.map((b) => b.date).sort();
   const formatDateFr = (isoStr: string) => {
@@ -110,7 +119,10 @@ function formatBlockedDatesMessage(
   };
 
   if (dates.length === 1) {
-    return `La date du ${formatDateFr(dates[0])} est indisponible. Veuillez consulter le calendrier.`;
+    return tr(
+      `La date du ${formatDateFr(dates[0])} est indisponible. Veuillez consulter le calendrier.`,
+      `${formatDateFr(dates[0])} is unavailable. Please check the calendar.`,
+    );
   }
 
   // Check if dates are consecutive
@@ -128,9 +140,15 @@ function formatBlockedDatesMessage(
   if (isConsecutive) {
     const start = formatDateShortFr(dates[0]);
     const end = formatDateFr(dates[dates.length - 1]);
-    return `Dates indisponibles du ${start} au ${end}. Veuillez consulter le calendrier.`;
+    return tr(
+      `Dates indisponibles du ${start} au ${end}. Veuillez consulter le calendrier.`,
+      `Dates unavailable from ${start} to ${end}. Please check the calendar.`,
+    );
   }
 
   const listStr = dates.map(formatDateShortFr).join(", ");
-  return `Dates indisponibles (${listStr}). Veuillez consulter le calendrier.`;
+  return tr(
+    `Dates indisponibles (${listStr}). Veuillez consulter le calendrier.`,
+    `Dates unavailable (${listStr}). Please check the calendar.`,
+  );
 }

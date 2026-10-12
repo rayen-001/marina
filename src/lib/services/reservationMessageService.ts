@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/auth/profilesAuth";
 import { createConversation, sendMessage as sendPortalMessage } from "@/lib/services/messageService";
 import { getSupabaseOrNull, warnSupabaseFallback } from "@/lib/supabase/serviceHelpers";
 import type { MessageSenderType, Tables } from "@/lib/supabase/types";
+import { tr } from "@/lib/i18n/locale";
 
 type ConversationRow = Tables<"reservation_conversations">;
 type MessageRow = Tables<"reservation_messages">;
@@ -108,7 +109,7 @@ export async function sendReservationMessage(input: {
   message: string;
 }): Promise<ReservationMessage> {
   const message = input.message.trim();
-  if (!message) throw new Error("Message requis.");
+  if (!message) throw new Error(tr("Message requis.", "Message required."));
 
   const supabase = await getSupabaseOrNull();
   if (!supabase) return insertMockMessage({ ...input, message });

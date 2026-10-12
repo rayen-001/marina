@@ -1,15 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, Newspaper } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { Localized } from "@/lib/i18n/locale";
 
 export const Route = createFileRoute("/actualites")({
   head: () => ({
     meta: [
-      { title: "Actualités - Marina Cap Monastir" },
+      { title: headT("Actualités - Marina Cap Monastir", "News - Marina Cap Monastir") },
       {
         name: "description",
-        content:
+        content: headT(
           "Actualités de Marina Cap Monastir : événements nautiques, opérations de nettoyage du port, inaugurations et vie de la marina.",
+          "Marina Cap Monastir news: nautical events, harbour clean-up operations, openings and life at the marina.",
+        ),
       },
     ],
   }),
@@ -17,73 +22,68 @@ export const Route = createFileRoute("/actualites")({
 });
 
 type NewsItem = {
-  title: string;
+  title: Localized;
   date: string;
   image: string;
 };
 
 const news: NewsItem[] = [
   {
-    title: "Nettoyage du fond du port",
+    title: { fr: "Nettoyage du fond du port", en: "Harbour seabed clean-up" },
     date: "2018-10-27",
     image: "/images/news/nettoyage-fond-port-2018.jpg",
   },
   {
-    title: "Opération blanche de lutte contre l'incendie",
+    title: { fr: "Opération blanche de lutte contre l'incendie", en: "Fire-fighting drill" },
     date: "2018-11-30",
     image: "/images/news/operation-blanche-incendie-2018.jpg",
   },
   {
-    title: "Nettoyage du fond du port",
+    title: { fr: "Nettoyage du fond du port", en: "Harbour seabed clean-up" },
     date: "2018-01-28",
     image: "/images/news/nettoyage-fond-port-2018-01.jpg",
   },
   {
-    title: "Inauguration du « Yachting Club »",
+    title: { fr: "Inauguration du « Yachting Club »", en: "Opening of the “Yachting Club”" },
     date: "2017-11-30",
     image: "/images/news/inauguration-yachting-club-2017.jpg",
   },
   {
-    title: "Nettoyage du fond du port",
+    title: { fr: "Nettoyage du fond du port", en: "Harbour seabed clean-up" },
     date: "2017-11-26",
     image: "/images/news/nettoyage-fond-port-2017-11-26.jpg",
   },
   {
-    title: "Nettoyage du fond du port",
+    title: { fr: "Nettoyage du fond du port", en: "Harbour seabed clean-up" },
     date: "2017-11-19",
     image: "/images/news/nettoyage-fond-port-2017-11-19.jpg",
   },
   {
-    title: "Cours d'initiation à la guitare",
+    title: { fr: "Cours d'initiation à la guitare", en: "Beginner guitar lessons" },
     date: "2017-11-17",
     image: "/images/news/cours-guitare-2017.jpg",
   },
   {
-    title: "Marina Monastir",
+    title: { fr: "Marina Monastir", en: "Marina Monastir" },
     date: "2017-11-16",
     image: "/images/news/marina-monastir-2017-11-16.jpg",
   },
   {
-    title: "Marina Monastir",
+    title: { fr: "Marina Monastir", en: "Marina Monastir" },
     date: "2017-11-11",
     image: "/images/news/marina-monastir-2017-11-11.jpg",
   },
   {
-    title: "Marina Cap Monastir",
+    title: { fr: "Marina Cap Monastir", en: "Marina Cap Monastir" },
     date: "2017-05-12",
     image: "/images/news/marina-cap-monastir-2017-05.jpg",
   },
 ];
 
-function formatNewsDate(value: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
 function ActualitesPage() {
+  const { t, pick, formatDate } = useI18n();
+  const formatNewsDate = (value: string) =>
+    formatDate(value, { day: "2-digit", month: "long", year: "numeric" });
   const [featured, ...rest] = news;
 
   return (
@@ -93,12 +93,16 @@ function ActualitesPage() {
         <div className="mb-10">
           <div className="section-kicker mb-3">
             <Newspaper className="size-3.5" />
-            Actualités
+            {t("Actualités", "News")}
           </div>
-          <h1 className="section-title">Actualités Marina Cap Monastir</h1>
+          <h1 className="page-title text-primary">
+            {t("Actualités Marina Cap Monastir", "Marina Cap Monastir news")}
+          </h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-            Retrouvez les événements, opérations d'entretien du port et temps forts de la vie de la
-            marina.
+            {t(
+              "Retrouvez les événements, opérations d'entretien du port et temps forts de la vie de la marina.",
+              "Events, harbour maintenance operations and highlights of life at the marina.",
+            )}
           </p>
         </div>
 
@@ -107,7 +111,7 @@ function ActualitesPage() {
           <div className="grid gap-0 md:grid-cols-2">
             <img
               src={featured.image}
-              alt={featured.title}
+              alt={pick(featured.title)}
               className="h-64 w-full object-cover md:h-full"
             />
             <div className="flex flex-col justify-center p-6 md:p-8">
@@ -116,7 +120,7 @@ function ActualitesPage() {
                 {formatNewsDate(featured.date)}
               </div>
               <h2 className="mt-3 text-2xl font-black text-primary md:text-3xl">
-                {featured.title}
+                {pick(featured.title)}
               </h2>
             </div>
           </div>
@@ -126,16 +130,16 @@ function ActualitesPage() {
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((item) => (
             <article
-              key={`${item.title}-${item.date}`}
+              key={`${item.title.fr}-${item.date}`}
               className="premium-card premium-card-hover overflow-hidden rounded-lg"
             >
-              <img src={item.image} alt={item.title} className="h-48 w-full object-cover" />
+              <img src={item.image} alt={pick(item.title)} className="h-48 w-full object-cover" />
               <div className="p-5">
                 <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-accent">
                   <CalendarDays className="size-3.5" />
                   {formatNewsDate(item.date)}
                 </div>
-                <h3 className="mt-2 text-lg font-black text-primary">{item.title}</h3>
+                <h3 className="mt-2 text-lg font-black text-primary">{pick(item.title)}</h3>
               </div>
             </article>
           ))}

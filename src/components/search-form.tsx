@@ -3,6 +3,8 @@ import { CalendarDays, Search, Users } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { roomTypeOptions } from "@/data/hotel";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { localizeRoomType } from "@/lib/i18n/rooms";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -30,6 +32,7 @@ export function SearchForm({
   roomTypes,
 }: Props) {
   const navigate = useNavigate();
+  const { t, locale } = useI18n();
   const [checkIn, setCheckIn] = useState(defaultCheckIn);
   const [checkOut, setCheckOut] = useState(defaultCheckOut);
   const [adults, setAdults] = useState(defaultAdults);
@@ -54,7 +57,7 @@ export function SearchForm({
       )}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-turquoise to-primary" />
-      <Field icon={<CalendarDays className="size-4" />} label="Arrivée">
+      <Field icon={<CalendarDays className="size-4" />} label={t("Arrivée", "Check-in")}>
         <input
           type="date"
           value={checkIn}
@@ -62,7 +65,7 @@ export function SearchForm({
           className="w-full bg-transparent text-sm font-bold text-foreground outline-none"
         />
       </Field>
-      <Field icon={<CalendarDays className="size-4" />} label="Départ">
+      <Field icon={<CalendarDays className="size-4" />} label={t("Départ", "Check-out")}>
         <input
           type="date"
           value={checkOut}
@@ -70,14 +73,14 @@ export function SearchForm({
           className="w-full bg-transparent text-sm font-bold text-foreground outline-none"
         />
       </Field>
-      <Field icon={<Users className="size-4" />} label="Voyageurs">
+      <Field icon={<Users className="size-4" />} label={t("Voyageurs", "Guests")}>
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
             min={1}
             max={8}
             value={adults}
-            aria-label="Adultes"
+            aria-label={t("Adultes", "Adults")}
             onChange={(event) => setAdults(Number(event.target.value))}
             className="w-full min-w-0 bg-transparent text-sm font-bold text-foreground outline-none"
           />
@@ -86,7 +89,7 @@ export function SearchForm({
             min={0}
             max={6}
             value={children}
-            aria-label="Enfants"
+            aria-label={t("Enfants", "Children")}
             onChange={(event) => setChildren(Number(event.target.value))}
             className="w-full min-w-0 bg-transparent text-sm font-bold text-foreground outline-none"
           />
@@ -100,7 +103,7 @@ export function SearchForm({
         >
           {types.map((type, index) => (
             <option key={`${type}-${index}`} value={type}>
-              {type}
+              {localizeRoomType(type, locale)}
             </option>
           ))}
         </select>
@@ -110,7 +113,7 @@ export function SearchForm({
         className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-lg hover:shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
       >
         <Search className="size-4" />
-        Rechercher
+        {t("Rechercher", "Search")}
       </button>
     </form>
   );

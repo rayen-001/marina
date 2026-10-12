@@ -1,4 +1,5 @@
 import { redirect } from "@tanstack/react-router";
+import { tr } from "@/lib/i18n/locale";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import type { UserProfile } from "./profilesAuth";
 import {
@@ -36,7 +37,7 @@ export async function signInClient(email: string, password: string) {
   const context = await signInWithPasswordAndProfile(email, password);
   if (context.profile.role !== "client") {
     await signOut();
-    throw new Error("Ce compte n'est pas un compte client.");
+    throw new Error(tr("Ce compte n'est pas un compte client.", "This is not a guest account."));
   }
 
   return {

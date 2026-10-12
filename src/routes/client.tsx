@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { ClientLayout } from "@/components/client/ClientLayout";
 import { requireClientSession } from "@/lib/auth/clientAuth";
+import { headT } from "@/lib/i18n/head";
 
 const publicClientRoutes = new Set(["/client/login", "/client/register"]);
 
@@ -10,7 +11,11 @@ export const Route = createFileRoute("/client")({
     await requireClientSession(location.pathname);
   },
   head: () => ({
-    meta: [{ title: "Portail client - Marina Cap Monastir" }],
+    meta: [
+      {
+        title: headT("Portail client - Marina Cap Monastir", "Guest portal - Marina Cap Monastir"),
+      },
+    ],
   }),
   component: ClientRoute,
 });

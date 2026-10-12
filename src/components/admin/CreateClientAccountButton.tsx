@@ -3,6 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createClientAccount } from "@/lib/auth/createClientAccount.server";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import { adminButtonClasses } from "./AdminButton";
 
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function CreateClientAccountButton({ onCreated }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,12 +42,13 @@ export function CreateClientAccountButton({ onCreated }: Props) {
 
     try {
       const supabase = await getSupabaseOrNull();
-      if (!supabase) throw new Error("Supabase n'est pas configure.");
+      if (!supabase)
+        throw new Error(t("Supabase n'est pas configuré.", "Supabase is not configured."));
 
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw new Error(sessionError.message);
       const token = data.session?.access_token;
-      if (!token) throw new Error("Session admin requise.");
+      if (!token) throw new Error(t("Session admin requise.", "Admin session required."));
 
       await createClientAccount({
         data: {
@@ -57,12 +60,15 @@ export function CreateClientAccountButton({ onCreated }: Props) {
         },
       });
 
-      toast.success("Compte client cree.");
+      toast.success(t("Compte client créé.", "Guest account created."));
       reset();
       setOpen(false);
       await onCreated?.();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Creation du compte client impossible.";
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("Création du compte client impossible.", "The guest account could not be created.");
       setError(message);
       toast.error(message);
     } finally {
@@ -78,12 +84,17 @@ export function CreateClientAccountButton({ onCreated }: Props) {
         className={adminButtonClasses("primary", "md")}
       >
         <UserPlus className="size-4" />
-        Créer compte client
+        {t("Créer compte client", "Create guest account")}
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ocean/65 px-4 py-8 backdrop-blur-sm">
-          <button type="button" className="absolute inset-0" aria-label="Fermer" onClick={close} />
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label={t("Fermer", "Close")}
+            onClick={close}
+          />
           <form
             onSubmit={submit}
             className="relative w-full max-w-lg rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-lift)]"
@@ -92,22 +103,24 @@ export function CreateClientAccountButton({ onCreated }: Props) {
               <div>
                 <div className="section-kicker">
                   <UserPlus className="size-4" />
-                  Client
+                  {t("Client", "Guest")}
                 </div>
-                <h2 className="mt-2 text-xl font-black text-primary">Créer compte client</h2>
+                <h2 className="mt-2 text-xl font-black text-primary">
+                  {t("Créer compte client", "Create guest account")}
+                </h2>
               </div>
               <button
                 type="button"
                 onClick={close}
                 className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition hover:text-primary"
-                aria-label="Fermer"
+                aria-label={t("Fermer", "Close")}
               >
                 <X className="size-4" />
               </button>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <AdminClientField label="Nom complet">
+              <AdminClientField label={t("Nom complet", "Full name")}>
                 <input
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
@@ -116,7 +129,7 @@ export function CreateClientAccountButton({ onCreated }: Props) {
                   required
                 />
               </AdminClientField>
-              <AdminClientField label="Telephone">
+              <AdminClientField label={t("Téléphone", "Phone")}>
                 <input
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
@@ -124,7 +137,7 @@ export function CreateClientAccountButton({ onCreated }: Props) {
                   autoComplete="tel"
                 />
               </AdminClientField>
-              <AdminClientField label="Email">
+              <AdminClientField label={t("Email", "Email")}>
                 <input
                   type="email"
                   value={email}
@@ -134,7 +147,7 @@ export function CreateClientAccountButton({ onCreated }: Props) {
                   required
                 />
               </AdminClientField>
-              <AdminClientField label="Mot de passe">
+              <AdminClientField label={t("Mot de passe", "Password")}>
                 <input
                   type="password"
                   value={password}
@@ -160,7 +173,7 @@ export function CreateClientAccountButton({ onCreated }: Props) {
                 disabled={loading}
                 className={adminButtonClasses("outline", "md")}
               >
-                Annuler
+                {t("Annuler", "Cancel")}
               </button>
               <button
                 type="submit"
@@ -168,7 +181,7 @@ export function CreateClientAccountButton({ onCreated }: Props) {
                 className={adminButtonClasses("primary", "md")}
               >
                 <UserPlus className="size-4" />
-                {loading ? "Creation..." : "Créer"}
+                {loading ? t("Création...", "Creating...") : t("Créer", "Create")}
               </button>
             </div>
           </form>

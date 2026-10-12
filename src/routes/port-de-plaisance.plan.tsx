@@ -17,69 +17,98 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { headT } from "@/lib/i18n/head";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const PLAN_IMAGE = "/images/plan-port-marina-cap-monastir.png";
 
 const portZones = [
   {
-    name: "Réception Appart-Hôtel",
-    description: "Accueil et enregistrement des résidents et visiteurs",
+    name: { fr: "Réception Appart-Hôtel", en: "Aparthotel reception" },
+    description: {
+      fr: "Accueil et enregistrement des résidents et visiteurs",
+      en: "Welcome and check-in for residents and visitors",
+    },
     icon: Building2,
     color: "border-blue-200 bg-blue-50 text-blue-900",
     iconBg: "bg-blue-100",
   },
   {
-    name: "Capitainerie",
-    description: "Services administratifs, coordination port et assistance plaisanciers",
+    name: { fr: "Capitainerie", en: "Harbour office" },
+    description: {
+      fr: "Services administratifs, coordination port et assistance plaisanciers",
+      en: "Administration, harbour coordination and help for boaters",
+    },
     icon: Ship,
     color: "border-primary/20 bg-primary/5 text-primary",
     iconBg: "bg-primary/10",
   },
   {
-    name: "Parking",
-    description: "Stationnement réservé aux résidents et visiteurs du port",
+    name: { fr: "Parking", en: "Car park" },
+    description: {
+      fr: "Stationnement réservé aux résidents et visiteurs du port",
+      en: "Parking for residents and marina visitors",
+    },
     icon: Car,
     color: "border-slate-200 bg-slate-50 text-slate-800",
     iconBg: "bg-slate-100",
   },
   {
-    name: "Quai d'Honneur",
-    description: "Quai principal d'accueil officiel et cérémonies",
+    name: { fr: "Quai d'Honneur", en: "Quai d'Honneur (main quay)" },
+    description: {
+      fr: "Quai principal d'accueil officiel et cérémonies",
+      en: "Main quay for official arrivals and ceremonies",
+    },
     icon: Anchor,
     color: "border-accent/30 bg-amber-50 text-amber-900",
     iconBg: "bg-amber-100",
   },
   {
-    name: "Quai Présidentiel",
-    description: "Zone VIP dédiée aux yachts et bateaux de prestige",
+    name: { fr: "Quai Présidentiel", en: "Presidential quay" },
+    description: {
+      fr: "Zone VIP dédiée aux yachts et bateaux de prestige",
+      en: "VIP area for yachts and prestige boats",
+    },
     icon: Layers,
     color: "border-purple-200 bg-purple-50 text-purple-900",
     iconBg: "bg-purple-100",
   },
   {
-    name: "Avant Port",
-    description: "Zone d'entrée principale pour manœuvres et transit",
+    name: { fr: "Avant Port", en: "Outer harbour" },
+    description: {
+      fr: "Zone d'entrée principale pour manœuvres et transit",
+      en: "Main entrance area for manoeuvres and transit",
+    },
     icon: Waves,
     color: "border-cyan-200 bg-cyan-50 text-cyan-900",
     iconBg: "bg-cyan-100",
   },
   {
-    name: "Station AGIL",
-    description: "Ravitaillement en carburant pour bateaux et yachts",
+    name: { fr: "Station AGIL", en: "AGIL fuel station" },
+    description: {
+      fr: "Ravitaillement en carburant pour bateaux et yachts",
+      en: "Refuelling for boats and yachts",
+    },
     icon: Fuel,
     color: "border-orange-200 bg-orange-50 text-orange-900",
     iconBg: "bg-orange-100",
   },
   {
-    name: "Plage sablée",
-    description: "Plage privée aménagée, accessible aux résidents",
+    name: { fr: "Plage sablée", en: "Sandy beach" },
+    description: {
+      fr: "Plage privée aménagée, accessible aux résidents",
+      en: "Private, equipped beach for residents",
+    },
     icon: Umbrella,
     color: "border-yellow-200 bg-yellow-50 text-yellow-900",
     iconBg: "bg-yellow-100",
   },
   {
-    name: "Entrée principale",
-    description: "Accès sécurisé principal du complexe Marina Cap Monastir",
+    name: { fr: "Entrée principale", en: "Main entrance" },
+    description: {
+      fr: "Accès sécurisé principal du complexe Marina Cap Monastir",
+      en: "Main secure entrance to the Marina Cap Monastir complex",
+    },
     icon: Map,
     color: "border-green-200 bg-green-50 text-green-900",
     iconBg: "bg-green-100",
@@ -89,11 +118,13 @@ const portZones = [
 export const Route = createFileRoute("/port-de-plaisance/plan")({
   head: () => ({
     meta: [
-      { title: "Plan du Port — Marina Cap Monastir" },
+      { title: headT("Plan du Port — Marina Cap Monastir", "Marina map — Marina Cap Monastir") },
       {
         name: "description",
-        content:
+        content: headT(
           "Découvrez le plan du port de plaisance de Marina Cap Monastir, les accès principaux, la réception Appart-Hôtel, la capitainerie, les quais et les zones de services.",
+          "See the Marina Cap Monastir harbour map: main entrances, aparthotel reception, harbour office, quays and service areas.",
+        ),
       },
     ],
   }),
@@ -102,6 +133,11 @@ export const Route = createFileRoute("/port-de-plaisance/plan")({
 
 function PlanPortPage() {
   const [fullscreen, setFullscreen] = useState(false);
+  const { t, pick } = useI18n();
+  const planAlt = t(
+    "Plan du port de plaisance Marina Cap Monastir",
+    "Map of the Marina Cap Monastir harbour",
+  );
 
   const handlePrint = () => window.print();
 
@@ -127,13 +163,13 @@ function PlanPortPage() {
             type="button"
             onClick={() => setFullscreen(false)}
             className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur transition hover:bg-white/22"
-            aria-label="Fermer"
+            aria-label={t("Fermer", "Close")}
           >
             <X className="size-5" />
           </button>
           <img
             src={PLAN_IMAGE}
-            alt="Plan du port de plaisance Marina Cap Monastir"
+            alt={planAlt}
             className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -148,11 +184,11 @@ function PlanPortPage() {
         <div className="relative mx-auto max-w-7xl px-4 md:px-6">
           <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] backdrop-blur">
             <Map className="size-3.5 text-accent" />
-            Port de Plaisance
+            {t("Port de Plaisance", "Marina")}
           </div>
-          <h1 className="text-4xl font-black md:text-5xl">Plan du Port</h1>
+          <h1 className="page-title">{t("Plan du Port", "Marina map")}</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
-            Marina Cap Monastir — Port de Plaisance
+            {t("Marina Cap Monastir — Port de Plaisance", "Marina Cap Monastir — Marina")}
           </p>
         </div>
       </section>
@@ -164,12 +200,16 @@ function PlanPortPage() {
           <div className="p-6 md:p-10">
             <div className="mb-2 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-accent">
               <Anchor className="size-3.5" />
-              Port de plaisance — Marina Cap Monastir
+              {t("Port de plaisance — Marina Cap Monastir", "Marina — Marina Cap Monastir")}
             </div>
-            <h2 className="text-2xl font-black text-primary">Plan du Port de Plaisance</h2>
+            <h2 className="text-2xl font-black text-primary">
+              {t("Plan du Port de Plaisance", "Harbour map")}
+            </h2>
             <p className="mt-3 max-w-3xl text-base leading-8 text-muted-foreground">
-              Découvrez le plan du port de plaisance de Marina Cap Monastir, les accès principaux,
-              la réception Appart-Hôtel, la capitainerie, les quais et les zones de services.
+              {t(
+                "Découvrez le plan du port de plaisance de Marina Cap Monastir, les accès principaux, la réception Appart-Hôtel, la capitainerie, les quais et les zones de services.",
+                "See the Marina Cap Monastir harbour map: main entrances, aparthotel reception, harbour office, quays and service areas.",
+              )}
             </p>
 
             {/* Action buttons */}
@@ -180,7 +220,7 @@ function PlanPortPage() {
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ocean"
               >
                 <Maximize2 className="size-4" />
-                Plein écran
+                {t("Plein écran", "Full screen")}
               </button>
               <button
                 type="button"
@@ -188,7 +228,7 @@ function PlanPortPage() {
                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-primary/25 bg-transparent px-4 text-sm font-bold text-primary transition hover:border-primary/50 hover:bg-primary/5"
               >
                 <Download className="size-4" />
-                Télécharger
+                {t("Télécharger", "Download")}
               </button>
               <button
                 type="button"
@@ -196,7 +236,7 @@ function PlanPortPage() {
                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-transparent px-4 text-sm font-bold text-muted-foreground transition hover:border-primary/25 hover:text-primary"
               >
                 <Printer className="size-4" />
-                Imprimer
+                {t("Imprimer", "Print")}
               </button>
             </div>
 
@@ -206,11 +246,11 @@ function PlanPortPage() {
                 type="button"
                 onClick={() => setFullscreen(true)}
                 className="group relative block w-full cursor-zoom-in"
-                title="Cliquer pour agrandir"
+                title={t("Cliquer pour agrandir", "Click to enlarge")}
               >
                 <img
                   src={PLAN_IMAGE}
-                  alt="Plan du port de plaisance Marina Cap Monastir"
+                  alt={planAlt}
                   className="w-full object-contain transition-opacity group-hover:opacity-96"
                   onError={(e) => {
                     const img = e.currentTarget;
@@ -220,8 +260,10 @@ function PlanPortPage() {
                       const fallback = document.createElement("div");
                       fallback.className =
                         "flex aspect-[4/3] items-center justify-center p-10 text-center";
-                      fallback.innerHTML =
-                        '<div class="space-y-2"><p class="text-sm font-semibold text-muted-foreground">Image non disponible</p></div>';
+                      const message = document.createElement("p");
+                      message.className = "text-sm font-semibold text-muted-foreground";
+                      message.textContent = t("Image non disponible", "Image unavailable");
+                      fallback.appendChild(message);
                       parent.appendChild(fallback);
                     }
                   }}
@@ -229,7 +271,7 @@ function PlanPortPage() {
                 <div className="absolute inset-0 flex items-end justify-end p-4 opacity-0 transition-opacity group-hover:opacity-100">
                   <div className="flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-2 text-xs font-bold text-white backdrop-blur">
                     <ZoomIn className="size-3.5" />
-                    Agrandir
+                    {t("Agrandir", "Enlarge")}
                   </div>
                 </div>
               </button>
@@ -242,18 +284,20 @@ function PlanPortPage() {
           <div className="mb-8 text-center">
             <div className="section-kicker mx-auto mb-3 justify-center">
               <Anchor className="size-3.5" />
-              Zones et services
+              {t("Zones et services", "Areas and services")}
             </div>
-            <h2 className="section-title mx-auto">Repères du port</h2>
+            <h2 className="section-title mx-auto">{t("Repères du port", "Marina landmarks")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-              Retrouvez ci-dessous les principaux repères du port de plaisance de Marina Cap
-              Monastir.
+              {t(
+                "Retrouvez ci-dessous les principaux repères du port de plaisance de Marina Cap Monastir.",
+                "Below are the main landmarks of the Marina Cap Monastir harbour.",
+              )}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {portZones.map((zone) => (
               <div
-                key={zone.name}
+                key={zone.name.fr}
                 className={`rounded-xl border p-5 transition hover:-translate-y-0.5 hover:shadow-md ${zone.color}`}
               >
                 <div className="flex items-start gap-3">
@@ -263,8 +307,8 @@ function PlanPortPage() {
                     <zone.icon className="size-5" />
                   </div>
                   <div>
-                    <h3 className="font-black">{zone.name}</h3>
-                    <p className="mt-1 text-sm opacity-70">{zone.description}</p>
+                    <h3 className="font-black">{pick(zone.name)}</h3>
+                    <p className="mt-1 text-sm opacity-70">{pick(zone.description)}</p>
                   </div>
                 </div>
               </div>
