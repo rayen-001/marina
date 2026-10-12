@@ -1,0 +1,3 @@
+# The build output is served with the file sizes recorded at build time (Content-Length),
+# so Git must never convert its line endings on checkout.
+dist/** -text
