@@ -9,94 +9,49 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as PresentationRouteImport } from './routes/presentation'
-import { Route as PortDePlaisanceRouteImport } from './routes/port-de-plaisance'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as ConfirmationRouteImport } from './routes/confirmation'
-import { Route as ClientRouteImport } from './routes/client'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as ActualitesRouteImport } from './routes/actualites'
-import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ClientIndexRouteImport } from './routes/client.index'
-import { Route as RoomIdRouteImport } from './routes/room.$id'
-import { Route as PropertyIdRouteImport } from './routes/property.$id'
-import { Route as PortDePlaisanceTarifsRouteImport } from './routes/port-de-plaisance.tarifs'
-import { Route as PortDePlaisanceReservationRouteImport } from './routes/port-de-plaisance.reservation'
-import { Route as PortDePlaisancePlanRouteImport } from './routes/port-de-plaisance.plan'
-import { Route as PortDePlaisanceFormalitesRouteImport } from './routes/port-de-plaisance.formalites'
-import { Route as ClientReservationsRouteImport } from './routes/client.reservations'
-import { Route as ClientRegisterRouteImport } from './routes/client.register'
-import { Route as ClientProfileRouteImport } from './routes/client.profile'
-import { Route as ClientMessagesRouteImport } from './routes/client.messages'
-import { Route as ClientLoginRouteImport } from './routes/client.login'
-import { Route as ClientDashboardRouteImport } from './routes/client.dashboard'
-import { Route as BookIdRouteImport } from './routes/book.$id'
-import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminRoomsRouteImport } from './routes/admin.rooms'
-import { Route as AdminReservationsRouteImport } from './routes/admin.reservations'
-import { Route as AdminPortTarifsRouteImport } from './routes/admin.port-tarifs'
-import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
-import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
-import { Route as AdminLoginRouteImport } from './routes/admin.login'
-import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
-import { Route as AdminDirectionRouteImport } from './routes/admin.direction'
-import { Route as AdminClientsRouteImport } from './routes/admin.clients'
-import { Route as AdminChannelsRouteImport } from './routes/admin.channels'
+import { Route as ActivitesRouteImport } from './routes/activites'
+import { Route as ActualitesRouteImport } from './routes/actualites'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ClientRouteImport } from './routes/client'
+import { Route as ConfirmationRouteImport } from './routes/confirmation'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PortDePlaisanceRouteImport } from './routes/port-de-plaisance'
+import { Route as PresentationRouteImport } from './routes/presentation'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
+import { Route as AdminChannelsRouteImport } from './routes/admin.channels'
+import { Route as AdminClientsRouteImport } from './routes/admin.clients'
+import { Route as AdminDirectionRouteImport } from './routes/admin.direction'
+import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminPortTarifsRouteImport } from './routes/admin.port-tarifs'
+import { Route as AdminReservationsRouteImport } from './routes/admin.reservations'
+import { Route as AdminRoomsRouteImport } from './routes/admin.rooms'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminStatisticsRouteImport } from './routes/admin.statistics'
+import { Route as BookIdRouteImport } from './routes/book.$id'
+import { Route as ClientIndexRouteImport } from './routes/client.index'
+import { Route as ClientDashboardRouteImport } from './routes/client.dashboard'
+import { Route as ClientLoginRouteImport } from './routes/client.login'
+import { Route as ClientMessagesRouteImport } from './routes/client.messages'
+import { Route as ClientProfileRouteImport } from './routes/client.profile'
+import { Route as ClientRegisterRouteImport } from './routes/client.register'
+import { Route as ClientReservationsRouteImport } from './routes/client.reservations'
+import { Route as PortDePlaisanceFormalitesRouteImport } from './routes/port-de-plaisance.formalites'
+import { Route as PortDePlaisancePlanRouteImport } from './routes/port-de-plaisance.plan'
+import { Route as PortDePlaisanceReservationRouteImport } from './routes/port-de-plaisance.reservation'
+import { Route as PortDePlaisanceTarifsRouteImport } from './routes/port-de-plaisance.tarifs'
+import { Route as PropertyIdRouteImport } from './routes/property.$id'
+import { Route as RoomIdRouteImport } from './routes/room.$id'
 
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PresentationRoute = PresentationRouteImport.update({
-  id: '/presentation',
-  path: '/presentation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortDePlaisanceRoute = PortDePlaisanceRouteImport.update({
-  id: '/port-de-plaisance',
-  path: '/port-de-plaisance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfirmationRoute = ConfirmationRouteImport.update({
-  id: '/confirmation',
-  path: '/confirmation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientRoute = ClientRouteImport.update({
-  id: '/client',
-  path: '/client',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ActualitesRoute = ActualitesRouteImport.update({
-  id: '/actualites',
-  path: '/actualites',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActivitesRoute = ActivitesRouteImport.update({
@@ -104,9 +59,124 @@ const ActivitesRoute = ActivitesRouteImport.update({
   path: '/activites',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ActualitesRoute = ActualitesRouteImport.update({
+  id: '/actualites',
+  path: '/actualites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientRoute = ClientRouteImport.update({
+  id: '/client',
+  path: '/client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmationRoute = ConfirmationRouteImport.update({
+  id: '/confirmation',
+  path: '/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortDePlaisanceRoute = PortDePlaisanceRouteImport.update({
+  id: '/port-de-plaisance',
+  path: '/port-de-plaisance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationRoute = PresentationRouteImport.update({
+  id: '/presentation',
+  path: '/presentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCalendarRoute = AdminCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChannelsRoute = AdminChannelsRouteImport.update({
+  id: '/channels',
+  path: '/channels',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminClientsRoute = AdminClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDirectionRoute = AdminDirectionRouteImport.update({
+  id: '/direction',
+  path: '/direction',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPortTarifsRoute = AdminPortTarifsRouteImport.update({
+  id: '/port-tarifs',
+  path: '/port-tarifs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReservationsRoute = AdminReservationsRouteImport.update({
+  id: '/reservations',
+  path: '/reservations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRoomsRoute = AdminRoomsRouteImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStatisticsRoute = AdminStatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const BookIdRoute = BookIdRouteImport.update({
+  id: '/book/$id',
+  path: '/book/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientIndexRoute = ClientIndexRouteImport.update({
@@ -114,19 +184,45 @@ const ClientIndexRoute = ClientIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ClientRoute,
 } as any)
-const RoomIdRoute = RoomIdRouteImport.update({
-  id: '/room/$id',
-  path: '/room/$id',
-  getParentRoute: () => rootRouteImport,
+const ClientDashboardRoute = ClientDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => ClientRoute,
 } as any)
-const PropertyIdRoute = PropertyIdRouteImport.update({
-  id: '/property/$id',
-  path: '/property/$id',
-  getParentRoute: () => rootRouteImport,
+const ClientLoginRoute = ClientLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => ClientRoute,
 } as any)
-const PortDePlaisanceTarifsRoute = PortDePlaisanceTarifsRouteImport.update({
-  id: '/tarifs',
-  path: '/tarifs',
+const ClientMessagesRoute = ClientMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => ClientRoute,
+} as any)
+const ClientProfileRoute = ClientProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ClientRoute,
+} as any)
+const ClientRegisterRoute = ClientRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => ClientRoute,
+} as any)
+const ClientReservationsRoute = ClientReservationsRouteImport.update({
+  id: '/reservations',
+  path: '/reservations',
+  getParentRoute: () => ClientRoute,
+} as any)
+const PortDePlaisanceFormalitesRoute =
+  PortDePlaisanceFormalitesRouteImport.update({
+    id: '/formalites',
+    path: '/formalites',
+    getParentRoute: () => PortDePlaisanceRoute,
+  } as any)
+const PortDePlaisancePlanRoute = PortDePlaisancePlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => PortDePlaisanceRoute,
 } as any)
 const PortDePlaisanceReservationRoute =
@@ -135,116 +231,20 @@ const PortDePlaisanceReservationRoute =
     path: '/reservation',
     getParentRoute: () => PortDePlaisanceRoute,
   } as any)
-const PortDePlaisancePlanRoute = PortDePlaisancePlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
+const PortDePlaisanceTarifsRoute = PortDePlaisanceTarifsRouteImport.update({
+  id: '/tarifs',
+  path: '/tarifs',
   getParentRoute: () => PortDePlaisanceRoute,
 } as any)
-const PortDePlaisanceFormalitesRoute =
-  PortDePlaisanceFormalitesRouteImport.update({
-    id: '/formalites',
-    path: '/formalites',
-    getParentRoute: () => PortDePlaisanceRoute,
-  } as any)
-const ClientReservationsRoute = ClientReservationsRouteImport.update({
-  id: '/reservations',
-  path: '/reservations',
-  getParentRoute: () => ClientRoute,
-} as any)
-const ClientRegisterRoute = ClientRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => ClientRoute,
-} as any)
-const ClientProfileRoute = ClientProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => ClientRoute,
-} as any)
-const ClientMessagesRoute = ClientMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => ClientRoute,
-} as any)
-const ClientLoginRoute = ClientLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => ClientRoute,
-} as any)
-const ClientDashboardRoute = ClientDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => ClientRoute,
-} as any)
-const BookIdRoute = BookIdRouteImport.update({
-  id: '/book/$id',
-  path: '/book/$id',
+const PropertyIdRoute = PropertyIdRouteImport.update({
+  id: '/property/$id',
+  path: '/property/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminStatisticsRoute = AdminStatisticsRouteImport.update({
-  id: '/statistics',
-  path: '/statistics',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRoomsRoute = AdminRoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReservationsRoute = AdminReservationsRouteImport.update({
-  id: '/reservations',
-  path: '/reservations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPortTarifsRoute = AdminPortTarifsRouteImport.update({
-  id: '/port-tarifs',
-  path: '/port-tarifs',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMessagesRoute = AdminMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
-  id: '/invoices',
-  path: '/invoices',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDirectionRoute = AdminDirectionRouteImport.update({
-  id: '/direction',
-  path: '/direction',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminClientsRoute = AdminClientsRouteImport.update({
-  id: '/clients',
-  path: '/clients',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminChannelsRoute = AdminChannelsRouteImport.update({
-  id: '/channels',
-  path: '/channels',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCalendarRoute = AdminCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AdminRoute,
+const RoomIdRoute = RoomIdRouteImport.update({
+  id: '/room/$id',
+  path: '/room/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -515,74 +515,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/presentation': {
-      id: '/presentation'
-      path: '/presentation'
-      fullPath: '/presentation'
-      preLoaderRoute: typeof PresentationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/port-de-plaisance': {
-      id: '/port-de-plaisance'
-      path: '/port-de-plaisance'
-      fullPath: '/port-de-plaisance'
-      preLoaderRoute: typeof PortDePlaisanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/confirmation': {
-      id: '/confirmation'
-      path: '/confirmation'
-      fullPath: '/confirmation'
-      preLoaderRoute: typeof ConfirmationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/client': {
-      id: '/client'
-      path: '/client'
-      fullPath: '/client'
-      preLoaderRoute: typeof ClientRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/actualites': {
-      id: '/actualites'
-      path: '/actualites'
-      fullPath: '/actualites'
-      preLoaderRoute: typeof ActualitesRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activites': {
@@ -592,186 +529,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivitesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/actualites': {
+      id: '/actualites'
+      path: '/actualites'
+      fullPath: '/actualites'
+      preLoaderRoute: typeof ActualitesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/client/': {
-      id: '/client/'
-      path: '/'
-      fullPath: '/client/'
-      preLoaderRoute: typeof ClientIndexRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/room/$id': {
-      id: '/room/$id'
-      path: '/room/$id'
-      fullPath: '/room/$id'
-      preLoaderRoute: typeof RoomIdRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/property/$id': {
-      id: '/property/$id'
-      path: '/property/$id'
-      fullPath: '/property/$id'
-      preLoaderRoute: typeof PropertyIdRouteImport
+    '/client': {
+      id: '/client'
+      path: '/client'
+      fullPath: '/client'
+      preLoaderRoute: typeof ClientRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/port-de-plaisance/tarifs': {
-      id: '/port-de-plaisance/tarifs'
-      path: '/tarifs'
-      fullPath: '/port-de-plaisance/tarifs'
-      preLoaderRoute: typeof PortDePlaisanceTarifsRouteImport
-      parentRoute: typeof PortDePlaisanceRoute
+    '/confirmation': {
+      id: '/confirmation'
+      path: '/confirmation'
+      fullPath: '/confirmation'
+      preLoaderRoute: typeof ConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/port-de-plaisance/reservation': {
-      id: '/port-de-plaisance/reservation'
-      path: '/reservation'
-      fullPath: '/port-de-plaisance/reservation'
-      preLoaderRoute: typeof PortDePlaisanceReservationRouteImport
-      parentRoute: typeof PortDePlaisanceRoute
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/port-de-plaisance/plan': {
-      id: '/port-de-plaisance/plan'
-      path: '/plan'
-      fullPath: '/port-de-plaisance/plan'
-      preLoaderRoute: typeof PortDePlaisancePlanRouteImport
-      parentRoute: typeof PortDePlaisanceRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/port-de-plaisance/formalites': {
-      id: '/port-de-plaisance/formalites'
-      path: '/formalites'
-      fullPath: '/port-de-plaisance/formalites'
-      preLoaderRoute: typeof PortDePlaisanceFormalitesRouteImport
-      parentRoute: typeof PortDePlaisanceRoute
+    '/port-de-plaisance': {
+      id: '/port-de-plaisance'
+      path: '/port-de-plaisance'
+      fullPath: '/port-de-plaisance'
+      preLoaderRoute: typeof PortDePlaisanceRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/client/reservations': {
-      id: '/client/reservations'
-      path: '/reservations'
-      fullPath: '/client/reservations'
-      preLoaderRoute: typeof ClientReservationsRouteImport
-      parentRoute: typeof ClientRoute
+    '/presentation': {
+      id: '/presentation'
+      path: '/presentation'
+      fullPath: '/presentation'
+      preLoaderRoute: typeof PresentationRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/client/register': {
-      id: '/client/register'
+    '/register': {
+      id: '/register'
       path: '/register'
-      fullPath: '/client/register'
-      preLoaderRoute: typeof ClientRegisterRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/client/profile': {
-      id: '/client/profile'
-      path: '/profile'
-      fullPath: '/client/profile'
-      preLoaderRoute: typeof ClientProfileRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/client/messages': {
-      id: '/client/messages'
-      path: '/messages'
-      fullPath: '/client/messages'
-      preLoaderRoute: typeof ClientMessagesRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/client/login': {
-      id: '/client/login'
-      path: '/login'
-      fullPath: '/client/login'
-      preLoaderRoute: typeof ClientLoginRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/client/dashboard': {
-      id: '/client/dashboard'
-      path: '/dashboard'
-      fullPath: '/client/dashboard'
-      preLoaderRoute: typeof ClientDashboardRouteImport
-      parentRoute: typeof ClientRoute
-    }
-    '/book/$id': {
-      id: '/book/$id'
-      path: '/book/$id'
-      fullPath: '/book/$id'
-      preLoaderRoute: typeof BookIdRouteImport
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/statistics': {
-      id: '/admin/statistics'
-      path: '/statistics'
-      fullPath: '/admin/statistics'
-      preLoaderRoute: typeof AdminStatisticsRouteImport
-      parentRoute: typeof AdminRoute
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/rooms': {
-      id: '/admin/rooms'
-      path: '/rooms'
-      fullPath: '/admin/rooms'
-      preLoaderRoute: typeof AdminRoomsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reservations': {
-      id: '/admin/reservations'
-      path: '/reservations'
-      fullPath: '/admin/reservations'
-      preLoaderRoute: typeof AdminReservationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/port-tarifs': {
-      id: '/admin/port-tarifs'
-      path: '/port-tarifs'
-      fullPath: '/admin/port-tarifs'
-      preLoaderRoute: typeof AdminPortTarifsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/payments': {
-      id: '/admin/payments'
-      path: '/payments'
-      fullPath: '/admin/payments'
-      preLoaderRoute: typeof AdminPaymentsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/messages': {
-      id: '/admin/messages'
-      path: '/messages'
-      fullPath: '/admin/messages'
-      preLoaderRoute: typeof AdminMessagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/invoices': {
-      id: '/admin/invoices'
-      path: '/invoices'
-      fullPath: '/admin/invoices'
-      preLoaderRoute: typeof AdminInvoicesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/direction': {
-      id: '/admin/direction'
-      path: '/direction'
-      fullPath: '/admin/direction'
-      preLoaderRoute: typeof AdminDirectionRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/clients': {
-      id: '/admin/clients'
-      path: '/clients'
-      fullPath: '/admin/clients'
-      preLoaderRoute: typeof AdminClientsRouteImport
+    '/admin/calendar': {
+      id: '/admin/calendar'
+      path: '/calendar'
+      fullPath: '/admin/calendar'
+      preLoaderRoute: typeof AdminCalendarRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/channels': {
@@ -781,12 +613,180 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminChannelsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/calendar': {
-      id: '/admin/calendar'
-      path: '/calendar'
-      fullPath: '/admin/calendar'
-      preLoaderRoute: typeof AdminCalendarRouteImport
+    '/admin/clients': {
+      id: '/admin/clients'
+      path: '/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AdminClientsRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/admin/direction': {
+      id: '/admin/direction'
+      path: '/direction'
+      fullPath: '/admin/direction'
+      preLoaderRoute: typeof AdminDirectionRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invoices': {
+      id: '/admin/invoices'
+      path: '/invoices'
+      fullPath: '/admin/invoices'
+      preLoaderRoute: typeof AdminInvoicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/port-tarifs': {
+      id: '/admin/port-tarifs'
+      path: '/port-tarifs'
+      fullPath: '/admin/port-tarifs'
+      preLoaderRoute: typeof AdminPortTarifsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reservations': {
+      id: '/admin/reservations'
+      path: '/reservations'
+      fullPath: '/admin/reservations'
+      preLoaderRoute: typeof AdminReservationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rooms': {
+      id: '/admin/rooms'
+      path: '/rooms'
+      fullPath: '/admin/rooms'
+      preLoaderRoute: typeof AdminRoomsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/statistics': {
+      id: '/admin/statistics'
+      path: '/statistics'
+      fullPath: '/admin/statistics'
+      preLoaderRoute: typeof AdminStatisticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/book/$id': {
+      id: '/book/$id'
+      path: '/book/$id'
+      fullPath: '/book/$id'
+      preLoaderRoute: typeof BookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/': {
+      id: '/client/'
+      path: '/'
+      fullPath: '/client/'
+      preLoaderRoute: typeof ClientIndexRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/dashboard': {
+      id: '/client/dashboard'
+      path: '/dashboard'
+      fullPath: '/client/dashboard'
+      preLoaderRoute: typeof ClientDashboardRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/login': {
+      id: '/client/login'
+      path: '/login'
+      fullPath: '/client/login'
+      preLoaderRoute: typeof ClientLoginRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/messages': {
+      id: '/client/messages'
+      path: '/messages'
+      fullPath: '/client/messages'
+      preLoaderRoute: typeof ClientMessagesRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/profile': {
+      id: '/client/profile'
+      path: '/profile'
+      fullPath: '/client/profile'
+      preLoaderRoute: typeof ClientProfileRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/register': {
+      id: '/client/register'
+      path: '/register'
+      fullPath: '/client/register'
+      preLoaderRoute: typeof ClientRegisterRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/client/reservations': {
+      id: '/client/reservations'
+      path: '/reservations'
+      fullPath: '/client/reservations'
+      preLoaderRoute: typeof ClientReservationsRouteImport
+      parentRoute: typeof ClientRoute
+    }
+    '/port-de-plaisance/formalites': {
+      id: '/port-de-plaisance/formalites'
+      path: '/formalites'
+      fullPath: '/port-de-plaisance/formalites'
+      preLoaderRoute: typeof PortDePlaisanceFormalitesRouteImport
+      parentRoute: typeof PortDePlaisanceRoute
+    }
+    '/port-de-plaisance/plan': {
+      id: '/port-de-plaisance/plan'
+      path: '/plan'
+      fullPath: '/port-de-plaisance/plan'
+      preLoaderRoute: typeof PortDePlaisancePlanRouteImport
+      parentRoute: typeof PortDePlaisanceRoute
+    }
+    '/port-de-plaisance/reservation': {
+      id: '/port-de-plaisance/reservation'
+      path: '/reservation'
+      fullPath: '/port-de-plaisance/reservation'
+      preLoaderRoute: typeof PortDePlaisanceReservationRouteImport
+      parentRoute: typeof PortDePlaisanceRoute
+    }
+    '/port-de-plaisance/tarifs': {
+      id: '/port-de-plaisance/tarifs'
+      path: '/tarifs'
+      fullPath: '/port-de-plaisance/tarifs'
+      preLoaderRoute: typeof PortDePlaisanceTarifsRouteImport
+      parentRoute: typeof PortDePlaisanceRoute
+    }
+    '/property/$id': {
+      id: '/property/$id'
+      path: '/property/$id'
+      fullPath: '/property/$id'
+      preLoaderRoute: typeof PropertyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/$id': {
+      id: '/room/$id'
+      path: '/room/$id'
+      fullPath: '/room/$id'
+      preLoaderRoute: typeof RoomIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
