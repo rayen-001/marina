@@ -23,17 +23,14 @@ import { CreateClientAccountButton } from "@/components/admin/CreateClientAccoun
 import { KpiCard, KpiCardSkeleton } from "@/components/admin/kpi-card";
 import { ReservationsTable } from "@/components/admin/reservations-table";
 import { StatusBadge } from "@/components/admin/status-badge";
-import type { Guest, Invoice, Payment, Reservation, Room } from "@/data/hotel";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
-  getChannelLabels,
-  localizeAlertDescription,
-  localizeAlertSeverity,
-  localizeAlertTitle,
-} from "@/lib/i18n/labels";
-import { tr } from "@/lib/i18n/locale";
-import { localizeRoomName } from "@/lib/i18n/rooms";
+  formatCurrency,
+  type Guest,
+  type Invoice,
+  type Payment,
+  type Reservation,
+  type Room,
+} from "@/data/hotel";
 import {
   getAvailableUnitsForDate,
   getTodayCheckIns,
@@ -334,21 +331,20 @@ function getErrorMessage(error: unknown) {
   const parts = [maybeError.message, maybeError.details, maybeError.hint, maybeError.code].filter(
     Boolean,
   );
-  return parts.length ? parts.join(" | ") : tr("Erreur inconnue", "Unknown error");
+  return parts.length ? parts.join(" | ") : "Erreur inconnue";
 }
 
 function formatModuleName(module: string) {
-  const labels: Record<string, { fr: string; en: string }> = {
-    reservations: { fr: "Réservations", en: "Bookings" },
-    rooms: { fr: "Chambres", en: "Rooms" },
-    payments: { fr: "Paiements", en: "Payments" },
-    invoices: { fr: "Factures", en: "Invoices" },
-    guests: { fr: "Clients", en: "Guests" },
-    alerts: { fr: "Alertes", en: "Alerts" },
-    statistics: { fr: "Statistiques", en: "Statistics" },
+  const labels: Record<string, string> = {
+    reservations: "Réservations",
+    rooms: "Chambres",
+    payments: "Paiements",
+    invoices: "Factures",
+    guests: "Clients",
+    alerts: "Alertes",
+    statistics: "Statistiques",
   };
-  const label = labels[module];
-  return label ? tr(label.fr, label.en) : module;
+  return labels[module] ?? module;
 }
 
 // ── Route ──────────────────────────────────────────────────────────────────
@@ -362,19 +358,8 @@ export const Route = createFileRoute("/admin")({
   shouldReload: ({ location }) => location.pathname === "/admin",
   head: () => ({
     meta: [
-      {
-        title: headT(
-          "Administration - Marina Cap Monastir",
-          "Administration - Marina Cap Monastir",
-        ),
-      },
-      {
-        name: "description",
-        content: headT(
-          "Tableau de bord hôtelier Marina Cap Monastir.",
-          "Marina Cap Monastir hotel dashboard.",
-        ),
-      },
+      { title: "Administration - Marina Cap Monastir" },
+      { name: "description", content: "Tableau de bord hôtelier Marina Cap Monastir." },
     ],
   }),
   pendingComponent: AdminDashboardPending,
@@ -392,12 +377,8 @@ function AdminRoute() {
 // ── Dashboard ──────────────────────────────────────────────────────────────
 
 function AdminDashboardPending() {
-  const { t } = useI18n();
   return (
-    <AdminLayout
-      title={t("Tableau de bord", "Dashboard")}
-      description={t("Chargement des données...", "Loading data...")}
-    >
+    <AdminLayout title="Tableau de bord" description="Chargement des donnees...">
       <DashboardLoadingState />
       {import.meta.env.DEV && (
         <DebugPanel
@@ -415,8 +396,6 @@ function AdminDashboardPending() {
 function AdminDashboard() {
   const loaderData = Route.useLoaderData() as DashboardLoaderData | undefined;
   const router = useRouter();
-  const { t, pick, locale, formatCurrency } = useI18n();
-  const channelLabels = getChannelLabels(locale);
   const data = loaderData?.data ?? emptyDashboardData();
   const errors = loaderData?.errors ?? { ...emptyDashboardErrors };
   const failedModules = Object.entries(errors).filter(([, error]) => Boolean(error));
@@ -473,22 +452,17 @@ function AdminDashboard() {
       ({ room, available, ratio }) => room.status !== "active" || available <= 2 || ratio >= 70,
     )
     .slice(0, 5);
-  const hotelStatus = isSupabaseConfigured()
-    ? t("Supabase connecté", "Supabase connected")
-    : t("Mock local", "Local mock data");
+  const hotelStatus = isSupabaseConfigured() ? "Supabase connecte" : "Mock local";
 
   return (
     <AdminLayout
-      title={t("Tableau de bord", "Dashboard")}
-      description={t(
-        "Pilotage hôtelier centralisé : arrivées, départs, revenus, alertes et canaux.",
-        "Central hotel management: arrivals, departures, revenue, alerts and channels.",
-      )}
+      title="Tableau de bord"
+      description="Pilotage hotelier centralise: arrivees, departs, revenus, alertes et canaux."
       actions={
         <>
           <CreateClientAccountButton onCreated={() => router.invalidate()} />
           <Link to="/admin/statistics" className={adminButtonClasses("primary")}>
-            {t("Voir statistiques", "View statistics")}
+            Voir statistiques
           </Link>
         </>
       }
@@ -506,39 +480,39 @@ function AdminDashboard() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <KpiCard
-          label={t("Check-ins aujourd'hui", "Check-ins today")}
+          label="Check-ins aujourd'hui"
           value={String(arrivals.length)}
           detail={today}
-          trend={arrivals.length > 0 ? t("À préparer", "To prepare") : t("Calme", "Quiet")}
+          trend={arrivals.length > 0 ? "A preparer" : "Calme"}
           icon={CalendarCheck}
           tone="gold"
         />
         <KpiCard
-          label={t("Check-outs aujourd'hui", "Check-outs today")}
+          label="Check-outs aujourd'hui"
           value={String(departures.length)}
-          detail={t("Départs prévus", "Scheduled departures")}
-          trend={departures.length > 0 ? t("À suivre", "To follow") : t("RAS", "All clear")}
+          detail="Departs prevus"
+          trend={departures.length > 0 ? "A suivre" : "RAS"}
           icon={CalendarX}
           tone="turquoise"
         />
         <KpiCard
-          label={t("Taux d'occupation", "Occupancy rate")}
+          label="Taux d'occupation"
           value={`${occupancy}%`}
-          detail={`${bookedToday}/${totalUnits} ${t("unités", "units")}`}
-          trend={occupancy >= 80 ? t("Fort", "High") : t("Stable", "Stable")}
+          detail={`${bookedToday}/${totalUnits} unites`}
+          trend={occupancy >= 80 ? "Fort" : "Stable"}
           icon={Percent}
           tone={occupancy >= 80 ? "green" : "navy"}
         />
         <KpiCard
-          label={t("Chambres disponibles", "Rooms available")}
+          label="Chambres disponibles"
           value={String(availableToday)}
-          detail={t("Inventaire du jour", "Today's inventory")}
-          trend={availableToday <= 2 ? t("Faible", "Low") : t("Disponible", "Available")}
+          detail="Inventaire du jour"
+          trend={availableToday <= 2 ? "Faible" : "Disponible"}
           icon={BedDouble}
           tone={availableToday <= 2 ? "red" : "green"}
         />
         <KpiCard
-          label={t("Revenu mensuel", "Monthly revenue")}
+          label="Revenu mensuel"
           value={formatCurrency(monthlyStats.revenue)}
           detail={`ADR ${formatCurrency(monthlyStats.adr)}`}
           trend={`RevPAR ${formatCurrency(monthlyStats.revpar)}`}
@@ -546,10 +520,10 @@ function AdminDashboard() {
           tone="gold"
         />
         <KpiCard
-          label={t("Paiements en attente", "Pending payments")}
+          label="Paiements en attente"
           value={String(pendingPayments)}
           detail={formatCurrency(monthlyStats.unpaidAmount)}
-          trend={pendingPayments > 0 ? t("Relance", "Follow up") : t("À jour", "Up to date")}
+          trend={pendingPayments > 0 ? "Relance" : "A jour"}
           icon={ReceiptText}
           tone={pendingPayments > 0 ? "red" : "green"}
         />
@@ -557,10 +531,10 @@ function AdminDashboard() {
 
       <section className="mt-6">
         <SectionHeader
-          title={t("Réservations récentes", "Recent bookings")}
+          title="Reservations recentes"
           action={
             <Link to="/admin/reservations" className={adminButtonClasses("outline", "sm")}>
-              {t("Voir tout", "View all")}
+              Voir tout
             </Link>
           }
         />
@@ -568,23 +542,18 @@ function AdminDashboard() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <DashboardPanel
-          title={t("Alertes opérationnelles", "Operational alerts")}
-          icon={AlertTriangle}
-        >
+        <DashboardPanel title="Alertes operationnelles" icon={AlertTriangle}>
           {alerts.length === 0 ? (
             <DashboardEmptyState
-              title={t("Aucune alerte active", "No active alerts")}
-              text={t("Les opérations du jour sont stables.", "Today's operations are stable.")}
+              title="Aucune alerte active"
+              text="Les operations du jour sont stables."
             />
           ) : (
             <div className="space-y-3">
               {alerts.slice(0, 6).map((alert) => (
                 <div key={alert.id} className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-black text-primary">
-                      {localizeAlertTitle(alert, locale)}
-                    </span>
+                    <span className="font-black text-primary">{alert.title}</span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-black ${
                         alert.severity === "critical"
@@ -594,11 +563,11 @@ function AdminDashboard() {
                             : "bg-sky-50 text-sky-800"
                       }`}
                     >
-                      {localizeAlertSeverity(alert.severity, locale)}
+                      {alert.severity}
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {localizeAlertDescription(alert, locale)}
+                    {alert.description}
                   </p>
                 </div>
               ))}
@@ -606,23 +575,16 @@ function AdminDashboard() {
           )}
         </DashboardPanel>
 
-        <DashboardPanel title={t("Performance mensuelle", "Monthly performance")} icon={TrendingUp}>
+        <DashboardPanel title="Performance mensuelle" icon={TrendingUp}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricTile
-              label={t("Revenu", "Revenue")}
-              value={formatCurrency(monthlyStats.revenue)}
-            />
+            <MetricTile label="Revenu" value={formatCurrency(monthlyStats.revenue)} />
             <MetricTile label="ADR" value={formatCurrency(monthlyStats.adr)} />
             <MetricTile label="RevPAR" value={formatCurrency(monthlyStats.revpar)} />
           </div>
           <div className="mt-5 space-y-4">
+            <ProgressLine label="Occupation" value={`${occupancy}%`} percent={occupancy} />
             <ProgressLine
-              label={t("Occupation", "Occupancy")}
-              value={`${occupancy}%`}
-              percent={occupancy}
-            />
-            <ProgressLine
-              label={t("Paiements encaissés", "Payments collected")}
+              label="Paiements encaisses"
               value={formatCurrency(monthlyStats.revenue - monthlyStats.unpaidAmount)}
               percent={
                 monthlyStats.revenue > 0
@@ -634,21 +596,18 @@ function AdminDashboard() {
           </div>
         </DashboardPanel>
 
-        <DashboardPanel title={t("Sources de réservation", "Booking sources")} icon={CreditCard}>
+        <DashboardPanel title="Sources de reservation" icon={CreditCard}>
           {revenueBySource.length === 0 ? (
             <DashboardEmptyState
-              title={t("Aucune source active", "No active sources")}
-              text={t(
-                "Les revenus par canal apparaîtront ici.",
-                "Revenue by channel will appear here.",
-              )}
+              title="Aucune source active"
+              text="Les revenus par canal apparaitront ici."
             />
           ) : (
             <div className="space-y-4">
               {revenueBySource.map((item) => (
                 <ProgressLine
                   key={item.source}
-                  label={channelLabels[item.source as keyof typeof channelLabels] ?? item.label}
+                  label={item.label}
                   value={formatCurrency(safeNumber(item.revenue))}
                   percent={(safeNumber(item.revenue) / maxRevenue) * 100}
                 />
@@ -657,14 +616,11 @@ function AdminDashboard() {
           )}
         </DashboardPanel>
 
-        <DashboardPanel title={t("Chambres à surveiller", "Rooms to watch")} icon={BedDouble}>
+        <DashboardPanel title="Chambres a surveiller" icon={BedDouble}>
           {roomsToWatch.length === 0 ? (
             <DashboardEmptyState
-              title={t("Aucune chambre critique", "No critical rooms")}
-              text={t(
-                "Inventaire, maintenance et occupation sont sous contrôle.",
-                "Inventory, maintenance and occupancy are under control.",
-              )}
+              title="Aucune chambre critique"
+              text="Inventaire, maintenance et occupation sont sous controle."
             />
           ) : (
             <div className="space-y-3">
@@ -672,22 +628,14 @@ function AdminDashboard() {
                 <div key={room.id} className="rounded-xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="font-black text-primary">
-                        {localizeRoomName(room, locale)}
-                      </div>
+                      <div className="font-black text-primary">{room.name}</div>
                       <div className="mt-1 text-xs font-semibold text-muted-foreground">
-                        {occupied}/{safeNumber(room.totalUnits)} {t("occupées", "occupied")} ·{" "}
-                        {available} {t("libres", "free")}
+                        {occupied}/{safeNumber(room.totalUnits)} occupees · {available} libres
                       </div>
                     </div>
                     <StatusBadge kind="room" value={room.status} />
                   </div>
-                  <ProgressLine
-                    label={t("Occupation", "Occupancy")}
-                    value={`${ratio}%`}
-                    percent={ratio}
-                    compact
-                  />
+                  <ProgressLine label="Occupation" value={`${ratio}%`} percent={ratio} compact />
                 </div>
               ))}
             </div>
@@ -697,19 +645,19 @@ function AdminDashboard() {
 
       <section className="mt-6 grid gap-6 xl:grid-cols-3">
         <ReceptionPanel
-          title={t("Arrivées aujourd'hui", "Arrivals today")}
+          title="Arrivees aujourd'hui"
           items={arrivals}
-          empty={t("Aucune arrivée confirmée.", "No confirmed arrivals.")}
+          empty="Aucune arrivee confirmee."
         />
         <ReceptionPanel
-          title={t("Départs aujourd'hui", "Departures today")}
+          title="Departs aujourd'hui"
           items={departures}
-          empty={t("Aucun départ en attente.", "No pending departures.")}
+          empty="Aucun depart en attente."
         />
         <ReceptionPanel
-          title={t("Clients présents", "Guests in house")}
+          title="Clients presents"
           items={currentGuests}
-          empty={t("Aucun client actuellement check-in.", "No guests currently checked in.")}
+          empty="Aucun client actuellement check-in."
         />
       </section>
 
@@ -737,9 +685,8 @@ function DashboardHero({
   occupancy: number;
   pendingPayments: number;
 }) {
-  const { t, locale } = useI18n();
   const date = new Date(`${today}T12:00:00`);
-  const formattedDate = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
+  const formattedDate = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
@@ -756,15 +703,10 @@ function DashboardHero({
             <Hotel className="size-4" />
             Marina Cap Monastir PMS
           </div>
-          <h2 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
-            {t("Tableau de bord", "Dashboard")}
-          </h2>
+          <h2 className="mt-4 text-3xl font-black leading-tight md:text-4xl">Tableau de bord</h2>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-white/78">
-            {formattedDate} · {hotelStatus} · {t("Occupation", "Occupancy")} {occupancy}% ·{" "}
-            {t(
-              `${pendingPayments} paiement${pendingPayments > 1 ? "s" : ""} en attente`,
-              `${pendingPayments} pending payment${pendingPayments > 1 ? "s" : ""}`,
-            )}
+            {formattedDate} · {hotelStatus} · Occupation {occupancy}% · {pendingPayments} paiement
+            {pendingPayments > 1 ? "s" : ""} en attente
           </p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -775,7 +717,7 @@ function DashboardHero({
           </Link>
           <Link to="/admin/payments" className={adminButtonClasses("secondary", "md")}>
             <CreditCard className="size-4" />
-            {t("Paiement", "Payment")}
+            Paiement
           </Link>
           <Link to="/admin/channels" className={adminButtonClasses("secondary", "md")}>
             <RefreshCw className="size-4" />
@@ -794,15 +736,12 @@ function DashboardErrorCard({
   failedModules: Array<[string, string | null]>;
   onRetry: () => void;
 }) {
-  const { t } = useI18n();
   return (
     <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
       <div className="flex flex-wrap items-start gap-3">
         <AlertTriangle className="mt-0.5 size-5 shrink-0" />
         <div className="min-w-0 flex-1">
-          <h2 className="font-black">
-            {t("Impossible de charger certaines données", "Some data could not be loaded")}
-          </h2>
+          <h2 className="font-black">Impossible de charger certaines données</h2>
           <ul className="mt-2 space-y-1">
             {failedModules.map(([module, error]) => (
               <li key={module} className="break-words">
@@ -818,7 +757,7 @@ function DashboardErrorCard({
           className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-400 bg-white/70 px-3 text-xs font-black transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
           <RefreshCw className="size-3.5" />
-          {t("Réessayer", "Try again")}
+          Réessayer
         </button>
       </div>
     </div>
@@ -1007,20 +946,16 @@ function ReceptionPanel({
   items: Reservation[];
   empty: string;
 }) {
-  const { t } = useI18n();
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
       <h2 className="text-lg font-black text-primary">{title}</h2>
       <div className="mt-4 space-y-3">
         {items.length === 0 ? (
-          <DashboardEmptyState
-            title={empty}
-            text={t("Aucune action immédiate à traiter.", "Nothing to handle right now.")}
-          />
+          <DashboardEmptyState title={empty} text="Aucune action immediate a traiter." />
         ) : (
           items.map((reservation) => {
             const guest = reservation.guest ?? {
-              fullName: t("Client", "Guest"),
+              fullName: "Client",
               identityNumber: "-",
             };
 
@@ -1036,12 +971,12 @@ function ReceptionPanel({
                   </span>
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  {safeDateString(reservation.checkIn) || "-"} {t("au", "to")}{" "}
+                  {safeDateString(reservation.checkIn) || "-"} au{" "}
                   {safeDateString(reservation.checkOut) || "-"} · {guest.identityNumber}
                 </div>
                 {reservation.paymentStatus !== "paid" && (
                   <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
-                    {t("Rappel paiement avant check-in", "Payment reminder before check-in")}
+                    Rappel paiement avant check-in
                   </div>
                 )}
               </div>

@@ -4,10 +4,7 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/admin-layout";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { localizeSubject } from "@/lib/i18n/labels";
-import { tr, type Locale } from "@/lib/i18n/locale";
+import { formatCurrency } from "@/data/hotel";
 import {
   getMessages,
   listAdminConversations,
@@ -31,11 +28,7 @@ export const Route = createFileRoute("/admin/messages")({
     conversation: typeof search.conversation === "string" ? search.conversation : undefined,
   }),
   head: () => ({
-    meta: [
-      {
-        title: headT("Messages clients - Marina Cap Monastir", "Guest messages - Marina Cap Monastir"),
-      },
-    ],
+    meta: [{ title: "Messages clients - Marina Cap Monastir" }],
   }),
   component: AdminMessages,
 });
@@ -43,7 +36,6 @@ export const Route = createFileRoute("/admin/messages")({
 function AdminMessages() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const { t, locale, formatCurrency } = useI18n();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(search.conversation ?? null);
@@ -108,7 +100,7 @@ function AdminMessages() {
         ),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : tr("Messages indisponibles.", "Messages unavailable."));
+      setError(err instanceof Error ? err.message : "Messages indisponibles.");
     } finally {
       setMessagesLoading(false);
     }
@@ -125,13 +117,7 @@ function AdminMessages() {
         setSelectedId(search.conversation ?? next[0]?.id ?? null);
       })
       .catch((err) => {
-        if (mounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : tr("Conversations indisponibles.", "Conversations unavailable."),
-          );
-        }
+        if (mounted) setError(err instanceof Error ? err.message : "Conversations indisponibles.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -210,9 +196,9 @@ function AdminMessages() {
       setMessages((current) => [...current, sent]);
       setReply("");
       await loadConversations();
-      toast.success(t("Message envoyé.", "Message sent."));
+      toast.success("Message envoyé.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("Message non envoyé.", "Message not sent."));
+      toast.error(err instanceof Error ? err.message : "Message non envoyé.");
     } finally {
       setSending(false);
     }
@@ -228,7 +214,7 @@ function AdminMessages() {
       );
       await loadConversations();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("Mise à jour impossible.", "Update failed."));
+      toast.error(err instanceof Error ? err.message : "Mise à jour impossible.");
     } finally {
       setUpdatingStatus(false);
     }
@@ -236,15 +222,12 @@ function AdminMessages() {
 
   return (
     <AdminLayout
-      title={t("Messages clients", "Guest messages")}
-      description={t(
-        "Conversations client liées aux réservations, demandes générales et réponses de la réception.",
-        "Guest conversations about bookings, general enquiries and reception replies.",
-      )}
+      title="Messages clients"
+      description="Conversations client liées aux réservations, demandes générales et réponses de la réception."
       actions={
         <button type="button" onClick={loadConversations} className="admin-action h-10 px-3">
           <RefreshCw className="size-4" />
-          {t("Actualiser", "Refresh")}
+          Actualiser
         </button>
       }
     >
@@ -262,7 +245,7 @@ function AdminMessages() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("Client, email, réservation...", "Guest, email, booking...")}
+                placeholder="Client, email, réservation..."
                 className="admin-input pl-9"
               />
             </label>
@@ -278,11 +261,7 @@ function AdminMessages() {
                       : "border-border bg-card text-primary hover:border-accent"
                   }`}
                 >
-                  {value === "open"
-                    ? t("Ouverts", "Open")
-                    : value === "closed"
-                      ? t("Clos", "Closed")
-                      : t("Tous", "All")}
+                  {value === "open" ? "Ouverts" : value === "closed" ? "Clos" : "Tous"}
                 </button>
               ))}
             </div>
@@ -295,10 +274,7 @@ function AdminMessages() {
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
-              {t(
-                "Aucune conversation ne correspond aux filtres.",
-                "No conversations match the filters.",
-              )}
+              Aucune conversation ne correspond aux filtres.
             </div>
           ) : (
             <div className="max-h-[650px] overflow-y-auto p-2">
@@ -319,9 +295,7 @@ function AdminMessages() {
                         {conversation.clientName}
                       </div>
                       <div className="mt-1 truncate text-xs text-muted-foreground">
-                        {conversation.clientEmail ||
-                          conversation.reservationNumber ||
-                          localizeSubject(conversation.subject, locale)}
+                        {conversation.clientEmail || conversation.reservationNumber || conversation.subject}
                       </div>
                     </div>
                     {conversation.unreadAdminCount > 0 && (
@@ -331,13 +305,11 @@ function AdminMessages() {
                     )}
                   </div>
                   <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                    {conversation.latestMessage?.body ?? t("Aucun message envoyé.", "No messages sent.")}
+                    {conversation.latestMessage?.body ?? "Aucun message envoyé."}
                   </p>
                   <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-muted-foreground">
-                    <span>
-                      {conversation.status === "open" ? t("Ouvert", "Open") : t("Clos", "Closed")}
-                    </span>
-                    <span>{formatChatTime(conversation.lastMessageAt, locale)}</span>
+                    <span>{conversation.status}</span>
+                    <span>{formatChatTime(conversation.lastMessageAt)}</span>
                   </div>
                 </button>
               ))}
@@ -362,7 +334,7 @@ function AdminMessages() {
                             : "bg-secondary text-muted-foreground"
                         }`}
                       >
-                        {selectedConversation.status === "open" ? t("Ouvert", "Open") : t("Clos", "Closed")}
+                        {selectedConversation.status === "open" ? "Ouvert" : "Clos"}
                       </span>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
@@ -377,27 +349,19 @@ function AdminMessages() {
                     className="admin-action"
                   >
                     <CheckCircle2 className="size-4" />
-                    {selectedConversation.status === "open"
-                      ? t("Clôturer", "Close")
-                      : t("Réouvrir", "Reopen")}
+                    {selectedConversation.status === "open" ? "Clôturer" : "Réouvrir"}
                   </button>
                 </div>
 
                 <div className="mt-4 grid gap-3 text-sm md:grid-cols-4">
+                  <DetailTile label="Sujet" value={selectedConversation.subject} />
                   <DetailTile
-                    label={t("Sujet", "Subject")}
-                    value={localizeSubject(selectedConversation.subject, locale)}
+                    label="Réservation"
+                    value={selectedConversation.reservationNumber ?? "Non liée"}
                   />
+                  <DetailTile label="Séjour" value={formatStay(selectedConversation)} />
                   <DetailTile
-                    label={t("Réservation", "Booking")}
-                    value={selectedConversation.reservationNumber ?? t("Non liée", "Not linked")}
-                  />
-                  <DetailTile
-                    label={t("Séjour", "Stay")}
-                    value={formatStay(selectedConversation, t("au", "to"))}
-                  />
-                  <DetailTile
-                    label={t("Total", "Total")}
+                    label="Total"
                     value={
                       typeof selectedConversation.total === "number"
                         ? formatCurrency(selectedConversation.total)
@@ -409,12 +373,10 @@ function AdminMessages() {
 
               <div className="flex-1 space-y-3 overflow-y-auto bg-[#eef7f4] p-4">
                 {messagesLoading ? (
-                  <div className="text-sm text-muted-foreground">
-                    {t("Chargement des messages...", "Loading messages...")}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Chargement des messages...</div>
                 ) : messages.length === 0 ? (
                   <div className="mx-auto mt-12 max-w-sm rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                    {t("Aucun message dans cette conversation.", "No messages in this conversation.")}
+                    Aucun message dans cette conversation.
                   </div>
                 ) : (
                   messages.map((item) => (
@@ -429,7 +391,7 @@ function AdminMessages() {
                   <textarea
                     value={reply}
                     onChange={(event) => setReply(event.target.value)}
-                    placeholder={t("Répondre au client...", "Reply to the guest...")}
+                    placeholder="Répondre au client..."
                     className="admin-input min-h-20 flex-1"
                     maxLength={1600}
                   />
@@ -439,7 +401,7 @@ function AdminMessages() {
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-black text-primary-foreground disabled:opacity-50 sm:self-end"
                   >
                     <Send className="size-4" />
-                    {sending ? t("Envoi...", "Sending...") : t("Répondre", "Reply")}
+                    {sending ? "Envoi..." : "Répondre"}
                   </button>
                 </div>
               </form>
@@ -448,7 +410,7 @@ function AdminMessages() {
             <div className="flex flex-1 items-center justify-center p-6 text-center text-sm text-muted-foreground">
               <div>
                 <MessageCircle className="mx-auto mb-3 size-8 text-accent" />
-                {t("Sélectionnez une conversation client.", "Select a guest conversation.")}
+                Sélectionnez une conversation client.
               </div>
             </div>
           )}
@@ -465,7 +427,6 @@ function ChatBubble({
   message: ConversationMessage;
   currentRole: "client" | "admin";
 }) {
-  const { t, locale } = useI18n();
   const own = message.senderRole === currentRole;
 
   return (
@@ -478,8 +439,8 @@ function ChatBubble({
         }`}
       >
         <div className="mb-1 text-[10px] font-bold uppercase opacity-70">
-          {message.senderRole === "admin" ? t("Réception", "Reception") : t("Client", "Guest")} ·{" "}
-          {formatChatTime(message.createdAt, locale)}
+          {message.senderRole === "admin" ? "Réception" : "Client"} ·{" "}
+          {formatChatTime(message.createdAt)}
         </div>
         <p className="whitespace-pre-wrap leading-6">{message.body}</p>
       </div>
@@ -498,15 +459,15 @@ function DetailTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function formatStay(conversation: ConversationSummary, separator: string) {
+function formatStay(conversation: ConversationSummary) {
   if (!conversation.checkIn || !conversation.checkOut) return "-";
-  return `${conversation.checkIn} ${separator} ${conversation.checkOut}`;
+  return `${conversation.checkIn} au ${conversation.checkOut}`;
 }
 
-function formatChatTime(value: string, locale: Locale) {
+function formatChatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
+  return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, CalendarDays, Percent, ReceiptText, TrendingUp } from "lucide-react";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { KpiCard } from "@/components/admin/kpi-card";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getChannelLabels } from "@/lib/i18n/labels";
-import { localizeRoomName } from "@/lib/i18n/rooms";
+import { formatCurrency } from "@/data/hotel";
 import {
   getBestSellingRooms,
   getMonthlyRevenueStats,
@@ -47,9 +44,7 @@ export const Route = createFileRoute("/admin/statistics")({
     };
   },
   head: () => ({
-    meta: [
-      { title: headT("Statistiques - Marina Cap Monastir", "Statistics - Marina Cap Monastir") },
-    ],
+    meta: [{ title: "Statistiques - Marina Cap Monastir" }],
   }),
   component: AdminStatistics,
 });
@@ -59,8 +54,6 @@ const months = ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"
 function AdminStatistics() {
   const { stats, occupancyRate, roomSales, revenueBySource, reservationItems, occupancyByRoom } =
     Route.useLoaderData();
-  const { t, locale, formatCurrency } = useI18n();
-  const channelLabels = getChannelLabels(locale);
   const averageStay =
     reservationItems.length > 0
       ? Math.round(
@@ -86,47 +79,44 @@ function AdminStatistics() {
 
   return (
     <AdminLayout
-      title={t("Statistiques & optimisation", "Statistics & optimisation")}
-      description={t(
-        "Indicateurs revenus, occupation, sources, chambres et préparation au pricing dynamique.",
-        "Revenue, occupancy, source and room indicators, ready for dynamic pricing.",
-      )}
+      title="Statistiques & optimisation"
+      description="Indicateurs revenus, occupation, sources, chambres et préparation au pricing dynamique."
     >
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KpiCard
-          label={t("Revenu mensuel", "Monthly revenue")}
+          label="Revenu mensuel"
           value={formatCurrency(stats.revenue)}
           detail={stats.month}
           icon={TrendingUp}
         />
         <KpiCard
-          label={t("Taux occupation", "Occupancy rate")}
+          label="Taux occupation"
           value={`${occupancyRate}%`}
-          detail={t("Aujourd'hui", "Today")}
+          detail="Aujourd'hui"
           icon={Percent}
         />
         <KpiCard
           label="ADR"
           value={formatCurrency(stats.adr)}
-          detail={t("Prix moyen par nuit (ADR)", "Average daily rate")}
+          detail="Average Daily Rate"
           icon={BarChart3}
         />
         <KpiCard
           label="RevPAR"
           value={formatCurrency(stats.revpar)}
-          detail={t("Revenu par unité", "Revenue per unit")}
+          detail="Revenu par unité"
           icon={ReceiptText}
         />
         <KpiCard
-          label={t("Séjour moyen", "Average stay")}
-          value={`${averageStay} ${t("nuits", "nights")}`}
-          detail={`${t("Annulation", "Cancellation")} ${cancellationRate}%`}
+          label="Séjour moyen"
+          value={`${averageStay} nuits`}
+          detail={`Annulation ${cancellationRate}%`}
           icon={CalendarDays}
         />
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-2">
-        <ChartCard title={t("Comparaison mensuelle", "Monthly comparison")}>
+        <ChartCard title="Comparaison mensuelle">
           {monthlyComparison.map((item) => (
             <Bar
               key={item.month}
@@ -137,35 +127,35 @@ function AdminStatistics() {
           ))}
         </ChartCard>
 
-        <ChartCard title={t("Revenus par source", "Revenue by source")}>
+        <ChartCard title="Revenus par source">
           {revenueBySource.map((item) => (
             <Bar
               key={item.source}
-              label={channelLabels[item.source as keyof typeof channelLabels] ?? item.label}
+              label={item.label}
               value={formatCurrency(item.revenue)}
               percent={(item.revenue / maxSourceRevenue) * 100}
             />
           ))}
         </ChartCard>
 
-        <ChartCard title={t("Meilleures chambres", "Best-selling rooms")}>
+        <ChartCard title="Meilleures chambres">
           {roomSales.map((item) => (
             <Bar
               key={item.room.id}
-              label={localizeRoomName(item.room, locale)}
-              value={`${item.reservations} ${t("réservations", "bookings")} · ${formatCurrency(item.revenue)}`}
+              label={item.room.name}
+              value={`${item.reservations} réservations · ${formatCurrency(item.revenue)}`}
               percent={(item.reservations / Math.max(1, roomSales[0]?.reservations ?? 1)) * 100}
             />
           ))}
         </ChartCard>
 
-        <ChartCard title={t("Occupation par type de chambre", "Occupancy by room type")}>
+        <ChartCard title="Occupation par type de chambre">
           {occupancyByRoom.map(({ room, occupied }) => {
             return (
               <Bar
                 key={room.id}
-                label={localizeRoomName(room, locale)}
-                value={`${occupied}/${room.totalUnits} ${t("unités", "units")}`}
+                label={room.name}
+                value={`${occupied}/${room.totalUnits} unités`}
                 percent={(occupied / room.totalUnits) * 100}
               />
             );
@@ -174,31 +164,13 @@ function AdminStatistics() {
       </section>
 
       <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-primary">
-          {t("Optimisation des revenus", "Revenue optimisation")}
-        </h2>
+        <h2 className="text-lg font-bold text-primary">Revenue optimization</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-4">
           {[
-            {
-              label: t("Haute saison", "High season"),
-              value: "+25%",
-              text: t("Juillet, août, événements portuaires", "July, August, marina events"),
-            },
-            {
-              label: t("Basse saison", "Low season"),
-              value: "-12%",
-              text: t("Séjours longs et packages", "Long stays and packages"),
-            },
-            {
-              label: t("Week-end", "Weekend"),
-              value: "+15%",
-              text: t("Vendredi et samedi", "Friday and Saturday"),
-            },
-            {
-              label: t("Événement spécial", "Special event"),
-              value: t("manuel", "manual"),
-              text: t("Ajustement manuel, sans pricing IA", "Manual adjustment, no AI pricing"),
-            },
+            { label: "Haute saison", value: "+25%", text: "Juillet, août, événements portuaires" },
+            { label: "Basse saison", value: "-12%", text: "Séjours longs et packages" },
+            { label: "Week-end", value: "+15%", text: "Vendredi et samedi" },
+            { label: "Événement spécial", value: "manuel", text: "Placeholder sans pricing IA" },
           ].map((item) => (
             <div key={item.label} className="rounded-md border border-border bg-background p-4">
               <div className="text-sm font-semibold text-primary">{item.label}</div>

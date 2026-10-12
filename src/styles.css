@@ -198,37 +198,11 @@
     text-transform: uppercase;
   }
 
-  /* Heading scale shared by public pages:
-     .hero-title  → H1 over a full hero image (home, présentation, port, contact…)
-     .page-title  → H1 of every other page (color comes from the context)
-     .section-title → H2 section headings */
-  .hero-title {
-    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
-    font-weight: 900;
-    line-height: 1.05;
-    text-wrap: balance;
-  }
-
-  .page-title {
-    font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem);
-    font-weight: 900;
-    line-height: 1.1;
-    text-wrap: balance;
-  }
-
   .section-title {
     color: var(--color-primary);
-    font-size: clamp(2rem, 1.4rem + 1.6vw, 3rem);
+    font-size: clamp(1.875rem, 2.4vw, 3rem);
     font-weight: 800;
     line-height: 1.08;
-    text-wrap: balance;
-  }
-
-  /* Keep the last content above the phone booking bar (components/floating-book-button.tsx). */
-  @media (max-width: 639px) {
-    body:has(.floating-book-bar) {
-      padding-bottom: 5.5rem;
-    }
   }
 
   .gold-rule {

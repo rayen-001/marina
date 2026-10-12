@@ -5,6 +5,9 @@ import { AdminLayout } from "@/components/admin/admin-layout";
 import { KpiCard } from "@/components/admin/kpi-card";
 import { StatusBadge } from "@/components/admin/status-badge";
 import {
+  channelLabels,
+  formatCurrency,
+  paymentStatusLabels,
   payments,
   reservations,
   rooms,
@@ -12,14 +15,6 @@ import {
   type PaymentMethod,
   type PaymentStatus,
 } from "@/data/hotel";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import {
-  getChannelLabels,
-  getPaymentMethodLabels,
-  getPaymentStatusLabels,
-} from "@/lib/i18n/labels";
-import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
   calculatePaidAmount,
   calculateRemainingAmount,
@@ -31,7 +26,7 @@ import { listRoomTypes } from "@/lib/services/roomService";
 
 export const Route = createFileRoute("/admin/payments")({
   head: () => ({
-    meta: [{ title: headT("Paiements - Marina Cap Monastir", "Payments - Marina Cap Monastir") }],
+    meta: [{ title: "Paiements - Marina Cap Monastir" }],
   }),
   loader: async () => {
     await Promise.all([listRoomTypes(), listReservations(), listPayments()]);
@@ -52,10 +47,6 @@ const methods: Array<PaymentMethod | "all"> = [
 ];
 
 function AdminPayments() {
-  const { t, locale, formatCurrency } = useI18n();
-  const paymentStatusLabels = getPaymentStatusLabels(locale);
-  const channelLabels = getChannelLabels(locale);
-  const methodLabels = getPaymentMethodLabels(locale);
   const [statusFilter, setStatusFilter] = useState<PaymentStatus | "all">("all");
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | "all">("all");
   const [sourceFilter, setSourceFilter] = useState<ChannelSource | "all">("all");
@@ -86,29 +77,26 @@ function AdminPayments() {
 
   return (
     <AdminLayout
-      title={t("Paiements", "Payments")}
-      description={t(
-        "Suivi des statuts et montants sans stockage de carte ni CVC.",
-        "Status and amount tracking, no card or CVC storage.",
-      )}
+      title="Paiements"
+      description="Suivi des statuts et montants sans stockage de carte ni CVC."
     >
       <section className="mb-6 grid gap-4 md:grid-cols-3">
         <KpiCard
-          label={t("Montant encaissé", "Amount collected")}
+          label="Montant encaissé"
           value={formatCurrency(totalPaid)}
-          detail={t("Tous paiements mockés", "All mock payments")}
+          detail="Tous paiements mockés"
           icon={CreditCard}
         />
         <KpiCard
-          label={t("Restant dû", "Balance due")}
+          label="Restant dû"
           value={formatCurrency(remaining)}
-          detail={t("Solde client", "Guest balance")}
+          detail="Solde client"
           icon={Banknote}
         />
         <KpiCard
-          label={t("Non payés", "Unpaid")}
+          label="Non payés"
           value={String(unpaidCount)}
-          detail={t("À relancer", "To follow up")}
+          detail="À relancer"
           icon={RotateCcw}
         />
       </section>
@@ -120,7 +108,7 @@ function AdminPayments() {
             onChange={(event) => setStatusFilter(event.target.value as PaymentStatus | "all")}
             className="admin-input"
           >
-            <option value="all">{t("Tous les statuts", "All statuses")}</option>
+            <option value="all">Tous les statuts</option>
             {Object.entries(paymentStatusLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -134,7 +122,7 @@ function AdminPayments() {
           >
             {methods.map((method) => (
               <option key={method} value={method}>
-                {method === "all" ? t("Toutes méthodes", "All methods") : methodLabels[method]}
+                {method === "all" ? "Toutes méthodes" : method}
               </option>
             ))}
           </select>
@@ -143,7 +131,7 @@ function AdminPayments() {
             onChange={(event) => setSourceFilter(event.target.value as ChannelSource | "all")}
             className="admin-input"
           >
-            <option value="all">{t("Toutes sources", "All sources")}</option>
+            <option value="all">Toutes sources</option>
             {Object.entries(channelLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -162,16 +150,16 @@ function AdminPayments() {
           <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="bg-secondary text-xs uppercase tracking-[0.12em] text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">{t("Réservation", "Booking")}</th>
-                <th className="px-4 py-3">{t("Client", "Guest")}</th>
-                <th className="px-4 py-3">{t("Chambre", "Room")}</th>
-                <th className="px-4 py-3">{t("Source", "Source")}</th>
-                <th className="px-4 py-3">{t("Payé", "Paid")}</th>
-                <th className="px-4 py-3">{t("Restant", "Remaining")}</th>
-                <th className="px-4 py-3">{t("Statut", "Status")}</th>
-                <th className="px-4 py-3">{t("Méthode", "Method")}</th>
-                <th className="px-4 py-3">{t("Date", "Date")}</th>
-                <th className="px-4 py-3">{t("Actions", "Actions")}</th>
+                <th className="px-4 py-3">Réservation</th>
+                <th className="px-4 py-3">Client</th>
+                <th className="px-4 py-3">Chambre</th>
+                <th className="px-4 py-3">Source</th>
+                <th className="px-4 py-3">Payé</th>
+                <th className="px-4 py-3">Restant</th>
+                <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3">Méthode</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -188,7 +176,7 @@ function AdminPayments() {
                       {reservation?.reservationNumber}
                     </td>
                     <td className="px-4 py-3">{reservation?.guest.fullName}</td>
-                    <td className="px-4 py-3">{room ? localizeRoomName(room, locale) : ""}</td>
+                    <td className="px-4 py-3">{room?.name}</td>
                     <td className="px-4 py-3">
                       {reservation && <StatusBadge kind="source" value={reservation.source} />}
                     </td>
@@ -197,9 +185,7 @@ function AdminPayments() {
                     <td className="px-4 py-3">
                       <StatusBadge kind="payment" value={payment.status} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {methodLabels[payment.method] ?? payment.method}
-                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{payment.method}</td>
                     <td className="px-4 py-3 text-muted-foreground">{payment.updatedAt}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
@@ -210,21 +196,21 @@ function AdminPayments() {
                           }
                           className="admin-action"
                         >
-                          {t("Ajouter acompte", "Add deposit")}
+                          Ajouter acompte
                         </button>
                         <button
                           type="button"
                           onClick={() => reservation && changeStatus(reservation.id, "paid")}
                           className="admin-action"
                         >
-                          {t("Marquer payé", "Mark as paid")}
+                          Marquer payé
                         </button>
                         <button
                           type="button"
                           onClick={() => reservation && changeStatus(reservation.id, "refunded")}
                           className="admin-action"
                         >
-                          {t("Rembourser", "Refund")}
+                          Rembourser
                         </button>
                       </div>
                     </td>
@@ -236,10 +222,8 @@ function AdminPayments() {
         </div>
 
         <p className="border-t border-border p-4 text-xs leading-5 text-muted-foreground">
-          {t(
-            "Les méthodes de paiement sont des statuts de suivi seulement. Aucun numéro de carte ni CVC n'est stocké.",
-            "Payment methods are tracking statuses only. No card number or CVC is stored.",
-          )}
+          Les méthodes de paiement sont des statuts de suivi seulement. Aucun numéro de carte ni CVC
+          n'est stocké.
         </p>
       </div>
     </AdminLayout>

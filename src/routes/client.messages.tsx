@@ -4,11 +4,6 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getClientSessionProfile, type ClientProfile } from "@/lib/auth/clientAuth";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { CLIENT_MESSAGING_LOCKED_REASON_EN, localizeSubject } from "@/lib/i18n/labels";
-import { tr, type Locale } from "@/lib/i18n/locale";
-import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
   clientHasMessagingAccess,
   CLIENT_MESSAGING_LOCKED_REASON,
@@ -40,7 +35,7 @@ export const Route = createFileRoute("/client/messages")({
     conversation: typeof search.conversation === "string" ? search.conversation : undefined,
   }),
   head: () => ({
-    meta: [{ title: headT("Messages client - Marina Cap Monastir", "Messages - Marina Cap Monastir") }],
+    meta: [{ title: "Messages client - Marina Cap Monastir" }],
   }),
   component: ClientMessages,
 });
@@ -48,8 +43,6 @@ export const Route = createFileRoute("/client/messages")({
 function ClientMessages() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const { t, locale } = useI18n();
-  const lockedReason = t(CLIENT_MESSAGING_LOCKED_REASON, CLIENT_MESSAGING_LOCKED_REASON_EN);
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -96,7 +89,7 @@ function ClientMessages() {
         ),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : tr("Messages indisponibles.", "Messages unavailable."));
+      setError(err instanceof Error ? err.message : "Messages indisponibles.");
     } finally {
       setMessagesLoading(false);
     }
@@ -120,11 +113,7 @@ function ClientMessages() {
         setSelectedId(search.conversation ?? nextConversations[0]?.id ?? null);
       })
       .catch((err) => {
-        if (mounted) {
-          setError(
-            err instanceof Error ? err.message : tr("Messagerie indisponible.", "Messaging unavailable."),
-          );
-        }
+        if (mounted) setError(err instanceof Error ? err.message : "Messagerie indisponible.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -199,11 +188,7 @@ function ClientMessages() {
       await loadConversations();
       openConversation(conversation.id);
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : t("Conversation impossible.", "The conversation could not be opened."),
-      );
+      toast.error(err instanceof Error ? err.message : "Conversation impossible.");
     } finally {
       setCreating(false);
     }
@@ -225,7 +210,7 @@ function ClientMessages() {
       setReply("");
       await loadConversations();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("Message non envoyé.", "Message not sent."));
+      toast.error(err instanceof Error ? err.message : "Message non envoyé.");
     } finally {
       setSending(false);
     }
@@ -237,21 +222,16 @@ function ClientMessages() {
         <div>
           <div className="section-kicker">
             <MessageCircle className="size-4" />
-            {t("Messagerie Directe", "Direct messaging")}
+            Messagerie Directe
           </div>
-          <h1 className="mt-2 text-3xl font-black text-primary">
-            {t("Contacter la réception", "Contact reception")}
-          </h1>
+          <h1 className="mt-2 text-3xl font-black text-primary">Contacter la réception</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t(
-              "Une messagerie simple pour vos questions de séjour, réservation, paiement et arrivée.",
-              "Simple messaging for your questions about your stay, booking, payment and arrival.",
-            )}
+            Une messagerie simple pour vos questions de séjour, réservation, paiement et arrivée.
           </p>
         </div>
         <button type="button" onClick={loadConversations} className="admin-action h-10 px-3">
           <RefreshCw className="size-4" />
-          {t("Actualiser", "Refresh")}
+          Actualiser
         </button>
       </header>
 
@@ -263,7 +243,7 @@ function ClientMessages() {
 
       {!loading && !canMessage && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-          {lockedReason}
+          {CLIENT_MESSAGING_LOCKED_REASON}
         </div>
       )}
 
@@ -279,7 +259,7 @@ function ClientMessages() {
               >
                 {subjectOptions.map((subject) => (
                   <option key={subject} value={subject}>
-                    {localizeSubject(subject, locale)}
+                    {subject}
                   </option>
                 ))}
               </select>
@@ -288,10 +268,7 @@ function ClientMessages() {
                 onClick={createGeneralConversation}
                 disabled={creating || !canMessage}
                 className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-                title={
-                  canMessage ? t("Créer une conversation", "Start a conversation") : lockedReason
-                }
-                aria-label={t("Créer une conversation", "Start a conversation")}
+                title={canMessage ? "Créer une conversation" : CLIENT_MESSAGING_LOCKED_REASON}
               >
                 <Plus className="size-4" />
               </button>
@@ -305,10 +282,7 @@ function ClientMessages() {
             </div>
           ) : conversations.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
-              {t(
-                "Aucune conversation. Créez un sujet pour contacter la réception.",
-                "No conversations yet. Pick a subject to contact reception.",
-              )}
+              Aucune conversation. Créez un sujet pour contacter la réception.
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto p-2">
@@ -325,11 +299,9 @@ function ClientMessages() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-black text-primary">
-                        {localizeSubject(conversation.subject, locale)}
-                      </div>
+                      <div className="truncate font-black text-primary">{conversation.subject}</div>
                       <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {conversation.reservationNumber ?? t("Demande générale", "General enquiry")}
+                        {conversation.reservationNumber ?? "Demande générale"}
                       </div>
                     </div>
                     {conversation.unreadClientCount > 0 && (
@@ -339,7 +311,7 @@ function ClientMessages() {
                     )}
                   </div>
                   <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                    {conversation.latestMessage?.body ?? t("Aucun message envoyé.", "No messages sent.")}
+                    {conversation.latestMessage?.body ?? "Aucun message envoyé."}
                   </p>
                 </button>
               ))}
@@ -351,31 +323,20 @@ function ClientMessages() {
           {selectedConversation ? (
             <>
               <div className="border-b border-border bg-card px-5 py-4">
-                <div className="text-lg font-black text-primary">
-                  {localizeSubject(selectedConversation.subject, locale)}
-                </div>
+                <div className="text-lg font-black text-primary">{selectedConversation.subject}</div>
                 <div className="text-xs text-muted-foreground">
                   {selectedConversation.reservationNumber
-                    ? `${selectedConversation.reservationNumber} · ${
-                        selectedConversation.roomName
-                          ? localizeRoomName({ name: selectedConversation.roomName, id: "" }, locale)
-                          : t("Chambre", "Room")
-                      }`
-                    : t("Réception Marina Cap Monastir", "Marina Cap Monastir reception")}
+                    ? `${selectedConversation.reservationNumber} · ${selectedConversation.roomName ?? "Chambre"}`
+                    : "Réception Marina Cap Monastir"}
                 </div>
               </div>
 
               <div className="flex-1 space-y-3 overflow-y-auto bg-[#eef7f4] p-4">
                 {messagesLoading ? (
-                  <div className="text-sm text-muted-foreground">
-                    {t("Chargement des messages...", "Loading messages...")}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Chargement des messages...</div>
                 ) : messages.length === 0 ? (
                   <div className="mx-auto mt-12 max-w-sm rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                    {t(
-                      "Envoyez votre premier message à la réception.",
-                      "Send your first message to reception.",
-                    )}
+                    Envoyez votre premier message à la réception.
                   </div>
                 ) : (
                   messages.map((item) => (
@@ -387,13 +348,15 @@ function ClientMessages() {
 
               <form onSubmit={submit} className="border-t border-border bg-card p-3">
                 {!canMessage && (
-                  <p className="mb-2 text-xs font-semibold text-amber-800">{lockedReason}</p>
+                  <p className="mb-2 text-xs font-semibold text-amber-800">
+                    {CLIENT_MESSAGING_LOCKED_REASON}
+                  </p>
                 )}
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <textarea
                     value={reply}
                     onChange={(event) => setReply(event.target.value)}
-                    placeholder={t("Écrire un message...", "Write a message...")}
+                    placeholder="Écrire un message..."
                     disabled={!canMessage}
                     className="admin-input min-h-20 flex-1 disabled:cursor-not-allowed disabled:opacity-60"
                     maxLength={1600}
@@ -404,14 +367,14 @@ function ClientMessages() {
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-black text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
                   >
                     <Send className="size-4" />
-                    {sending ? t("Envoi...", "Sending...") : t("Envoyer", "Send")}
+                    {sending ? "Envoi..." : "Envoyer"}
                   </button>
                 </div>
               </form>
             </>
           ) : (
             <div className="flex flex-1 items-center justify-center p-6 text-center text-sm text-muted-foreground">
-              {t("Sélectionnez ou créez une conversation.", "Select or start a conversation.")}
+              Sélectionnez ou créez une conversation.
             </div>
           )}
         </div>
@@ -427,7 +390,6 @@ function ChatBubble({
   message: ConversationMessage;
   currentRole: "client" | "admin";
 }) {
-  const { t, locale } = useI18n();
   const own = message.senderRole === currentRole;
 
   return (
@@ -440,8 +402,8 @@ function ChatBubble({
         }`}
       >
         <div className="mb-1 text-[10px] font-bold uppercase opacity-70">
-          {message.senderRole === "admin" ? t("Réception", "Reception") : t("Vous", "You")} ·{" "}
-          {formatChatTime(message.createdAt, locale)}
+          {message.senderRole === "admin" ? "Réception" : "Vous"} ·{" "}
+          {formatChatTime(message.createdAt)}
         </div>
         <p className="whitespace-pre-wrap leading-6">{message.body}</p>
       </div>
@@ -449,10 +411,10 @@ function ChatBubble({
   );
 }
 
-function formatChatTime(value: string, locale: Locale) {
+function formatChatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
+  return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

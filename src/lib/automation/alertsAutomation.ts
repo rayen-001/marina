@@ -1,5 +1,4 @@
 import { channelConnections, reservations, rooms, roomsAvailable } from "@/data/hotel";
-import { translateDemoText } from "@/lib/i18n/labels";
 import type { AutomationAlert } from "@/lib/types/hotel";
 import { detectReservationsWithoutInvoice } from "./invoiceAutomation";
 import { detectUnpaidReservations } from "./paymentAutomation";
@@ -24,7 +23,6 @@ export function createHotelOperationAlerts(
         severity: reservation.checkIn <= today ? "critical" : "warning",
         title: "Paiement en attente",
         description: `${reservation.guest.fullName} a un solde à suivre avant l'arrivée.`,
-        descriptionEn: `${reservation.guest.fullName} has a balance to settle before arrival.`,
         reservationId: reservation.id,
         createdAt,
       }),
@@ -36,7 +34,6 @@ export function createHotelOperationAlerts(
         severity: "info",
         title: "Arrivée aujourd'hui",
         description: `${reservation.guest.fullName} est attendu à la réception.`,
-        descriptionEn: `${reservation.guest.fullName} is expected at reception.`,
         reservationId: reservation.id,
         createdAt,
       }),
@@ -48,7 +45,6 @@ export function createHotelOperationAlerts(
         severity: "info",
         title: "Départ aujourd'hui",
         description: `${reservation.guest.fullName} doit finaliser le check-out.`,
-        descriptionEn: `${reservation.guest.fullName} needs to complete check-out.`,
         reservationId: reservation.id,
         createdAt,
       }),
@@ -60,7 +56,6 @@ export function createHotelOperationAlerts(
         severity: "warning",
         title: "Risque de survente",
         description: `${room.name} approche de la capacité maximale.`,
-        descriptionEn: `${room.name} is close to full capacity.`,
         roomTypeId: room.id,
         createdAt,
       }),
@@ -74,7 +69,6 @@ export function createHotelOperationAlerts(
           severity: "warning",
           title: "Chambre en maintenance",
           description: `${room.name} est indisponible à la vente.`,
-          descriptionEn: `${room.name} is not available for sale.`,
           roomTypeId: room.id,
           createdAt,
         }),
@@ -88,7 +82,6 @@ export function createHotelOperationAlerts(
           severity: "critical",
           title: "Erreur de synchronisation channel",
           description: error,
-          descriptionEn: translateDemoText(error, "en"),
           createdAt,
         }),
       ),
@@ -99,7 +92,6 @@ export function createHotelOperationAlerts(
         severity: "warning",
         title: "Facture à générer",
         description: `La réservation ${reservation.reservationNumber} n'a pas encore de facture.`,
-        descriptionEn: `Booking ${reservation.reservationNumber} has no invoice yet.`,
         reservationId: reservation.id,
         createdAt,
       }),

@@ -6,7 +6,6 @@ import {
   warnSupabaseFallback,
 } from "@/lib/supabase/serviceHelpers";
 import { getReservation } from "./reservationService";
-import { tr } from "@/lib/i18n/locale";
 
 export async function listInvoices() {
   const supabase = await getSupabaseOrNull();
@@ -58,11 +57,10 @@ export async function generateInvoicePreview(reservationId: string): Promise<Inv
   if (existing) return existing;
 
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
 
   const reservation = await findReservationForInvoice(reservationId);
-  if (!reservation) throw new Error(tr("Réservation introuvable.", "Booking not found."));
+  if (!reservation) throw new Error("Reservation introuvable.");
 
   const invoiceNumber = generateInvoiceNumber(invoices.length + 1);
   const { data, error } = await supabase

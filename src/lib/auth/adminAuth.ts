@@ -1,5 +1,4 @@
 import { redirect } from "@tanstack/react-router";
-import { tr } from "@/lib/i18n/locale";
 import type { ProfileRole, UserProfile } from "./profilesAuth";
 import {
   getCurrentProfile,
@@ -32,9 +31,7 @@ export async function signInAdmin(email: string, password: string) {
   const context = await signInWithPasswordAndProfile(email, password);
   if (!isAdminAppRole(context.profile.role)) {
     await signOut();
-    throw new Error(
-      tr("Compte admin non autorisé.", "This account is not authorised for the admin."),
-    );
+    throw new Error("Compte admin non autorise.");
   }
 
   return mapAdminProfile(context.profile);

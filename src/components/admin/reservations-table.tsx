@@ -3,19 +3,16 @@ import { FileText, MessageCircle, MoreHorizontal, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  channelLabels,
+  formatCurrency,
+  paymentStatusLabels,
   reservations,
+  reservationStatusLabels,
   rooms,
   type ChannelSource,
   type PaymentStatus,
   type ReservationStatus,
 } from "@/data/hotel";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import {
-  getChannelLabels,
-  getPaymentStatusLabels,
-  getReservationStatusLabels,
-} from "@/lib/i18n/labels";
-import { localizeRoomName } from "@/lib/i18n/rooms";
 import {
   calculatePaidAmount,
   calculateRemainingAmount,
@@ -36,10 +33,6 @@ type Props = {
 
 export function ReservationsTable({ compact = false }: Props) {
   const navigate = useNavigate();
-  const { t, locale, formatCurrency } = useI18n();
-  const reservationStatusLabels = getReservationStatusLabels(locale);
-  const paymentStatusLabels = getPaymentStatusLabels(locale);
-  const channelLabels = getChannelLabels(locale);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [roomId, setRoomId] = useState("all");
@@ -79,14 +72,10 @@ export function ReservationsTable({ compact = false }: Props) {
     setReservationStatusRemote(reservationId, nextStatus)
       .then(() => {
         setVersion((value) => value + 1);
-        toast.success(t("Statut de la réservation mis à jour.", "Booking status updated."));
+        toast.success("Statut de la reservation mis a jour.");
       })
       .catch((error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : t("Mise à jour du statut impossible.", "Status update failed."),
-        );
+        toast.error(error instanceof Error ? error.message : "Mise a jour du statut impossible.");
       });
   };
 
@@ -94,14 +83,10 @@ export function ReservationsTable({ compact = false }: Props) {
     setPaymentStatusRemote(reservationId, nextStatus)
       .then(() => {
         setVersion((value) => value + 1);
-        toast.success(t("Statut de paiement mis à jour.", "Payment status updated."));
+        toast.success("Statut de paiement mis a jour.");
       })
       .catch((error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : t("Mise à jour du paiement impossible.", "Payment update failed."),
-        );
+        toast.error(error instanceof Error ? error.message : "Mise a jour du paiement impossible.");
       });
   };
 
@@ -112,11 +97,7 @@ export function ReservationsTable({ compact = false }: Props) {
       void listRoomUnits(reservation.roomId)
         .then((units) => setUnitsByRoom((current) => ({ ...current, [reservation.roomId]: units })))
         .catch((error) =>
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : t("Unités indisponibles.", "Units unavailable."),
-          ),
+          toast.error(error instanceof Error ? error.message : "Unites indisponibles."),
         )
         .finally(() => setUnitsLoadingRoomId(null));
     }
@@ -126,16 +107,10 @@ export function ReservationsTable({ compact = false }: Props) {
     setAssigningId(reservationId);
     try {
       await assignRoomUnit(reservationId, roomUnitId || null);
-      toast.success(
-        roomUnitId
-          ? t("Appartement assigné.", "Apartment assigned.")
-          : t("Assignation retirée.", "Assignment removed."),
-      );
+      toast.success(roomUnitId ? "Appartement assigne." : "Assignation retiree.");
       setOpenActionId(null);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("Assignation impossible.", "Assignment failed."),
-      );
+      toast.error(error instanceof Error ? error.message : "Assignation impossible.");
     } finally {
       setAssigningId(null);
     }
@@ -144,14 +119,10 @@ export function ReservationsTable({ compact = false }: Props) {
   const createInvoice = async (reservationId: string) => {
     try {
       await generateInvoicePreview(reservationId);
-      toast.success(t("Facture générée.", "Invoice generated."));
+      toast.success("Facture generee.");
       setOpenActionId(null);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("Génération de facture impossible.", "Invoice generation failed."),
-      );
+      toast.error(error instanceof Error ? error.message : "Generation de facture impossible.");
     }
   };
 
@@ -160,16 +131,12 @@ export function ReservationsTable({ compact = false }: Props) {
     try {
       const result = await createConversationForAdminReservation(reservation);
       if (!result.linkedClientProfile) {
-        toast.info(t("Compte client pas encore lié.", "Guest account not linked yet."));
+        toast.info("Client account not linked yet.");
       }
       setOpenActionId(null);
       navigate({ to: "/admin/messages", search: { conversation: result.conversation.id } });
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("Conversation impossible.", "The conversation could not be opened."),
-      );
+      toast.error(error instanceof Error ? error.message : "Conversation impossible.");
     } finally {
       setOpeningMessageId(null);
     }
@@ -184,10 +151,7 @@ export function ReservationsTable({ compact = false }: Props) {
             <input
               value={guestSearch}
               onChange={(event) => setGuestSearch(event.target.value)}
-              placeholder={t(
-                "Client, téléphone, email, CIN, réservation...",
-                "Guest, phone, email, ID, booking...",
-              )}
+              placeholder="Client, téléphone, email, CIN, réservation..."
               className="admin-input pl-9"
             />
           </label>
@@ -208,10 +172,10 @@ export function ReservationsTable({ compact = false }: Props) {
             onChange={(event) => setRoomId(event.target.value)}
             className="admin-input"
           >
-            <option value="all">{t("Toutes les chambres", "All rooms")}</option>
+            <option value="all">Toutes les chambres</option>
             {rooms.map((room) => (
               <option key={room.id} value={room.id}>
-                {localizeRoomName(room, locale)}
+                {room.name}
               </option>
             ))}
           </select>
@@ -220,7 +184,7 @@ export function ReservationsTable({ compact = false }: Props) {
             onChange={(event) => setStatus(event.target.value as ReservationStatus | "all")}
             className="admin-input"
           >
-            <option value="all">{t("Tous statuts", "All statuses")}</option>
+            <option value="all">Tous statuts</option>
             {Object.entries(reservationStatusLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -232,7 +196,7 @@ export function ReservationsTable({ compact = false }: Props) {
             onChange={(event) => setPaymentStatus(event.target.value as PaymentStatus | "all")}
             className="admin-input"
           >
-            <option value="all">{t("Tous paiements", "All payments")}</option>
+            <option value="all">Tous paiements</option>
             {Object.entries(paymentStatusLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -244,7 +208,7 @@ export function ReservationsTable({ compact = false }: Props) {
             onChange={(event) => setSource(event.target.value as ChannelSource | "all")}
             className="admin-input"
           >
-            <option value="all">{t("Toutes sources", "All sources")}</option>
+            <option value="all">Toutes sources</option>
             {Object.entries(channelLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -258,22 +222,22 @@ export function ReservationsTable({ compact = false }: Props) {
         <table className="w-full min-w-[1500px] text-left text-sm">
           <thead className="bg-secondary/70 text-xs uppercase tracking-[0.12em] text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">{t("Réservation", "Booking")}</th>
-              <th className="px-4 py-3">{t("Client", "Guest")}</th>
-              <th className="px-4 py-3">{t("Contact", "Contact")}</th>
-              <th className="px-4 py-3">{t("Pays / ID", "Country / ID")}</th>
-              <th className="px-4 py-3">{t("Chambre", "Room")}</th>
-              <th className="px-4 py-3">{t("Dates", "Dates")}</th>
-              <th className="px-4 py-3">{t("Nuits", "Nights")}</th>
-              <th className="px-4 py-3">{t("Voyageurs", "Guests")}</th>
-              <th className="px-4 py-3">{t("Source", "Source")}</th>
-              <th className="px-4 py-3">{t("Statut", "Status")}</th>
-              <th className="px-4 py-3">{t("Paiement", "Payment")}</th>
-              <th className="px-4 py-3">{t("Total", "Total")}</th>
-              <th className="px-4 py-3">{t("Payé", "Paid")}</th>
-              <th className="px-4 py-3">{t("Restant", "Remaining")}</th>
-              <th className="px-4 py-3">{t("Demandes", "Requests")}</th>
-              <th className="px-4 py-3">{t("Actions", "Actions")}</th>
+              <th className="px-4 py-3">Réservation</th>
+              <th className="px-4 py-3">Client</th>
+              <th className="px-4 py-3">Contact</th>
+              <th className="px-4 py-3">Pays / ID</th>
+              <th className="px-4 py-3">Chambre</th>
+              <th className="px-4 py-3">Dates</th>
+              <th className="px-4 py-3">Nuits</th>
+              <th className="px-4 py-3">Voyageurs</th>
+              <th className="px-4 py-3">Source</th>
+              <th className="px-4 py-3">Statut</th>
+              <th className="px-4 py-3">Paiement</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Payé</th>
+              <th className="px-4 py-3">Restant</th>
+              <th className="px-4 py-3">Demandes</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -298,16 +262,13 @@ export function ReservationsTable({ compact = false }: Props) {
                     <div>{reservation.guest.country}</div>
                     <div className="text-xs">{reservation.guest.identityNumber}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    {room ? localizeRoomName(room, locale) : reservation.roomId}
-                  </td>
+                  <td className="px-4 py-3">{room?.name ?? reservation.roomId}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {reservation.checkIn} {t("au", "to")} {reservation.checkOut}
+                    {reservation.checkIn} au {reservation.checkOut}
                   </td>
                   <td className="px-4 py-3">{reservation.nights}</td>
                   <td className="px-4 py-3">
-                    {reservation.adults} {t("ad.", "ad.")} · {reservation.children}{" "}
-                    {t("enf.", "ch.")}
+                    {reservation.adults} ad. · {reservation.children} enf.
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge kind="source" value={reservation.source} />
@@ -333,37 +294,37 @@ export function ReservationsTable({ compact = false }: Props) {
                         aria-expanded={openActionId === reservation.id}
                       >
                         <MoreHorizontal className="size-4" />
-                        {t("Actions", "Actions")}
+                        Actions
                       </button>
                       {openActionId === reservation.id && (
                         <div className="absolute right-0 top-10 z-20 grid w-56 gap-1 rounded-xl border border-border bg-card p-2 shadow-[var(--shadow-lift)]">
                           {reservation.status === "pending" && (
                             <ActionMenuButton
-                              label={t("Rejeter", "Reject")}
+                              label="Rejeter"
                               danger
                               onClick={() => setReservation(reservation.id, "cancelled")}
                             />
                           )}
                           <ActionMenuButton
-                            label={t("Confirmer", "Confirm")}
+                            label="Confirmer"
                             onClick={() => setReservation(reservation.id, "confirmed")}
                           />
                           <ActionMenuButton
-                            label={t("Check-in", "Check-in")}
+                            label="Check-in"
                             onClick={() => setReservation(reservation.id, "checked_in")}
                           />
                           <ActionMenuButton
-                            label={t("Check-out", "Check-out")}
+                            label="Check-out"
                             onClick={() => setReservation(reservation.id, "checked_out")}
                           />
                           <ActionMenuButton
-                            label={t("Annuler", "Cancel")}
+                            label="Annuler"
                             danger
                             onClick={() => setReservation(reservation.id, "cancelled")}
                           />
                           <div className="mt-1 border-t border-border pt-1">
                             <label className="block px-2 pb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-                              {t("Assigner un appartement", "Assign an apartment")}
+                              Assigner un appartement
                             </label>
                             <select
                               defaultValue=""
@@ -378,40 +339,40 @@ export function ReservationsTable({ compact = false }: Props) {
                             >
                               <option value="">
                                 {unitsLoadingRoomId === reservation.roomId
-                                  ? t("Chargement...", "Loading...")
-                                  : t("Choisir une unité", "Choose a unit")}
+                                  ? "Chargement..."
+                                  : "Choisir une unite"}
                               </option>
                               {(unitsByRoom[reservation.roomId] ?? []).map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                  {t("Unité", "Unit")} {unit.unitNumber}
+                                  Unite {unit.unitNumber}
                                 </option>
                               ))}
                             </select>
                           </div>
                           <ActionMenuButton
-                            label={t("Acompte", "Deposit")}
+                            label="Acompte"
                             onClick={() => setPayment(reservation.id, "deposit_paid")}
                           />
                           <ActionMenuButton
-                            label={t("Marquer payé", "Mark as paid")}
+                            label="Marquer paye"
                             onClick={() => setPayment(reservation.id, "paid")}
                           />
                           <ActionMenuButton
-                            label={t("Générer facture", "Generate invoice")}
+                            label="Generer facture"
                             icon={<FileText className="size-3.5" />}
                             onClick={() => void createInvoice(reservation.id)}
                           />
                           <ActionMenuButton
                             label={
                               openingMessageId === reservation.id
-                                ? t("Ouverture...", "Opening...")
-                                : t("Message client", "Message guest")
+                                ? "Ouverture..."
+                                : "Message client"
                             }
                             icon={<MessageCircle className="size-3.5" />}
                             onClick={() => void messageClient(reservation)}
                           />
                           <Link to="/admin/invoices" className="admin-action justify-start">
-                            {t("Voir facture", "View invoice")}
+                            Voir facture
                           </Link>
                         </div>
                       )}
@@ -425,14 +386,9 @@ export function ReservationsTable({ compact = false }: Props) {
                 <td colSpan={16} className="px-4 py-12">
                   <div className="empty-state mx-auto max-w-xl py-10">
                     <Search className="mx-auto mb-3 size-8 text-accent" />
-                    <div className="text-lg font-black text-primary">
-                      {t("Aucune réservation", "No bookings")}
-                    </div>
+                    <div className="text-lg font-black text-primary">Aucune réservation</div>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      {t(
-                        "Aucune réservation ne correspond aux filtres sélectionnés.",
-                        "No bookings match the selected filters.",
-                      )}
+                      Aucune réservation ne correspond aux filtres sélectionnés.
                     </p>
                   </div>
                 </td>

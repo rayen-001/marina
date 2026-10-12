@@ -2,11 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BedDouble, CalendarCheck, MessageCircle, ReceiptText, UserRound } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
+import { formatCurrency } from "@/data/hotel";
 import { getClientSessionProfile, type ClientProfile } from "@/lib/auth/clientAuth";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getReservationStatusLabels } from "@/lib/i18n/labels";
-import { tr } from "@/lib/i18n/locale";
 import {
   ACTIVE_RESERVATION_STATUSES,
   listClientConversations,
@@ -17,21 +14,12 @@ import {
 
 export const Route = createFileRoute("/client/dashboard")({
   head: () => ({
-    meta: [
-      {
-        title: headT(
-          "Tableau de bord client - Marina Cap Monastir",
-          "Guest dashboard - Marina Cap Monastir",
-        ),
-      },
-    ],
+    meta: [{ title: "Tableau de bord client - Marina Cap Monastir" }],
   }),
   component: ClientDashboard,
 });
 
 function ClientDashboard() {
-  const { t, locale, formatCurrency } = useI18n();
-  const statusLabels = getReservationStatusLabels(locale);
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [reservations, setReservations] = useState<ClientReservation[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -55,13 +43,7 @@ function ClientDashboard() {
         setConversations(nextConversations);
       })
       .catch((err) => {
-        if (mounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : tr("Données client indisponibles.", "Guest data unavailable."),
-          );
-        }
+        if (mounted) setError(err instanceof Error ? err.message : "Données client indisponibles.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -102,10 +84,10 @@ function ClientDashboard() {
           <div className="relative">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-accent">
               <UserRound className="size-4" />
-              {t("Portail client", "Guest portal")}
+              Portail client
             </div>
             <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
-              {t("Bonjour", "Hello")} {profile?.fullName ?? t("Client", "Guest")}
+              Bonjour {profile?.fullName ?? "Client"}
             </h1>
           </div>
         </section>
@@ -113,14 +95,10 @@ function ClientDashboard() {
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-accent/15 text-primary">
             <BedDouble className="size-6" />
           </div>
-          <h2 className="text-xl font-black text-primary">
-            {t("Aucune réservation pour le moment", "No bookings yet")}
-          </h2>
+          <h2 className="text-xl font-black text-primary">Aucune réservation pour le moment</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-            {t(
-              "Votre tableau de bord et la messagerie deviennent disponibles dès votre première réservation Appart-Hôtel.",
-              "Your dashboard and messaging become available with your first aparthotel booking.",
-            )}
+            Votre tableau de bord et la messagerie deviennent disponibles dès votre première
+            réservation Appart-Hôtel.
           </p>
           <Link
             to="/search"
@@ -128,7 +106,7 @@ function ClientDashboard() {
             className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-black text-primary-foreground"
           >
             <CalendarCheck className="size-4" />
-            {t("Réserver un appart-hôtel", "Book the aparthotel")}
+            Réserver un appart-hôtel
           </Link>
         </div>
       </div>
@@ -143,16 +121,14 @@ function ClientDashboard() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-accent">
               <UserRound className="size-4" />
-              {t("Portail client", "Guest portal")}
+              Portail client
             </div>
             <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
-              {t("Bonjour", "Hello")} {profile?.fullName ?? t("Client", "Guest")}
+              Bonjour {profile?.fullName ?? "Client"}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-              {t(
-                "Retrouvez vos séjours, vos échanges avec la réception et les informations utiles à votre arrivée.",
-                "Find your stays, your messages with reception and useful information for your arrival.",
-              )}
+              Retrouvez vos séjours, vos échanges avec la réception et les informations utiles à
+              votre arrivée.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -161,7 +137,7 @@ function ClientDashboard() {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-white px-4 text-sm font-black text-primary"
             >
               <CalendarCheck className="size-4" />
-              {t("Voir mes réservations", "View my bookings")}
+              Voir mes réservations
             </Link>
             {canMessage ? (
               <Link
@@ -169,18 +145,15 @@ function ClientDashboard() {
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-4 text-sm font-black text-white"
               >
                 <MessageCircle className="size-4" />
-                {t("Contacter la réception", "Contact reception")}
+                Contacter la réception
               </Link>
             ) : (
               <span
-                title={t(
-                  "Vous devez avoir une réservation Appart-Hôtel avant de contacter l'administration.",
-                  "You need an aparthotel booking before contacting the administration.",
-                )}
+                title="Vous devez avoir une réservation Appart-Hôtel avant de contacter l'administration."
                 className="inline-flex h-10 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 text-sm font-black text-white/50"
               >
                 <MessageCircle className="size-4" />
-                {t("Contacter la réception", "Contact reception")}
+                Contacter la réception
               </span>
             )}
           </div>
@@ -196,33 +169,27 @@ function ClientDashboard() {
       <section className="grid gap-4 md:grid-cols-3">
         <DashboardMetric
           icon={<CalendarCheck className="size-5" />}
-          label={t("Réservations", "Bookings")}
+          label="Réservations"
           value={String(reservations.length)}
-          detail={t("Dossiers liés à votre email", "Bookings linked to your email")}
+          detail="Dossiers liés à votre email"
         />
         <DashboardMetric
           icon={<ReceiptText className="size-5" />}
-          label={t("Prochain séjour", "Next stay")}
+          label="Prochain séjour"
           value={upcoming ? upcoming.checkIn : "-"}
-          detail={
-            upcoming
-              ? upcoming.reservationNumber
-              : t("Aucune arrivée prévue", "No upcoming arrival")
-          }
+          detail={upcoming ? upcoming.reservationNumber : "Aucune arrivée prévue"}
         />
         <DashboardMetric
           icon={<MessageCircle className="size-5" />}
-          label={t("Messages non lus", "Unread messages")}
+          label="Messages non lus"
           value={String(unreadCount)}
-          detail={t("Réponses de la réception", "Replies from reception")}
+          detail="Réponses de la réception"
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
         <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-          <h2 className="text-lg font-black text-primary">
-            {t("Prochaine réservation", "Next booking")}
-          </h2>
+          <h2 className="text-lg font-black text-primary">Prochaine réservation</h2>
           {upcoming ? (
             <div className="mt-4 rounded-lg border border-border bg-background p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -231,30 +198,25 @@ function ClientDashboard() {
                   <div className="mt-1 text-sm text-muted-foreground">{upcoming.roomName}</div>
                 </div>
                 <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-800">
-                  {statusLabels[upcoming.status] ?? upcoming.status}
+                  {upcoming.status}
                 </div>
               </div>
               <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                <InfoTile label={t("Arrivée", "Check-in")} value={upcoming.checkIn} />
-                <InfoTile label={t("Départ", "Check-out")} value={upcoming.checkOut} />
-                <InfoTile label={t("Total", "Total")} value={formatCurrency(upcoming.total)} />
+                <InfoTile label="Arrivée" value={upcoming.checkIn} />
+                <InfoTile label="Départ" value={upcoming.checkOut} />
+                <InfoTile label="Total" value={formatCurrency(upcoming.total)} />
               </div>
             </div>
           ) : (
             <EmptyClientState
-              title={t("Aucune réservation à venir", "No upcoming bookings")}
-              text={t(
-                "Vos prochaines réservations apparaîtront ici dès qu'elles seront liées à votre compte.",
-                "Your upcoming bookings will appear here once they are linked to your account.",
-              )}
+              title="Aucune réservation à venir"
+              text="Vos prochaines réservations apparaîtront ici dès qu'elles seront liées à votre compte."
             />
           )}
         </div>
 
         <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-          <h2 className="text-lg font-black text-primary">
-            {t("Derniers messages", "Latest messages")}
-          </h2>
+          <h2 className="text-lg font-black text-primary">Derniers messages</h2>
           {conversations.length > 0 ? (
             <div className="mt-4 space-y-3">
               {conversations.slice(0, 4).map((conversation) => (
@@ -268,8 +230,7 @@ function ClientDashboard() {
                     <div className="min-w-0">
                       <div className="truncate font-black text-primary">{conversation.subject}</div>
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                        {conversation.latestMessage?.body ??
-                          t("Aucun message envoyé.", "No messages sent.")}
+                        {conversation.latestMessage?.body ?? "Aucun message envoyé."}
                       </p>
                     </div>
                     {conversation.unreadClientCount > 0 && (
@@ -283,11 +244,8 @@ function ClientDashboard() {
             </div>
           ) : (
             <EmptyClientState
-              title={t("Aucun message", "No messages")}
-              text={t(
-                "Contactez la réception depuis la messagerie si vous avez une question.",
-                "Contact reception through messaging if you have a question.",
-              )}
+              title="Aucun message"
+              text="Contactez la réception depuis la messagerie si vous avez une question."
             />
           )}
         </div>

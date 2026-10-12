@@ -11,24 +11,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export const Route = createFileRoute("/port-de-plaisance/formalites")({
   head: () => ({
     meta: [
-      {
-        title: headT(
-          "Formalités Port — Marina Cap Monastir",
-          "Marina formalities — Marina Cap Monastir",
-        ),
-      },
+      { title: "Formalités Port — Marina Cap Monastir" },
       {
         name: "description",
-        content: headT(
+        content:
           "Formalités d'entrée et de sortie du port de plaisance de Marina Cap Monastir — documents requis, procédures d'accueil, VHF, consignes de sécurité.",
-          "Entry and exit formalities at the Marina Cap Monastir harbour — required documents, arrival procedures, VHF and safety rules.",
-        ),
       },
     ],
   }),
@@ -36,54 +27,23 @@ export const Route = createFileRoute("/port-de-plaisance/formalites")({
 });
 
 const ARRIVAL_DOCS = [
-  {
-    fr: "Titre de navigation du bateau (acte de francisation ou certificat d'immatriculation)",
-    en: "Boat navigation papers (certificate of registry or registration certificate)",
-  },
-  {
-    fr: "Passeports en cours de validité de tous les membres d'équipage",
-    en: "Valid passports for all crew members",
-  },
-  {
-    fr: "Rôle d'équipage (liste des personnes à bord)",
-    en: "Crew list (everyone on board)",
-  },
-  {
-    fr: "Police d'assurance du bateau couvrant la responsabilité civile",
-    en: "Boat insurance policy covering third-party liability",
-  },
-  {
-    fr: "Clearance de sortie du dernier port étranger (pour les bateaux en provenance de l'étranger)",
-    en: "Port clearance from the last foreign port (for boats arriving from abroad)",
-  },
-  {
-    fr: "Carnet de santé ou déclaration sanitaire si requis",
-    en: "Health record or health declaration if required",
-  },
-  { fr: "Manifeste de bord (douanes)", en: "Ship's manifest (customs)" },
+  "Titre de navigation du bateau (acte de francisation ou certificat d'immatriculation)",
+  "Passeports en cours de validité de tous les membres d'équipage",
+  "Rôle d'équipage (liste des personnes à bord)",
+  "Police d'assurance du bateau couvrant la responsabilité civile",
+  "Clearance de sortie du dernier port étranger (pour les bateaux en provenance de l'étranger)",
+  "Carnet de santé ou déclaration sanitaire si requis",
+  "Manifeste de bord (douanes)",
 ];
 
 const DEPARTURE_DOCS = [
-  {
-    fr: "Règlement intégral des droits de port (escale, services, suppléments)",
-    en: "Full payment of harbour dues (stay, services, extras)",
-  },
-  {
-    fr: "Restitution de la clé d'accès aux équipements",
-    en: "Return of the facilities access key",
-  },
-  {
-    fr: "Clearance de sortie délivré par la capitainerie",
-    en: "Port clearance issued by the harbour office",
-  },
-  {
-    fr: "Notification préalable au minimum 2 h avant l'appareillage",
-    en: "Notice at least 2 hours before departure",
-  },
+  "Règlement intégral des droits de port (escale, services, suppléments)",
+  "Restitution de la clé d'accès aux équipements",
+  "Clearance de sortie délivré par la capitainerie",
+  "Notification préalable au minimum 2 h avant l'appareillage",
 ];
 
 function FormalitesPage() {
-  const { t, pick } = useI18n();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -95,16 +55,11 @@ function FormalitesPage() {
         <div className="relative mx-auto max-w-5xl px-4 md:px-6">
           <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] backdrop-blur">
             <FileCheck2 className="size-3.5 text-accent" />
-            {t("Port de Plaisance", "Marina")}
+            Port de Plaisance
           </div>
-          <h1 className="page-title">
-            {t("Formalités d'entrée et de sortie", "Entry and exit formalities")}
-          </h1>
+          <h1 className="text-4xl font-black md:text-5xl">Formalités d'entrée et de sortie</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-white/75">
-            {t(
-              "Procédures et documents requis pour les plaisanciers à Marina Cap Monastir.",
-              "Procedures and documents required for boaters at Marina Cap Monastir.",
-            )}
+            Procédures et documents requis pour les plaisanciers à Marina Cap Monastir.
           </p>
         </div>
       </section>
@@ -115,7 +70,7 @@ function FormalitesPage() {
           className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="size-4" />
-          {t("Retour au port", "Back to the marina")}
+          Retour au port
         </Link>
 
         {/* VHF contact */}
@@ -124,17 +79,11 @@ function FormalitesPage() {
             <Radio className="size-5 text-primary" />
           </div>
           <div>
-            <p className="font-black text-primary">{t("Contact VHF", "VHF contact")}</p>
+            <p className="font-black text-primary">Contact VHF</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {t(
-                "À l'approche du port, appelez la capitainerie sur le",
-                "When approaching the harbour, call the harbour office on",
-              )}{" "}
-              <strong className="text-primary">{t("canal VHF 09", "VHF channel 09")}</strong>{" "}
-              {t(
-                "(ou canal 16 en secours). Un agent vous guidera pour l'accostage et vous attribuera un poste à quai.",
-                "(or channel 16 as a backup). An agent will guide you in and assign you a berth.",
-              )}
+              À l'approche du port, appelez la capitainerie sur le{" "}
+              <strong className="text-primary">canal VHF 09</strong> (ou canal 16 en secours). Un
+              agent vous guidera pour l'accostage et vous attribuera un poste à quai.
             </p>
           </div>
         </div>
@@ -143,23 +92,20 @@ function FormalitesPage() {
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <div className="h-1 bg-gradient-to-r from-primary to-turquoise" />
           <div className="p-6 md:p-8">
-            <h2 className="text-xl font-black text-primary">
-              {t("Police Frontière", "Border police")}
-            </h2>
+            <h2 className="text-xl font-black text-primary">Police Frontière</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {t(
-                "Les formalités de police de frontière pour les plaisanciers en provenance de l'étranger concernant les membres de l'équipage et les passagers doivent être exécutées avant accès à terre et avant départ pour l'étranger. Ainsi une déclaration d'entrée est formulée par le capitaine du navire et visée par la police de frontière. Cette déclaration, qui sera présentée à toute réquisition des autorités dans les autres ports d'escale, vous dispensera de toute autre formalité.",
-                "For boaters arriving from abroad, border police formalities for crew and passengers must be completed before going ashore and before leaving for a foreign destination. The skipper fills in an entry declaration, which is stamped by the border police. Show this declaration whenever the authorities ask for it in other ports of call; no other formality will be required.",
-              )}
+              Les formalités de police de frontière pour les plaisanciers en provenance de
+              l'étranger concernant les membres de l'équipage et les passagers doivent être
+              exécutées avant accès à terre et avant départ pour l'étranger. Ainsi une déclaration
+              d'entrée est formulée par le capitaine du navire et visée par la police de frontière.
+              Cette déclaration, qui sera présentée à toute réquisition des autorités dans les
+              autres ports d'escale, vous dispensera de toute autre formalité.
             </p>
             <h3 className="mt-4 text-sm font-black uppercase tracking-[0.12em] text-muted-foreground">
-              {t("Documents à présenter", "Documents to show")}
+              Documents à présenter
             </h3>
             <ul className="mt-2 space-y-2">
-              {[
-                t("Papiers du bateau", "Boat papers"),
-                t("Passeport des passagers en cours de validité", "Valid passports for passengers"),
-              ].map((doc) => (
+              {["Papiers du bateau", "Passeport des passagers en cours de validité"].map((doc) => (
                 <li
                   key={doc}
                   className="flex items-start gap-2.5 text-sm leading-6 text-foreground"
@@ -181,37 +127,18 @@ function FormalitesPage() {
                 <LogIn className="size-5 text-emerald-700" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-primary">
-                  {t("Procédure d'arrivée", "Arrival procedure")}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t("Entrée au port / Entry procedure", "Entering the harbour")}
-                </p>
+                <h2 className="text-xl font-black text-primary">Procédure d'arrivée</h2>
+                <p className="text-sm text-muted-foreground">Entrée au port / Entry procedure</p>
               </div>
             </div>
 
             <ol className="space-y-3">
               {[
-                t(
-                  "Appeler la capitainerie sur VHF 09/16 à l'approche du port.",
-                  "Call the harbour office on VHF 09/16 when approaching the harbour.",
-                ),
-                t(
-                  "Accoster au quai d'accueil désigné par la capitainerie.",
-                  "Moor at the reception quay designated by the harbour office.",
-                ),
-                t(
-                  "Se présenter au guichet de la capitainerie dans les 2 heures suivant l'arrivée.",
-                  "Report to the harbour office desk within 2 hours of arrival.",
-                ),
-                t(
-                  "Remettre les documents requis et régler l'acompte demandé.",
-                  "Hand in the required documents and pay the requested deposit.",
-                ),
-                t(
-                  "Retirer votre badge d'accès aux sanitaires et équipements communs.",
-                  "Collect your access badge for the toilets and shared facilities.",
-                ),
+                "Appeler la capitainerie sur VHF 09/16 à l'approche du port.",
+                "Accoster au quai d'accueil désigné par la capitainerie.",
+                "Se présenter au guichet de la capitainerie dans les 2 heures suivant l'arrivée.",
+                "Remettre les documents requis et régler l'acompte demandé.",
+                "Retirer votre badge d'accès aux sanitaires et équipements communs.",
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
@@ -224,16 +151,16 @@ function FormalitesPage() {
 
             <div className="mt-6">
               <h3 className="mb-3 text-sm font-black uppercase tracking-[0.12em] text-muted-foreground">
-                {t("Documents à remettre", "Documents to hand in")}
+                Documents à remettre
               </h3>
               <ul className="space-y-2">
                 {ARRIVAL_DOCS.map((doc) => (
                   <li
-                    key={doc.fr}
+                    key={doc}
                     className="flex items-start gap-2.5 text-sm leading-6 text-foreground"
                   >
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-                    {pick(doc)}
+                    {doc}
                   </li>
                 ))}
               </ul>
@@ -250,22 +177,20 @@ function FormalitesPage() {
                 <LogOut className="size-5 text-blue-700" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-primary">
-                  {t("Procédure de départ", "Departure procedure")}
-                </h2>
+                <h2 className="text-xl font-black text-primary">Procédure de départ</h2>
                 <p className="text-sm text-muted-foreground">
-                  {t("Sortie du port / Departure procedure", "Leaving the harbour")}
+                  Sortie du port / Departure procedure
                 </p>
               </div>
             </div>
             <ul className="space-y-2">
               {DEPARTURE_DOCS.map((doc) => (
                 <li
-                  key={doc.fr}
+                  key={doc}
                   className="flex items-start gap-2.5 text-sm leading-6 text-foreground"
                 >
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-600" />
-                  {pick(doc)}
+                  {doc}
                 </li>
               ))}
             </ul>
@@ -281,59 +206,19 @@ function FormalitesPage() {
                 <ShieldCheck className="size-5 text-accent" />
               </div>
               <h2 className="text-xl font-black text-primary">
-                {t("Consignes de sécurité & règlement", "Safety rules & regulations")}
+                Consignes de sécurité &amp; règlement
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                {
-                  rule: t(
-                    "Vitesse maximale dans le port : 3 nœuds",
-                    "Maximum speed in the harbour: 3 knots",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Amarrage interdit hors des postes désignés",
-                    "Mooring only at designated berths",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Interdiction de rejets d'hydrocarbures ou déchets à l'eau",
-                    "No discharge of fuel or waste into the water",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Respect du silence nocturne de 22h à 7h",
-                    "Quiet hours from 10 pm to 7 am",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Interdiction de feu nu sur les pontons",
-                    "No open flames on the pontoons",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Présence obligatoire d'extincteur à bord",
-                    "A fire extinguisher on board is mandatory",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Port du gilet de sauvetage recommandé pour les enfants",
-                    "Life jackets recommended for children",
-                  ),
-                },
-                {
-                  rule: t(
-                    "Accès aux pontons réservé aux plaisanciers accrédités",
-                    "Pontoon access for registered boaters only",
-                  ),
-                },
+                { rule: "Vitesse maximale dans le port : 3 nœuds" },
+                { rule: "Amarrage interdit hors des postes désignés" },
+                { rule: "Interdiction de rejets d'hydrocarbures ou déchets à l'eau" },
+                { rule: "Respect du silence nocturne de 22h à 7h" },
+                { rule: "Interdiction de feu nu sur les pontons" },
+                { rule: "Présence obligatoire d'extincteur à bord" },
+                { rule: "Port du gilet de sauvetage recommandé pour les enfants" },
+                { rule: "Accès aux pontons réservé aux plaisanciers accrédités" },
               ].map((item) => (
                 <div
                   key={item.rule}
@@ -350,31 +235,27 @@ function FormalitesPage() {
         {/* Urgence & Contact */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-red-200 bg-red-50 p-5">
-            <h3 className="font-black text-red-800">{t("Urgences", "Emergencies")}</h3>
+            <h3 className="font-black text-red-800">Urgences</h3>
             <div className="mt-3 space-y-2 text-sm text-red-900">
               <p>
-                <strong>{t("SAR Tunisie :", "SAR Tunisia:")}</strong> 70 717 171
+                <strong>SAR Tunisie :</strong> 70 717 171
               </p>
               <p>
-                <strong>{t("SAMU :", "Ambulance (SAMU):")}</strong> 190
+                <strong>SAMU :</strong> 190
               </p>
               <p>
-                <strong>{t("Police :", "Police:")}</strong> 197
+                <strong>Police :</strong> 197
               </p>
               <p>
-                <strong>{t("Pompiers :", "Fire brigade:")}</strong> 198
+                <strong>Pompiers :</strong> 198
               </p>
-              <p className="pt-1 text-xs opacity-75">
-                {t("Ou VHF canal 16 (détresse)", "Or VHF channel 16 (distress)")}
-              </p>
+              <p className="pt-1 text-xs opacity-75">Ou VHF canal 16 (détresse)</p>
             </div>
           </div>
 
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-            <h3 className="font-black text-primary">{t("Capitainerie", "Harbour office")}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("BP.N°60 - 5000 Monastir, Tunisie", "PO Box 60 - 5000 Monastir, Tunisia")}
-            </p>
+            <h3 className="font-black text-primary">Capitainerie</h3>
+            <p className="mt-1 text-sm text-muted-foreground">BP.N°60 - 5000 Monastir, Tunisie</p>
             <div className="mt-3 space-y-2">
               <a
                 href="tel:+21673462305"
@@ -397,7 +278,7 @@ function FormalitesPage() {
                 className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white transition hover:bg-ocean"
               >
                 <Anchor className="size-3.5" />
-                {t("Réserver en ligne", "Book online")}
+                Réserver en ligne
               </Link>
             </div>
           </div>

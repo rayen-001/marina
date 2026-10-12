@@ -1,6 +1,5 @@
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/supabase/types";
-import { tr } from "@/lib/i18n/locale";
 
 export type PortTariff = {
   id: string;
@@ -96,8 +95,7 @@ export async function deactivatePortTariff(id: string): Promise<PortTariff> {
 
 async function requireSupabaseClient() {
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
   return supabase;
 }
 

@@ -14,10 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getPaymentStatusLabels, getReservationStatusLabels } from "@/lib/i18n/labels";
-import { tr } from "@/lib/i18n/locale";
-import { localizeRoomName } from "@/lib/i18n/rooms";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 import type { ChannelSource, PaymentStatus, ReservationStatus, Tables } from "@/lib/supabase/types";
 import { AdminButton, type AdminButtonVariant } from "./AdminButton";
@@ -118,11 +114,7 @@ const initialForm: FormState = {
   notes: "",
 };
 
-const unavailableMessage = () =>
-  tr(
-    "Cette chambre n'est pas disponible pour les dates sélectionnées.",
-    "This room is not available for the selected dates.",
-  );
+const unavailableMessage = "Cette chambre n'est pas disponible pour les dates sélectionnées.";
 
 export function AdminNewReservationButton({
   variant = "primary",
@@ -130,7 +122,6 @@ export function AdminNewReservationButton({
   onCreated,
 }: AdminNewReservationButtonProps) {
   const [open, setOpen] = useState(false);
-  const { t } = useI18n();
 
   return (
     <>
@@ -141,7 +132,7 @@ export function AdminNewReservationButton({
         icon={<CalendarPlus className="size-4" />}
         onClick={() => setOpen(true)}
       >
-        {t("Nouvelle réservation", "New booking")}
+        Nouvelle réservation
       </AdminButton>
       <AdminNewReservationModal open={open} onOpenChange={setOpen} onCreated={onCreated} />
     </>
@@ -158,7 +149,6 @@ export function AdminNewReservationModal({
   onCreated?: () => void | Promise<void>;
 }) {
   const router = useRouter();
-  const { t, locale } = useI18n();
   const [form, setForm] = useState<FormState>(initialForm);
   const [rooms, setRooms] = useState<RoomTypeOption[]>([]);
   const [units, setUnits] = useState<RoomUnitOption[]>([]);
@@ -213,7 +203,7 @@ export function AdminNewReservationModal({
             total: 0,
             availableUnits: null,
             unavailable: true,
-            reason: getErrorDetail(error) ?? unavailableMessage(),
+            reason: getErrorDetail(error) ?? unavailableMessage,
           });
         }
       })
@@ -239,7 +229,7 @@ export function AdminNewReservationModal({
 
   async function loadRoomTypes() {
     if (!isSupabaseConfigured()) {
-      toast.error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+      toast.error("Supabase n'est pas configuré.");
       return;
     }
 
@@ -308,7 +298,7 @@ export function AdminNewReservationModal({
     }
 
     if (!selectedRoom) {
-      toast.error(t("Sélectionnez un type de chambre.", "Select a room type."));
+      toast.error("Sélectionnez un type de chambre.");
       return;
     }
 
@@ -327,7 +317,7 @@ export function AdminNewReservationModal({
         currentPreview.unavailable ||
         (currentPreview.availableUnits !== null && currentPreview.availableUnits <= 0)
       ) {
-        toast.error(unavailableMessage());
+        toast.error(unavailableMessage);
         return;
       }
 
@@ -345,7 +335,7 @@ export function AdminNewReservationModal({
         console.info("[AdminNewReservation] created reservation", reservation);
       }
 
-      toast.success(t("Réservation créée avec succès", "Booking created"));
+      toast.success("Réservation créée avec succès");
       await router.invalidate();
       await onCreated?.();
       resetAndClose();
@@ -361,27 +351,24 @@ export function AdminNewReservationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("Nouvelle réservation", "New booking")}</DialogTitle>
+          <DialogTitle>Nouvelle réservation</DialogTitle>
           <DialogDescription>
-            {t(
-              "Créez une réservation hôtel directement dans Supabase.",
-              "Create a hotel booking directly in Supabase.",
-            )}
+            Créez une réservation hôtel directement dans Supabase.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <section className="rounded-lg border border-border bg-card p-4">
-            <SectionTitle title={t("Client", "Guest")} />
+            <SectionTitle title="Client" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <AdminField label={t("Nom complet", "Full name")}>
+              <AdminField label="Nom complet">
                 <Input
                   value={form.fullName}
                   onChange={(event) => setField("fullName", event.target.value)}
                   required
                 />
               </AdminField>
-              <AdminField label={t("Email", "Email")}>
+              <AdminField label="Email">
                 <Input
                   type="email"
                   value={form.email}
@@ -389,21 +376,21 @@ export function AdminNewReservationModal({
                   required
                 />
               </AdminField>
-              <AdminField label={t("Téléphone", "Phone")}>
+              <AdminField label="Téléphone">
                 <Input
                   value={form.phone}
                   onChange={(event) => setField("phone", event.target.value)}
                   required
                 />
               </AdminField>
-              <AdminField label={t("Pays", "Country")}>
+              <AdminField label="Pays">
                 <Input
                   value={form.country}
                   onChange={(event) => setField("country", event.target.value)}
                   required
                 />
               </AdminField>
-              <AdminField label={t("CIN / Passeport (optionnel)", "ID card / Passport (optional)")}>
+              <AdminField label="CIN / Passeport optional">
                 <Input
                   value={form.identity}
                   onChange={(event) => setField("identity", event.target.value)}
@@ -413,29 +400,24 @@ export function AdminNewReservationModal({
           </section>
 
           <section className="rounded-lg border border-border bg-card p-4">
-            <SectionTitle title={t("Séjour", "Stay")} />
+            <SectionTitle title="Séjour" />
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <AdminField label={t("Type de chambre", "Room type")}>
+              <AdminField label="Type de chambre">
                 <select
                   value={form.roomTypeId}
                   onChange={(event) => setField("roomTypeId", event.target.value)}
                   className="admin-input"
                   required
                 >
-                  <option value="">
-                    {loadingRooms ? t("Chargement...", "Loading...") : t("Sélectionner", "Select")}
-                  </option>
+                  <option value="">{loadingRooms ? "Chargement..." : "Sélectionner"}</option>
                   {rooms.map((room) => (
                     <option key={room.id} value={room.id}>
-                      {localizeRoomName(
-                        { name: room.name, slug: room.slug ?? undefined, id: room.id },
-                        locale,
-                      )}
+                      {room.name}
                     </option>
                   ))}
                 </select>
               </AdminField>
-              <AdminField label={t("Numéro / unité (optionnel)", "Number / unit (optional)")}>
+              <AdminField label="Numéro / unité optional">
                 <select
                   value={form.roomUnitId}
                   onChange={(event) => setField("roomUnitId", event.target.value)}
@@ -444,10 +426,10 @@ export function AdminNewReservationModal({
                 >
                   <option value="">
                     {loadingUnits
-                      ? t("Chargement...", "Loading...")
+                      ? "Chargement..."
                       : units.length
-                        ? t("Sans unité précise", "No specific unit")
-                        : t("Aucune unité requise", "No unit required")}
+                        ? "Sans unité précise"
+                        : "Aucune unité requise"}
                   </option>
                   {units.map((unit) => (
                     <option key={unit.id} value={unit.id}>
@@ -456,7 +438,7 @@ export function AdminNewReservationModal({
                   ))}
                 </select>
               </AdminField>
-              <AdminField label={t("Date d'arrivée", "Check-in date")}>
+              <AdminField label="Date d'arrivée">
                 <Input
                   type="date"
                   value={form.checkIn}
@@ -464,7 +446,7 @@ export function AdminNewReservationModal({
                   required
                 />
               </AdminField>
-              <AdminField label={t("Date de départ", "Check-out date")}>
+              <AdminField label="Date de départ">
                 <Input
                   type="date"
                   value={form.checkOut}
@@ -472,7 +454,7 @@ export function AdminNewReservationModal({
                   required
                 />
               </AdminField>
-              <AdminField label={t("Adultes", "Adults")}>
+              <AdminField label="Adultes">
                 <Input
                   type="number"
                   min={1}
@@ -481,7 +463,7 @@ export function AdminNewReservationModal({
                   required
                 />
               </AdminField>
-              <AdminField label={t("Enfants", "Children")}>
+              <AdminField label="Enfants">
                 <Input
                   type="number"
                   min={0}
@@ -490,7 +472,7 @@ export function AdminNewReservationModal({
                   required
                 />
               </AdminField>
-              <AdminField label={t("Statut", "Status")}>
+              <AdminField label="Statut">
                 <select
                   value={form.status}
                   onChange={(event) =>
@@ -498,20 +480,18 @@ export function AdminNewReservationModal({
                   }
                   className="admin-input"
                 >
-                  <option value="pending">{getReservationStatusLabels(locale).pending}</option>
-                  <option value="confirmed">{getReservationStatusLabels(locale).confirmed}</option>
-                  <option value="checked_in">
-                    {getReservationStatusLabels(locale).checked_in}
-                  </option>
+                  <option value="pending">pending</option>
+                  <option value="confirmed">confirmed</option>
+                  <option value="checked_in">checked_in</option>
                 </select>
               </AdminField>
             </div>
           </section>
 
           <section className="rounded-lg border border-border bg-card p-4">
-            <SectionTitle title={t("Paiement", "Payment")} />
+            <SectionTitle title="Paiement" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <AdminField label={t("Statut de paiement", "Payment status")}>
+              <AdminField label="Payment status">
                 <select
                   value={form.paymentStatus}
                   onChange={(event) =>
@@ -519,15 +499,15 @@ export function AdminNewReservationModal({
                   }
                   className="admin-input"
                 >
-                  <option value="unpaid">{getPaymentStatusLabels(locale).unpaid}</option>
-                  <option value="partial">{getPaymentStatusLabels(locale).deposit_paid}</option>
-                  <option value="paid">{getPaymentStatusLabels(locale).paid}</option>
+                  <option value="unpaid">unpaid</option>
+                  <option value="partial">partial</option>
+                  <option value="paid">paid</option>
                 </select>
               </AdminField>
-              <AdminField label={t("Source", "Source")}>
+              <AdminField label="Source">
                 <Input value="admin" readOnly />
               </AdminField>
-              <AdminField label={t("Notes (optionnel)", "Notes (optional)")}>
+              <AdminField label="Notes optional">
                 <Textarea
                   value={form.notes}
                   onChange={(event) => setField("notes", event.target.value)}
@@ -538,33 +518,23 @@ export function AdminNewReservationModal({
           </section>
 
           <section className="rounded-lg border border-border bg-secondary/30 p-4">
-            <SectionTitle title={t("Résumé", "Summary")} />
-            {previewLoading && (
-              <p className="text-sm text-muted-foreground">
-                {t("Calcul en cours...", "Calculating...")}
-              </p>
-            )}
+            <SectionTitle title="Résumé" />
+            {previewLoading && <p className="text-sm text-muted-foreground">Calcul en cours...</p>}
             {!previewLoading && preview && (
               <div className="space-y-3 text-sm">
                 {preview.unavailable && (
                   <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 font-semibold text-destructive">
-                    {preview.reason ?? unavailableMessage()}
+                    {preview.reason ?? unavailableMessage}
                   </div>
                 )}
                 <div className="grid gap-3 sm:grid-cols-4">
-                  <SummaryTile label={t("Nuits", "Nights")} value={String(preview.nights)} />
+                  <SummaryTile label="Nuits" value={String(preview.nights)} />
                   <SummaryTile
-                    label={t("Disponibles", "Available")}
+                    label="Disponibles"
                     value={preview.availableUnits === null ? "-" : String(preview.availableUnits)}
                   />
-                  <SummaryTile
-                    label={t("Sous-total", "Subtotal")}
-                    value={`${Math.round(preview.subtotal)} DT`}
-                  />
-                  <SummaryTile
-                    label={t("Total", "Total")}
-                    value={`${Math.round(preview.total)} DT`}
-                  />
+                  <SummaryTile label="Sous-total" value={`${Math.round(preview.subtotal)} DT`} />
+                  <SummaryTile label="Total" value={`${Math.round(preview.total)} DT`} />
                 </div>
                 <div className="max-h-40 overflow-auto rounded-md border border-border bg-card">
                   {preview.nightly.map((night) => (
@@ -574,8 +544,7 @@ export function AdminNewReservationModal({
                     >
                       <span className="font-mono text-xs">{night.date}</span>
                       <span className="font-semibold">
-                        {Math.round(night.price)} DT
-                        {night.custom ? ` · ${t("tarif calendrier", "calendar rate")}` : ""}
+                        {Math.round(night.price)} DT{night.custom ? " · tarif calendrier" : ""}
                       </span>
                     </div>
                   ))}
@@ -584,23 +553,18 @@ export function AdminNewReservationModal({
             )}
             {!previewLoading && !preview && (
               <p className="text-sm text-muted-foreground">
-                {t(
-                  "Sélectionnez une chambre et des dates pour afficher le prix.",
-                  "Select a room and dates to see the price.",
-                )}
+                Sélectionnez une chambre et des dates pour afficher le prix.
               </p>
             )}
           </section>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={resetAndClose} disabled={saving}>
-              {t("Annuler", "Cancel")}
+              Annuler
             </Button>
             <Button type="submit" loading={saving} disabled={preview?.unavailable}>
               <Save className="size-4" />
-              {saving
-                ? t("Création en cours...", "Creating...")
-                : t("Créer la réservation", "Create booking")}
+              {saving ? "Création en cours..." : "Créer la réservation"}
             </Button>
           </DialogFooter>
         </form>
@@ -679,9 +643,9 @@ async function calculatePreview(
     unavailable: nights.length === 0 || availableUnits <= 0,
     reason:
       nights.length === 0
-        ? tr("Sélectionnez une période valide.", "Select a valid period.")
+        ? "Sélectionnez une période valide."
         : availableUnits <= 0
-          ? unavailableMessage()
+          ? unavailableMessage
           : null,
   };
 }
@@ -944,17 +908,16 @@ function buildOccupiedUnitsByDate(
 }
 
 function validateForm(form: FormState) {
-  if (!form.fullName.trim()) return tr("Le nom complet est obligatoire.", "Full name is required.");
-  if (!form.email.trim()) return tr("L'email est obligatoire.", "Email is required.");
-  if (!form.phone.trim()) return tr("Le téléphone est obligatoire.", "Phone is required.");
-  if (!form.country.trim()) return tr("Le pays est obligatoire.", "Country is required.");
-  if (!form.roomTypeId) return tr("Sélectionnez un type de chambre.", "Select a room type.");
-  if (!isValidStay(form.checkIn, form.checkOut))
-    return tr("Sélectionnez des dates valides.", "Select valid dates.");
+  if (!form.fullName.trim()) return "Le nom complet est obligatoire.";
+  if (!form.email.trim()) return "L'email est obligatoire.";
+  if (!form.phone.trim()) return "Le téléphone est obligatoire.";
+  if (!form.country.trim()) return "Le pays est obligatoire.";
+  if (!form.roomTypeId) return "Sélectionnez un type de chambre.";
+  if (!isValidStay(form.checkIn, form.checkOut)) return "Sélectionnez des dates valides.";
   if (!Number.isInteger(Number(form.adults)) || Number(form.adults) < 1)
-    return tr("Le nombre d'adultes est invalide.", "Invalid number of adults.");
+    return "Le nombre d'adultes est invalide.";
   if (!Number.isInteger(Number(form.children)) || Number(form.children) < 0)
-    return tr("Le nombre d'enfants est invalide.", "Invalid number of children.");
+    return "Le nombre d'enfants est invalide.";
   return null;
 }
 
@@ -996,8 +959,7 @@ function generateAdminReservationNumber() {
 }
 
 async function requireSupabase() {
-  if (!isSupabaseConfigured())
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!isSupabaseConfigured()) throw new Error("Supabase n'est pas configuré.");
   const { supabase } = await import("@/lib/supabase/client");
   return supabase;
 }
@@ -1035,12 +997,9 @@ function normalizeOptional(value: string) {
 
 function getSupabaseErrorMessage(error: unknown) {
   if (isPermissionError(error)) {
-    return tr(
-      "Permission Supabase refusée. Vérifiez les policies guests/reservations.",
-      "Supabase permission denied. Check the guests/reservations policies.",
-    );
+    return "Permission Supabase refusée. Vérifiez les policies guests/reservations.";
   }
-  return getErrorDetail(error) ?? tr("Erreur Supabase inconnue.", "Unknown Supabase error.");
+  return getErrorDetail(error) ?? "Erreur Supabase inconnue.";
 }
 
 function getErrorDetail(error: unknown) {

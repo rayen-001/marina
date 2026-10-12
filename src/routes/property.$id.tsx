@@ -1,10 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { RoomDetailPage } from "@/components/room-detail-page";
 import { SiteHeader } from "@/components/site-header";
-import { getRequestLocale } from "@/lib/i18n/get-request-locale";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { localizeRoom } from "@/lib/i18n/rooms";
 import { getRoomType } from "@/lib/services/roomService";
 
 export const Route = createFileRoute("/property/$id")({
@@ -19,48 +15,36 @@ export const Route = createFileRoute("/property/$id")({
     if (!room) throw notFound();
     return { room };
   },
-  head: ({ loaderData }) => {
-    const room = loaderData ? localizeRoom(loaderData.room, getRequestLocale()) : null;
-    return {
-      meta: [
-        {
-          title: room
-            ? `${room.name} - Marina Cap Monastir`
-            : headT("Chambre - Marina Cap Monastir", "Room - Marina Cap Monastir"),
-        },
-        {
-          name: "description",
-          content:
-            room?.description ??
-            headT("Détail chambre Marina Cap Monastir.", "Marina Cap Monastir room details."),
-        },
-      ],
-    };
-  },
-  notFoundComponent: PropertyNotFound,
-  component: LegacyRoomRoute,
-});
-
-function PropertyNotFound() {
-  const { t } = useI18n();
-  return (
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData
+          ? `${loaderData.room.name} - Marina Cap Monastir`
+          : "Chambre - Marina Cap Monastir",
+      },
+      {
+        name: "description",
+        content: loaderData?.room.description ?? "Détail chambre Marina Cap Monastir.",
+      },
+    ],
+  }),
+  notFoundComponent: () => (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-bold text-primary">
-          {t("Chambre introuvable", "Room not found")}
-        </h1>
+        <h1 className="text-3xl font-bold text-primary">Chambre introuvable</h1>
         <Link
           to="/search"
           search={{ adults: 2, children: 0, roomType: "Tous" }}
           className="mt-4 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
         >
-          {t("Voir les chambres", "See the rooms")}
+          Voir les chambres
         </Link>
       </div>
     </div>
-  );
-}
+  ),
+  component: LegacyRoomRoute,
+});
 
 function LegacyRoomRoute() {
   const { room } = Route.useLoaderData();

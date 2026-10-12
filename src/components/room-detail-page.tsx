@@ -21,10 +21,8 @@ import { useEffect, useMemo, useState } from "react";
 import { BookingSummary } from "@/components/booking-summary";
 import { AvailabilityCalendar } from "@/components/hotel/AvailabilityCalendar";
 import type { Room } from "@/data/hotel";
-import { calculateTotal, getRoomCapacity } from "@/data/hotel";
+import { calculateTotal, formatCurrency, getRoomCapacity } from "@/data/hotel";
 import { bookingStore } from "@/lib/booking-store";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { localizeRoom } from "@/lib/i18n/rooms";
 import { getBookingQuote, type BookingQuote } from "@/lib/services/bookingQuoteService";
 import type { MonthCalendar } from "@/lib/services/rateCalendarService";
 import { buildCalendarPriceMap, calculateCalendarTotal } from "@/lib/services/rateCalendarService";
@@ -48,8 +46,6 @@ const iso = (date: Date) => date.toISOString().slice(0, 10);
 
 export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalendar = false }: Props) {
   const navigate = useNavigate();
-  const { t, locale, formatCurrency } = useI18n();
-  const display = localizeRoom(room, locale);
   const capacity = getRoomCapacity(room);
   const [checkIn, setCheckIn] = useState(incoming.checkIn ?? iso(tomorrow));
   const [checkOut, setCheckOut] = useState(incoming.checkOut ?? iso(afterTomorrow));
@@ -114,14 +110,14 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
           className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
         >
           <ArrowLeft className="size-4" />
-          {t("Retour aux appartements", "Back to apartments")}
+          Retour aux appartements
         </Link>
 
         <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="rounded-md bg-primary/8 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                {display.type}
+                {room.type}
               </span>
               <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                 <MapPin className="size-3.5 text-accent" />
@@ -133,7 +129,9 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 ))}
               </span>
             </div>
-            <h1 className="page-title text-primary">{display.name}</h1>
+            <h1 className="text-3xl font-black tracking-tight text-primary md:text-5xl">
+              {room.name}
+            </h1>
           </div>
           <div
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold ${
@@ -144,10 +142,10 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
           >
             <CheckCircle2 className="size-4" />
             {quoteLoading
-              ? t("Vérification des dates...", "Checking dates...")
+              ? "Verification des dates..."
               : availability > 0
-                ? t(`${availability} unités disponibles`, `${availability} units available`)
-                : t("Complet sur ces dates", "Fully booked on these dates")}
+                ? `${availability} unités disponibles`
+                : "Complet sur ces dates"}
           </div>
         </div>
 
@@ -155,7 +153,7 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
           <div className="hidden overflow-hidden rounded-lg border border-border shadow-[var(--shadow-premium)] md:grid md:h-[520px] md:grid-cols-4 md:grid-rows-2 md:gap-1.5">
             <img
               src={room.images[0]}
-              alt={display.name}
+              alt={room.name}
               className="col-span-2 row-span-2 h-full w-full object-cover transition duration-500 hover:brightness-105"
             />
             {room.images.slice(1, 5).map((image, index) => (
@@ -173,7 +171,7 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
             <div className="aspect-[4/3]">
               <img
                 src={room.images[activeImage]}
-                alt={display.name}
+                alt={room.name}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -182,7 +180,6 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 <button
                   type="button"
                   onClick={prevImage}
-                  aria-label={t("Photo précédente", "Previous photo")}
                   className="absolute left-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md"
                 >
                   <ChevronLeft className="size-4 text-primary" />
@@ -190,7 +187,6 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 <button
                   type="button"
                   onClick={nextImage}
-                  aria-label={t("Photo suivante", "Next photo")}
                   className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md"
                 >
                   <ChevronRight className="size-4 text-primary" />
@@ -206,26 +202,19 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
               {[
                 {
                   icon: <Users className="size-5" />,
-                  label: t("Capacité", "Capacity"),
-                  value: t(`${capacity} personnes`, `${capacity} guests`),
+                  label: "Capacité",
+                  value: `${capacity} personnes`,
                 },
-                {
-                  icon: <BedDouble className="size-5" />,
-                  label: t("Couchage", "Beds"),
-                  value: display.beds,
-                },
+                { icon: <BedDouble className="size-5" />, label: "Couchage", value: room.beds },
                 {
                   icon: <Bath className="size-5" />,
-                  label: t("Bains", "Bathrooms"),
-                  value: t(
-                    `${room.bathrooms} salle${room.bathrooms > 1 ? "s" : ""} de bain`,
-                    `${room.bathrooms} bathroom${room.bathrooms > 1 ? "s" : ""}`,
-                  ),
+                  label: "Bains",
+                  value: `${room.bathrooms} salle${room.bathrooms > 1 ? "s" : ""}`,
                 },
                 {
                   icon: <Waves className="size-5" />,
-                  label: t("Ambiance", "Setting"),
-                  value: t("Port de plaisance", "Marina"),
+                  label: "Ambiance",
+                  value: "Port de plaisance",
                 },
               ].map((spec) => (
                 <div
@@ -243,19 +232,17 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
 
             <div>
               <h2 className="gold-rule text-2xl font-black text-primary">
-                {t("Séjour à Marina Cap Monastir", "Your stay at Marina Cap Monastir")}
+                Séjour à Marina Cap Monastir
               </h2>
               <p className="mt-4 max-w-3xl text-base leading-8 text-foreground/78">
-                {display.description}
+                {room.description}
               </p>
             </div>
 
             <div>
-              <h2 className="gold-rule text-2xl font-black text-primary">
-                {t("Équipements inclus", "Included amenities")}
-              </h2>
+              <h2 className="gold-rule text-2xl font-black text-primary">Équipements inclus</h2>
               <div className="mt-5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                {display.amenities.map((amenity) => (
+                {room.amenities.map((amenity) => (
                   <div
                     key={amenity}
                     className="flex items-center gap-3 rounded-lg border border-border bg-card p-3.5 text-sm font-semibold shadow-sm transition hover:border-accent/40 hover:bg-accent/5"
@@ -270,45 +257,32 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
             <div className="grid gap-4 md:grid-cols-3">
               <HighlightCard
                 icon={<ConciergeBell className="size-5" />}
-                title={t("Réception", "Reception")}
-                text={t(
-                  "Assistance pour arrivées, départs et demandes spéciales.",
-                  "Help with arrivals, departures and special requests.",
-                )}
+                title="Réception"
+                text="Assistance pour arrivées, départs et demandes spéciales."
               />
               <HighlightCard
                 icon={<Waves className="size-5" />}
-                title={t("Port de plaisance", "Marina")}
-                text={t(
-                  "Accès rapide aux pontons, restaurants et activités marines.",
-                  "Quick access to the pontoons, restaurants and sea activities.",
-                )}
+                title="Port de plaisance"
+                text="Accès rapide aux pontons, restaurants et activités marines."
               />
               <HighlightCard
                 icon={<CalendarCheck className="size-5" />}
-                title={t("Réservation directe", "Direct booking")}
-                text={t(
-                  "Disponibilité calculée sur l'inventaire réel des unités.",
-                  "Availability based on the real number of units.",
-                )}
+                title="Réservation directe"
+                text="Disponibilité calculée sur l'inventaire réel des unités."
               />
             </div>
 
             {(calendars.length > 0 || isLoadingCalendar) && (
               <div>
                 <h2 className="gold-rule text-2xl font-black text-primary">
-                  {t("Disponibilités & Tarifs", "Availability & Rates")}
+                  Disponibilités &amp; Tarifs
                 </h2>
                 <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Info className="size-3.5 shrink-0" />
-                  {t("À partir de", "From")}{" "}
+                  <Info className="size-3.5 shrink-0" />À partir de{" "}
                   <span className="font-semibold text-primary">
                     {formatCurrency(selectedNightPrice)}
                   </span>{" "}
-                  {t(
-                    "par nuitée — les tarifs varient selon la saison.",
-                    "per night — rates vary with the season.",
-                  )}
+                  par nuitée — les tarifs varient selon la saison.
                 </p>
                 <div className="mt-5">
                   <AvailabilityCalendar
@@ -334,41 +308,34 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                      {t("À partir de", "From")}
+                      À partir de
                     </div>
                     <div className="mt-1 text-3xl font-black text-primary">
                       {formatCurrency(selectedNightPrice)}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {t("par nuitée", "per night")}
-                    </div>
+                    <div className="text-xs text-muted-foreground">par nuitée</div>
                   </div>
                   <a
                     href="tel:+21673462305"
                     className="inline-flex size-10 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:border-accent hover:bg-accent/10 hover:text-accent"
-                    title={t("Contacter la réception", "Call reception")}
-                    aria-label={t("Contacter la réception", "Call reception")}
+                    title="Contacter la réception"
                   >
                     <Phone className="size-4" />
                   </a>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <DateField label={t("Arrivée", "Check-in")} value={checkIn} onChange={setCheckIn} />
-                  <DateField
-                    label={t("Départ", "Check-out")}
-                    value={checkOut}
-                    onChange={setCheckOut}
-                  />
+                  <DateField label="Arrivée" value={checkIn} onChange={setCheckIn} />
+                  <DateField label="Départ" value={checkOut} onChange={setCheckOut} />
                   <NumberField
-                    label={t("Adultes", "Adults")}
+                    label="Adultes"
                     value={adults}
                     min={1}
                     max={capacity}
                     onChange={setAdults}
                   />
                   <NumberField
-                    label={t("Enfants", "Children")}
+                    label="Enfants"
                     value={children}
                     min={0}
                     max={capacity}
@@ -378,19 +345,13 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
 
                 {!fitsCapacity && (
                   <p className="mt-3 rounded-lg bg-destructive/10 p-3 text-xs font-medium text-destructive">
-                    {t(
-                      "La capacité demandée dépasse celle de cet appartement.",
-                      "The number of guests exceeds this apartment's capacity.",
-                    )}
+                    La capacité demandée dépasse celle de cet appartement.
                   </p>
                 )}
 
                 {quoteLoading && (
                   <p className="mt-3 rounded-lg bg-secondary p-3 text-xs font-medium text-muted-foreground">
-                    {t(
-                      "Vérification du tarif et de la disponibilité...",
-                      "Checking rate and availability...",
-                    )}
+                    Verification du tarif et de la disponibilite...
                   </p>
                 )}
 
@@ -417,21 +378,11 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                   type="button"
                   disabled={!canBook}
                   onClick={reserve}
-                  title={
-                    !canBook
-                      ? (quote?.reason ??
-                        t(
-                          "Réservation indisponible pour ces dates",
-                          "Booking unavailable for these dates",
-                        ))
-                      : t("Réserver cet appartement", "Book this apartment")
-                  }
+                  title={!canBook ? (quote?.reason ?? "Réservation indisponible pour ces dates") : "Réserver cet appartement"}
                   className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-ocean hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-primary disabled:hover:shadow-none"
                 >
                   <CalendarCheck className="size-4" />
-                  {!canBook && quote?.reason
-                    ? t("Réservation indisponible", "Booking unavailable")
-                    : t("Réserver cet appartement", "Book this apartment")}
+                  {!canBook && quote?.reason ? "Réservation indisponible" : "Réserver cet appartement"}
                 </button>
 
                 <a
@@ -439,16 +390,12 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                   className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold text-muted-foreground transition hover:border-accent hover:bg-accent/5 hover:text-accent"
                 >
                   <Info className="size-4" />
-                  {t("Demande d'information", "Ask a question")}
+                  Demande d'information
                 </a>
 
                 <p className="mt-3 text-center text-xs text-muted-foreground">
-                  {t("Disponibilité :", "Availability:")}{" "}
-                  <span className="font-semibold text-primary">{availability}</span>{" "}
-                  {t(
-                    `unité${availability > 1 ? "s" : ""} sur ces dates`,
-                    `unit${availability > 1 ? "s" : ""} on these dates`,
-                  )}
+                  Disponibilité : <span className="font-semibold text-primary">{availability}</span>{" "}
+                  unité{availability > 1 ? "s" : ""} sur ces dates
                 </p>
               </div>
             </div>
@@ -458,21 +405,15 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
                 {[
                   {
                     icon: <ShieldCheck className="size-3.5 text-emerald-600" />,
-                    text: t(
-                      "Réservation sécurisée, aucune carte stockée",
-                      "Secure booking, no card details stored",
-                    ),
+                    text: "Réservation sécurisée, aucune carte stockée",
                   },
                   {
                     icon: <CheckCircle2 className="size-3.5 text-turquoise" />,
-                    text: t("Confirmation immédiate par email", "Instant email confirmation"),
+                    text: "Confirmation immédiate par email",
                   },
                   {
                     icon: <ConciergeBell className="size-3.5 text-accent" />,
-                    text: t(
-                      "Réception disponible pour vous assister",
-                      "Reception available to help you",
-                    ),
+                    text: "Réception disponible pour vous assister",
                   },
                 ].map((item) => (
                   <div key={item.text} className="flex items-center gap-2">
@@ -491,15 +432,11 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
           <div>
             <div className="text-lg font-black text-primary">
               {formatCurrency(selectedNightPrice)}
-              <span className="text-sm font-medium text-muted-foreground">
-                {" "}
-                / {t("nuitée", "night")}
-              </span>
+              <span className="text-sm font-medium text-muted-foreground"> / nuitée</span>
             </div>
             {breakdown.nights > 0 && (
               <div className="text-xs text-muted-foreground">
-                {breakdown.nights}{" "}
-                {breakdown.nights > 1 ? t("nuits", "nights") : t("nuit", "night")} ·{" "}
+                {breakdown.nights} nuit{breakdown.nights > 1 ? "s" : ""} ·{" "}
                 {formatCurrency(breakdown.total)}
               </div>
             )}
@@ -511,7 +448,7 @@ export function RoomDetailPage({ room, incoming, calendars = [], isLoadingCalend
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground shadow-sm disabled:opacity-50"
           >
             <CalendarCheck className="size-4" />
-            {t("Réserver", "Book")}
+            Réserver
           </button>
         </div>
       </div>

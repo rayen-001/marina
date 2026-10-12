@@ -13,15 +13,7 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { KpiCard } from "@/components/admin/kpi-card";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import {
-  getChannelLabels,
-  localizeAlertDescription,
-  localizeAlertSeverity,
-  localizeAlertTitle,
-} from "@/lib/i18n/labels";
-import { localizeRoomName } from "@/lib/i18n/rooms";
+import { channelLabels, formatCurrency } from "@/data/hotel";
 import {
   getAvailableUnitsForDate,
   getBestSellingRooms,
@@ -70,7 +62,7 @@ export const Route = createFileRoute("/admin/direction")({
     };
   },
   head: () => ({
-    meta: [{ title: headT("Direction - Marina Cap Monastir", "Management - Marina Cap Monastir") }],
+    meta: [{ title: "Direction - Marina Cap Monastir" }],
   }),
   component: AdminDirection,
 });
@@ -88,8 +80,6 @@ function AdminDirection() {
     bestRooms,
     alerts,
   } = Route.useLoaderData();
-  const { t, locale, formatCurrency } = useI18n();
-  const channelLabels = getChannelLabels(locale);
   const totalUnits = roomItems.reduce((sum, room) => sum + room.totalUnits, 0);
   const remainingAmount = reservationItems.reduce((sum, reservation) => {
     const paid = paymentItems
@@ -121,64 +111,43 @@ function AdminDirection() {
     sortedRevenueBySource.reduce((sum, item) => sum + item.revenue, 0),
   );
   const teamActivity = [
-    {
-      label: t("Réception", "Reception"),
-      value: t(
-        `${activeReservations.length} dossiers actifs`,
-        `${activeReservations.length} active bookings`,
-      ),
-    },
-    {
-      label: t("Comptabilité", "Accounting"),
-      value: t(
-        `${unpaidInvoices.length} factures à suivre`,
-        `${unpaidInvoices.length} invoices to follow up`,
-      ),
-    },
+    { label: "Reception", value: `${activeReservations.length} dossiers actifs` },
+    { label: "Comptabilite", value: `${unpaidInvoices.length} factures a suivre` },
   ];
 
   return (
     <AdminLayout
-      title={t("Direction", "Management")}
-      description={t(
-        "Vue exécutive pour piloter revenus, occupation, risques opérationnels et performance des canaux.",
-        "Executive view of revenue, occupancy, operational risks and channel performance.",
-      )}
+      title="Direction"
+      description="Vue exécutive pour piloter revenus, occupation, risques opérationnels et performance des canaux."
       actions={
         <Link to="/admin/statistics" className={adminButtonClasses("primary")}>
-          {t("Analyse détaillée", "Detailed analysis")}
+          Analyse détaillée
         </Link>
       }
     >
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KpiCard
-          label={t("Revenu hôtel", "Hotel revenue")}
+          label="Revenu hotel"
           value={formatCurrency(hotelRevenue)}
-          detail={t("Paiements non remboursés", "Non-refunded payments")}
+          detail="Paiements non rembourses"
           icon={CreditCard}
         />
         <KpiCard
-          label={t("Occupation", "Occupancy")}
+          label="Occupation"
           value={`${occupancyRate}%`}
-          detail={`${totalUnits - availableUnits}/${totalUnits} ${t("unités vendues", "units sold")}`}
+          detail={`${totalUnits - availableUnits}/${totalUnits} unités vendues`}
           icon={Percent}
         />
         <KpiCard
-          label={t("Solde restant", "Outstanding balance")}
+          label="Solde restant"
           value={formatCurrency(remainingAmount)}
-          detail={t(
-            `${unpaidInvoices.length} facture(s) à suivre`,
-            `${unpaidInvoices.length} invoice(s) to follow up`,
-          )}
+          detail={`${unpaidInvoices.length} facture(s) à suivre`}
           icon={FileText}
         />
         <KpiCard
-          label={t("Alertes critiques", "Critical alerts")}
+          label="Alertes critiques"
           value={String(criticalAlerts.length)}
-          detail={t(
-            `${alerts.length} alertes opérationnelles`,
-            `${alerts.length} operational alerts`,
-          )}
+          detail={`${alerts.length} alertes opérationnelles`}
           icon={AlertTriangle}
         />
       </section>
@@ -187,63 +156,55 @@ function AdminDirection() {
         <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-primary">
-                {t("Synthèse exécutive", "Executive summary")}
-              </h2>
+              <h2 className="text-lg font-bold text-primary">Synthèse exécutive</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t(
-                  "Indicateurs consolidés depuis le mock store PMS.",
-                  "Indicators consolidated from the PMS data store.",
-                )}
+                Indicateurs consolidés depuis le mock store PMS.
               </p>
             </div>
             <Crown className="size-5 text-accent" />
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <ExecutiveTile
-              label={t("Réservations actives", "Active bookings")}
+              label="Réservations actives"
               value={String(activeReservations.length)}
-              detail={t("en attente, confirmées, check-in", "pending, confirmed, checked in")}
+              detail="pending, confirmed, checked-in"
             />
             <ExecutiveTile
-              label={t("Annulations / no-show", "Cancellations / no-show")}
+              label="Annulations / no-show"
               value={String(cancellations.length)}
-              detail={t("Sur l'échantillon actuel", "On the current data set")}
+              detail="Sur l'échantillon mock"
             />
             <ExecutiveTile
               label="RevPAR"
               value={formatCurrency(monthlyStats.revpar)}
-              detail={t("Revenu par unité disponible", "Revenue per available unit")}
+              detail="Revenu par unité disponible"
             />
             <ExecutiveTile
-              label={t("Performance mensuelle", "Monthly performance")}
+              label="Performance mensuelle"
               value={formatCurrency(monthlyStats.revenue)}
               detail={`ADR ${formatCurrency(monthlyStats.adr)}`}
             />
             <ExecutiveTile
-              label={t("Unités disponibles", "Available units")}
+              label="Unités disponibles"
               value={String(availableUnits)}
-              detail={t(`Sur ${totalUnits} unités hôtelières`, `Out of ${totalUnits} hotel units`)}
+              detail={`Sur ${totalUnits} unités hôtelières`}
             />
           </div>
           <div className="mt-5 rounded-md border border-border bg-background p-4">
             <div className="flex items-center gap-2 font-semibold text-primary">
               <Target className="size-4 text-accent" />
-              {t("Priorités de gestion", "Management priorities")}
+              Priorités de gestion
             </div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {[
+                { label: "Relancer soldes", text: formatCurrency(remainingAmount) },
                 {
-                  label: t("Relancer soldes", "Chase balances"),
-                  text: formatCurrency(remainingAmount),
+                  label: "Contrôler channels",
+                  text: `${alerts.filter((alert) => alert.type === "channel_sync_error").length} anomalie(s)`,
                 },
                 {
-                  label: t("Contrôler channels", "Check channels"),
-                  text: `${alerts.filter((alert) => alert.type === "channel_sync_error").length} ${t("anomalie(s)", "issue(s)")}`,
-                },
-                {
-                  label: t("Préserver inventaire", "Protect inventory"),
-                  text: `${alerts.filter((alert) => alert.type === "overbooking_risk").length} ${t("risque(s)", "risk(s)")}`,
+                  label: "Préserver inventaire",
+                  text: `${alerts.filter((alert) => alert.type === "overbooking_risk").length} risque(s)`,
                 },
               ].map((item) => (
                 <div key={item.label} className="rounded-md bg-secondary p-3">
@@ -254,9 +215,7 @@ function AdminDirection() {
             </div>
           </div>
           <div className="mt-5 rounded-md border border-border bg-background p-4">
-            <div className="text-sm font-semibold text-primary">
-              {t("Synthèse équipes", "Team summary")}
-            </div>
+            <div className="text-sm font-semibold text-primary">Synthese equipes</div>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               {teamActivity.map((item) => (
                 <div key={item.label} className="rounded-md bg-secondary p-3">
@@ -271,17 +230,13 @@ function AdminDirection() {
         <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <AlertTriangle className="size-5 text-accent" />
-            <h2 className="text-lg font-bold text-primary">
-              {t("Risques à arbitrer", "Risks to decide on")}
-            </h2>
+            <h2 className="text-lg font-bold text-primary">Risques à arbitrer</h2>
           </div>
           <div className="space-y-3">
             {alerts.slice(0, 6).map((alert) => (
               <div key={alert.id} className="rounded-md border border-border bg-background p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="font-semibold text-primary">
-                    {localizeAlertTitle(alert, locale)}
-                  </span>
+                  <span className="font-semibold text-primary">{alert.title}</span>
                   <span
                     className={
                       alert.severity === "critical"
@@ -289,20 +244,15 @@ function AdminDirection() {
                         : "text-sm font-bold text-amber-700"
                     }
                   >
-                    {localizeAlertSeverity(alert.severity, locale)}
+                    {alert.severity}
                   </span>
                 </div>
-                <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                  {localizeAlertDescription(alert, locale)}
-                </p>
+                <p className="mt-1 text-sm leading-5 text-muted-foreground">{alert.description}</p>
               </div>
             ))}
             {alerts.length === 0 && (
               <p className="rounded-md border border-border bg-background p-4 text-sm text-muted-foreground">
-                {t(
-                  "Aucun risque opérationnel dans le jeu de données actuel.",
-                  "No operational risks in the current data set.",
-                )}
+                Aucun risque opérationnel dans le jeu de données actuel.
               </p>
             )}
           </div>
@@ -310,7 +260,7 @@ function AdminDirection() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-2">
-        <ChartCard title={t("Mix de revenus par canal", "Revenue mix by channel")} icon={BarChart3}>
+        <ChartCard title="Mix de revenus par canal" icon={BarChart3}>
           {sortedRevenueBySource.map((item) => (
             <Bar
               key={item.source}
@@ -321,12 +271,12 @@ function AdminDirection() {
           ))}
         </ChartCard>
 
-        <ChartCard title={t("Performance chambres", "Room performance")} icon={Users}>
+        <ChartCard title="Performance chambres" icon={Users}>
           {topRooms.map((item) => (
             <Bar
               key={item.room.id}
-              label={localizeRoomName(item.room, locale)}
-              value={`${item.reservations} ${t("réservation(s)", "booking(s)")} · ${formatCurrency(item.revenue)}`}
+              label={item.room.name}
+              value={`${item.reservations} réservation(s) · ${formatCurrency(item.revenue)}`}
               percent={(item.reservations / Math.max(1, topRooms[0]?.reservations ?? 1)) * 100}
             />
           ))}
@@ -334,22 +284,18 @@ function AdminDirection() {
       </section>
 
       <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-primary">
-          {t("Commandes de direction", "Management actions")}
-        </h2>
+        <h2 className="text-lg font-bold text-primary">Commandes de direction</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t(
-            "Boutons de démonstration : ils ne déclenchent aucun export réel, paiement, email ou synchronisation externe.",
-            "Demo buttons: they trigger no real export, payment, email or external sync.",
-          )}
+          Boutons mock sécurisés: ils ne déclenchent aucun export réel, paiement, email ou
+          synchronisation externe.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           {[
-            t("Export PDF (bientôt)", "PDF export (coming soon)"),
-            t("Export Excel (bientôt)", "Excel export (coming soon)"),
-            t("Rapport automatisé (bientôt)", "Automated report (coming soon)"),
-            t("Contrôler factures", "Review invoices"),
-            t("Revoir stratégie channels", "Review channel strategy"),
+            "Export PDF placeholder",
+            "Export Excel placeholder",
+            "Rapport automatise placeholder",
+            "Controler factures",
+            "Revoir strategie channels",
           ].map((action) => (
             <button
               key={action}

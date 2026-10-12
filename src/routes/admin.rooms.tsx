@@ -6,11 +6,7 @@ import { toast } from "sonner";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { StatusBadge } from "@/components/admin/status-badge";
-import { getRoomCapacity, type Room } from "@/data/hotel";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { tr, type Locale } from "@/lib/i18n/locale";
-import { localizeRoomType } from "@/lib/i18n/rooms";
+import { formatCurrency, getRoomCapacity, type Room } from "@/data/hotel";
 import { isSupabaseConfigured } from "@/lib/supabase/isSupabaseConfigured";
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/supabase/types";
 
@@ -27,7 +23,7 @@ const ROOM_STATUSES: Room["status"][] = [
 export const Route = createFileRoute("/admin/rooms")({
   loader: loadAdminRoomTypes,
   head: () => ({
-    meta: [{ title: headT("Chambres - Marina Cap Monastir", "Rooms - Marina Cap Monastir") }],
+    meta: [{ title: "Chambres - Marina Cap Monastir" }],
   }),
   pendingComponent: AdminRoomsPending,
   component: AdminRooms,
@@ -36,14 +32,10 @@ export const Route = createFileRoute("/admin/rooms")({
 const EXPECTED_ROOM_COUNT = 4;
 
 function AdminRoomsPending() {
-  const { t } = useI18n();
   return (
     <AdminLayout
-      title={t("Gestion des chambres", "Room management")}
-      description={t(
-        "Créez et ajustez les types de chambres, unités, tarifs, photos, équipements et statuts.",
-        "Create and adjust room types, units, rates, photos, amenities and statuses.",
-      )}
+      title="Gestion des chambres"
+      description="Créez et ajustez les types de chambres, unités, tarifs, photos, équipements et statuts."
     >
       <div className="space-y-3">
         {Array.from({ length: EXPECTED_ROOM_COUNT }).map((_, index) => (
@@ -103,10 +95,8 @@ async function loadAdminRoomTypes(): Promise<LoaderData> {
   if (!supabaseConfigured) {
     return {
       roomItems: [],
-      loadError: tr(
+      loadError:
         "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
-        "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-      ),
       loadErrorDetail: null,
       supabaseConfigured,
     };
@@ -169,7 +159,6 @@ async function loadAdminRoomTypes(): Promise<LoaderData> {
 function AdminRooms() {
   const { roomItems, loadError, loadErrorDetail, supabaseConfigured } = Route.useLoaderData();
   const router = useRouter();
-  const { t, locale, formatCurrency } = useI18n();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RoomFormState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -254,7 +243,7 @@ function AdminRooms() {
 
       setEditingId(createdRoom.id);
       setForm(roomToForm(createdRoom));
-      toast.success(t("Type de chambre créé.", "Room type created."));
+      toast.success("Type de chambre créé.");
     } catch (error) {
       console.error("[AdminRooms] room type create failed", error);
       toast.error(getSupabaseErrorMessage(error));
@@ -297,7 +286,7 @@ function AdminRooms() {
         parseList(form.imagesText),
         payload.name ?? selectedRoom?.name ?? form.name,
       );
-      toast.success(t("Type de chambre enregistré.", "Room type saved."));
+      toast.success("Type de chambre enregistré.");
       cancelEditing();
       await router.invalidate();
     } catch (error) {
@@ -310,11 +299,8 @@ function AdminRooms() {
 
   return (
     <AdminLayout
-      title={t("Gestion des chambres", "Room management")}
-      description={t(
-        "Créez et ajustez les types de chambres, unités, tarifs, photos, équipements et statuts.",
-        "Create and adjust room types, units, rates, photos, amenities and statuses.",
-      )}
+      title="Gestion des chambres"
+      description="Créez et ajustez les types de chambres, unités, tarifs, photos, équipements et statuts."
       actions={
         <AdminButton
           variant="primary"
@@ -323,7 +309,7 @@ function AdminRooms() {
           loading={creating}
           disabled={!supabaseConfigured || Boolean(loadError)}
         >
-          {t("Nouveau type", "New room type")}
+          Nouveau type
         </AdminButton>
       }
     >
@@ -333,10 +319,7 @@ function AdminRooms() {
             <AlertTriangle className="mt-0.5 size-5 shrink-0" />
             <div>
               <div className="font-bold">
-                {t(
-                  "Impossible de charger les types de chambres depuis Supabase.",
-                  "Could not load room types from Supabase.",
-                )}
+                Impossible de charger les types de chambres depuis Supabase.
               </div>
               <p className="mt-1 leading-6">{loadError}</p>
               {loadErrorDetail && (
@@ -355,23 +338,16 @@ function AdminRooms() {
             <AlertTriangle className="mt-0.5 size-5 shrink-0" />
             <div>
               <div className="font-bold">
-                {t(
-                  `${roomItems.length} type${roomItems.length > 1 ? "s" : ""} de chambre chargé${roomItems.length > 1 ? "s" : ""} depuis Supabase (attendu : ${EXPECTED_ROOM_COUNT}).`,
-                  `${roomItems.length} room type${roomItems.length > 1 ? "s" : ""} loaded from Supabase (expected: ${EXPECTED_ROOM_COUNT}).`,
-                )}
+                {roomItems.length} type{roomItems.length > 1 ? "s" : ""} de chambre chargé
+                {roomItems.length > 1 ? "s" : ""} depuis Supabase (attendu : {EXPECTED_ROOM_COUNT}).
               </div>
               <p className="mt-1 leading-6">
-                {t(
-                  "Le site public affiche 4 logements même quand Supabase en renvoie moins, car il complète les manquants avec des valeurs par défaut locales. Cette page n'a pas ce filet de sécurité : elle montre exactement ce que contient la table",
-                  "The public site always shows 4 room types, even when Supabase returns fewer, because it fills the gaps with local defaults. This page has no such safety net: it shows exactly what the table contains:",
-                )}{" "}
-                <code className="rounded bg-white/60 px-1">room_types</code>.{" "}
-                {t(
-                  "Vérifiez la console du navigateur (\"Room types (raw rows...)\") et la colonne",
-                  "Check the browser console (\"Room types (raw rows...)\") and the",
-                )}{" "}
-                <code>status</code>{" "}
-                {t("pour les 4 logements attendus.", "column for the 4 expected room types.")}
+                Le site public affiche 4 logements même quand Supabase en renvoie moins, car il
+                complète les manquants avec des valeurs par défaut locales. Cette page n'a pas ce
+                filet de sécurité : elle montre exactement ce que contient la table{" "}
+                <code className="rounded bg-white/60 px-1">room_types</code>. Vérifiez la console
+                du navigateur ("Room types (raw rows...)") et la colonne <code>status</code> pour
+                les 4 logements attendus.
               </p>
             </div>
           </div>
@@ -384,13 +360,13 @@ function AdminRooms() {
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead className="bg-secondary text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">{t("Photo", "Photo")}</th>
-                  <th className="px-4 py-3">{t("Chambre", "Room")}</th>
-                  <th className="px-4 py-3">{t("Unités", "Units")}</th>
-                  <th className="px-4 py-3">{t("Capacité", "Capacity")}</th>
-                  <th className="px-4 py-3">{t("Prix", "Price")}</th>
-                  <th className="px-4 py-3">{t("Statut", "Status")}</th>
-                  <th className="px-4 py-3">{t("Action", "Action")}</th>
+                  <th className="px-4 py-3">Photo</th>
+                  <th className="px-4 py-3">Chambre</th>
+                  <th className="px-4 py-3">Unités</th>
+                  <th className="px-4 py-3">Capacité</th>
+                  <th className="px-4 py-3">Prix</th>
+                  <th className="px-4 py-3">Statut</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -406,13 +382,11 @@ function AdminRooms() {
                     <td className="px-4 py-3">
                       <div className="font-semibold text-primary">{room.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {localizeRoomType(room.type, locale)} · {room.beds}
+                        {room.type} · {room.beds}
                       </div>
                     </td>
                     <td className="px-4 py-3">{room.totalUnits}</td>
-                    <td className="px-4 py-3">
-                      {getRoomCapacity(room)} {t("personnes", "guests")}
-                    </td>
+                    <td className="px-4 py-3">{getRoomCapacity(room)} personnes</td>
                     <td className="px-4 py-3 font-semibold">
                       {formatCurrency(room.pricePerNight)}
                     </td>
@@ -425,7 +399,7 @@ function AdminRooms() {
                         onClick={() => startEditing(room)}
                         className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-primary hover:border-primary"
                       >
-                        {t("Modifier", "Edit")}
+                        Modifier
                       </button>
                     </td>
                   </tr>
@@ -433,10 +407,7 @@ function AdminRooms() {
                 {roomItems.length === 0 && !loadError && (
                   <tr className="border-t border-border">
                     <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      {t(
-                        "Aucun type de chambre trouvé dans Supabase.",
-                        "No room types found in Supabase.",
-                      )}
+                      Aucun type de chambre trouvé dans Supabase.
                     </td>
                   </tr>
                 )}
@@ -448,14 +419,9 @@ function AdminRooms() {
         <aside className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-primary">
-                {t("Modifier le type de chambre", "Edit room type")}
-              </h2>
+              <h2 className="text-lg font-bold text-primary">Modifier le type de chambre</h2>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                {t(
-                  "Les modifications sont enregistrées dans Supabase.",
-                  "Changes are saved to Supabase.",
-                )}
+                Les modifications sont enregistrées dans Supabase.
               </p>
             </div>
             {form && (
@@ -463,7 +429,7 @@ function AdminRooms() {
                 type="button"
                 onClick={cancelEditing}
                 className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-primary hover:text-primary"
-                aria-label={t("Annuler l'édition", "Cancel editing")}
+                aria-label="Annuler l'édition"
               >
                 <X className="size-4" />
               </button>
@@ -472,7 +438,7 @@ function AdminRooms() {
 
           {form ? (
             <form onSubmit={handleSaveRoom} className="mt-4 space-y-4">
-              <AdminField label={t("Nom", "Name")}>
+              <AdminField label="Nom">
                 <input
                   value={form.name}
                   onChange={(event) => updateForm("name", event.target.value)}
@@ -480,7 +446,7 @@ function AdminRooms() {
                   required
                 />
               </AdminField>
-              <AdminField label={t("Slug", "Slug")}>
+              <AdminField label="Slug">
                 <input
                   value={form.slug}
                   onChange={(event) => updateForm("slug", slugify(event.target.value))}
@@ -488,7 +454,7 @@ function AdminRooms() {
                   required
                 />
               </AdminField>
-              <AdminField label={t("Catégorie", "Category")}>
+              <AdminField label="Catégorie">
                 <select
                   value={form.category}
                   onChange={(event) => updateForm("category", event.target.value as Room["type"])}
@@ -496,12 +462,12 @@ function AdminRooms() {
                 >
                   {ROOM_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
-                      {localizeRoomType(category, locale)}
+                      {category}
                     </option>
                   ))}
                 </select>
               </AdminField>
-              <AdminField label={t("Description", "Description")}>
+              <AdminField label="Description">
                 <textarea
                   value={form.description}
                   onChange={(event) => updateForm("description", event.target.value)}
@@ -510,7 +476,7 @@ function AdminRooms() {
                 />
               </AdminField>
               <div className="grid grid-cols-2 gap-3">
-                <AdminField label={t("Prix / nuit", "Price / night")}>
+                <AdminField label="Prix / nuit">
                   <input
                     type="number"
                     min={0}
@@ -520,7 +486,7 @@ function AdminRooms() {
                     required
                   />
                 </AdminField>
-                <AdminField label={t("Unités", "Units")}>
+                <AdminField label="Unités">
                   <input
                     type="number"
                     min={0}
@@ -532,7 +498,7 @@ function AdminRooms() {
                 </AdminField>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <AdminField label={t("Adultes", "Adults")}>
+                <AdminField label="Adultes">
                   <input
                     type="number"
                     min={0}
@@ -542,7 +508,7 @@ function AdminRooms() {
                     required
                   />
                 </AdminField>
-                <AdminField label={t("Enfants", "Children")}>
+                <AdminField label="Enfants">
                   <input
                     type="number"
                     min={0}
@@ -554,7 +520,7 @@ function AdminRooms() {
                 </AdminField>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <AdminField label={t("Lits", "Beds")}>
+                <AdminField label="Lits">
                   <input
                     value={form.beds}
                     onChange={(event) => updateForm("beds", event.target.value)}
@@ -562,7 +528,7 @@ function AdminRooms() {
                     required
                   />
                 </AdminField>
-                <AdminField label={t("Salles de bain", "Bathrooms")}>
+                <AdminField label="Salles de bain">
                   <input
                     type="number"
                     min={0}
@@ -573,7 +539,7 @@ function AdminRooms() {
                   />
                 </AdminField>
               </div>
-              <AdminField label={t("Statut", "Status")}>
+              <AdminField label="Statut">
                 <select
                   value={form.status}
                   onChange={(event) => updateForm("status", event.target.value as Room["status"])}
@@ -581,23 +547,20 @@ function AdminRooms() {
                 >
                   {ROOM_STATUSES.map((status) => (
                     <option key={status} value={status}>
-                      {formatStatus(status, locale)}
+                      {formatStatus(status)}
                     </option>
                   ))}
                 </select>
               </AdminField>
-              <AdminField label={t("Équipements", "Amenities")}>
+              <AdminField label="Équipements">
                 <textarea
                   value={form.amenitiesText}
                   onChange={(event) => updateForm("amenitiesText", event.target.value)}
                   className="admin-input min-h-24"
-                  placeholder={t(
-                    "Un équipement par ligne ou séparé par virgule",
-                    "One amenity per line or comma-separated",
-                  )}
+                  placeholder="Un équipement par ligne ou séparé par virgule"
                 />
               </AdminField>
-              <AdminField label={t("Images", "Images")}>
+              <AdminField label="Images">
                 <textarea
                   value={form.imagesText}
                   onChange={(event) => updateForm("imagesText", event.target.value)}
@@ -627,24 +590,21 @@ function AdminRooms() {
                   className="flex-1"
                   disabled={saving}
                 >
-                  {t("Annuler", "Cancel")}
+                  Annuler
                 </AdminButton>
                 <AdminButton type="submit" variant="primary" loading={saving} className="flex-1">
                   <Save className="size-4" />
-                  {t("Enregistrer", "Save")}
+                  Enregistrer
                 </AdminButton>
               </div>
             </form>
           ) : (
             <div className="mt-4 rounded-md border border-dashed border-border bg-secondary/50 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-primary">
-                {t("Sélectionnez un type de chambre à modifier.", "Select a room type to edit.")}
+                Sélectionnez un type de chambre à modifier.
               </p>
               <p className="mt-2 leading-6">
-                {t(
-                  "Le formulaire s'ouvrira ici avec les données Supabase déjà renseignées.",
-                  "The form will open here, pre-filled with the Supabase data.",
-                )}
+                Le formulaire s'ouvrira ici avec les données Supabase déjà renseignées.
               </p>
             </div>
           )}
@@ -736,10 +696,7 @@ async function requireAdminSupabase() {
 
   if (!configured) {
     throw new Error(
-      tr(
-        "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
-        "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-      ),
+      "Supabase n'est pas configuré. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.",
     );
   }
 
@@ -816,26 +773,23 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function formatStatus(status: Room["status"], locale: Locale) {
-  const labels: Record<Room["status"], { fr: string; en: string }> = {
-    active: { fr: "Actif", en: "Active" },
-    maintenance: { fr: "Maintenance", en: "Maintenance" },
-    inactive: { fr: "Inactif", en: "Inactive" },
-    occupied: { fr: "Occupé", en: "Occupied" },
-    cleaning_required: { fr: "Ménage requis", en: "Cleaning required" },
+function formatStatus(status: Room["status"]) {
+  const labels: Record<Room["status"], string> = {
+    active: "Actif",
+    maintenance: "Maintenance",
+    inactive: "Inactif",
+    occupied: "Occupé",
+    cleaning_required: "Ménage requis",
   };
-  return labels[status][locale];
+  return labels[status];
 }
 
 function getSupabaseErrorMessage(error: unknown) {
   if (isPermissionError(error)) {
-    return tr(
-      "Permission Supabase refusée. Vérifiez les policies room_types.",
-      "Supabase permission denied. Check the room_types policies.",
-    );
+    return "Permission Supabase refusée. Vérifiez les policies room_types.";
   }
 
-  return getErrorDetail(error) ?? tr("Erreur Supabase inconnue.", "Unknown Supabase error.");
+  return getErrorDetail(error) ?? "Erreur Supabase inconnue.";
 }
 
 function getErrorDetail(error: unknown) {

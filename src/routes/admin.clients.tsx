@@ -4,9 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { adminButtonClasses } from "@/components/admin/AdminButton";
 import { CreateClientAccountButton } from "@/components/admin/CreateClientAccountButton";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { tr, type Locale } from "@/lib/i18n/locale";
 import { listAdminConversations, type ConversationSummary } from "@/lib/services/messageService";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import type { Tables } from "@/lib/supabase/types";
@@ -15,13 +12,12 @@ type ClientRow = Tables<"profiles">;
 
 export const Route = createFileRoute("/admin/clients")({
   head: () => ({
-    meta: [{ title: headT("Clients - Marina Cap Monastir", "Guests - Marina Cap Monastir") }],
+    meta: [{ title: "Clients - Marina Cap Monastir" }],
   }),
   component: AdminClients,
 });
 
 function AdminClients() {
-  const { t, locale } = useI18n();
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,8 +29,7 @@ function AdminClients() {
     setError("");
     try {
       const supabase = await getSupabaseOrNull();
-      if (!supabase)
-        throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+      if (!supabase) throw new Error("Supabase n'est pas configure.");
 
       const [{ data, error: clientsError }, nextConversations] = await Promise.all([
         supabase
@@ -49,9 +44,7 @@ function AdminClients() {
       setClients(data ?? []);
       setConversations(nextConversations);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : tr("Clients indisponibles.", "Guests unavailable."),
-      );
+      setError(err instanceof Error ? err.message : "Clients indisponibles.");
     } finally {
       setLoading(false);
     }
@@ -75,11 +68,8 @@ function AdminClients() {
 
   return (
     <AdminLayout
-      title={t("Clients", "Guests")}
-      description={t(
-        "Comptes clients Supabase Auth avec profil client et accès messagerie.",
-        "Supabase Auth guest accounts with guest profile and messaging access.",
-      )}
+      title="Clients"
+      description="Comptes clients Supabase Auth avec profil client et accès messagerie."
       actions={<CreateClientAccountButton onCreated={load} />}
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -88,13 +78,13 @@ function AdminClients() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("Rechercher un client...", "Search for a guest...")}
+            placeholder="Rechercher un client..."
             className="admin-input pl-9"
           />
         </label>
         <button type="button" onClick={load} className={adminButtonClasses("outline", "md")}>
           <RefreshCw className="size-4" />
-          {t("Actualiser", "Refresh")}
+          Actualiser
         </button>
       </div>
 
@@ -114,12 +104,9 @@ function AdminClients() {
         ) : filteredClients.length === 0 ? (
           <div className="empty-state m-5">
             <UserRound className="mx-auto mb-3 size-8 text-accent" />
-            <div className="text-lg font-black text-primary">{t("Aucun client", "No guests")}</div>
+            <div className="text-lg font-black text-primary">Aucun client</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t(
-                "Les comptes clients créés depuis l'administration apparaîtront ici.",
-                "Guest accounts created from the administration will appear here.",
-              )}
+              Les comptes clients créés depuis l'administration apparaîtront ici.
             </p>
           </div>
         ) : (
@@ -127,11 +114,11 @@ function AdminClients() {
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-secondary/70 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">{t("Client", "Guest")}</th>
-                  <th className="px-4 py-3">{t("Email", "Email")}</th>
-                  <th className="px-4 py-3">{t("Créé le", "Created on")}</th>
-                  <th className="px-4 py-3">{t("Non lus", "Unread")}</th>
-                  <th className="px-4 py-3">{t("Action", "Action")}</th>
+                  <th className="px-4 py-3">Client</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Créé le</th>
+                  <th className="px-4 py-3">Non lus</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +127,7 @@ function AdminClients() {
                   return (
                     <tr key={client.id} className="border-t border-border">
                       <td className="px-4 py-3 font-black text-primary">
-                        {client.full_name ?? t("Client", "Guest")}
+                        {client.full_name ?? "Client"}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-2 text-muted-foreground">
@@ -149,7 +136,7 @@ function AdminClients() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {formatDate(client.created_at, locale)}
+                        {formatDate(client.created_at)}
                       </td>
                       <td className="px-4 py-3">
                         {conversation?.unreadAdminCount ? (
@@ -167,7 +154,7 @@ function AdminClients() {
                           className={adminButtonClasses("outline", "sm")}
                         >
                           <MessageCircle className="size-4" />
-                          {t("Messages", "Messages")}
+                          Messages
                         </Link>
                       </td>
                     </tr>
@@ -182,10 +169,10 @@ function AdminClients() {
   );
 }
 
-function formatDate(value: string, locale: Locale) {
+function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
+  return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
     year: "numeric",

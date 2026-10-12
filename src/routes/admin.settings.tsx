@@ -5,8 +5,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminLayout } from "@/components/admin/admin-layout";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
 import { getHotelSettings, updateHotelSettings } from "@/lib/services/settingsService";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -15,14 +13,13 @@ export const Route = createFileRoute("/admin/settings")({
     return { settings };
   },
   head: () => ({
-    meta: [{ title: headT("Paramètres - Marina Cap Monastir", "Settings - Marina Cap Monastir") }],
+    meta: [{ title: "Paramètres - Marina Cap Monastir" }],
   }),
   component: AdminSettings,
 });
 
 function AdminSettings() {
   const loaderData = Route.useLoaderData();
-  const { t } = useI18n();
   const [settings, setSettings] = useState({ ...loaderData.settings });
   const [saving, setSaving] = useState(false);
 
@@ -34,11 +31,9 @@ function AdminSettings() {
     setSaving(true);
     try {
       await updateHotelSettings(settings);
-      toast.success(t("Paramètres enregistrés.", "Settings saved."));
+      toast.success("Paramètres enregistrés.");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("Enregistrement impossible.", "Save failed."),
-      );
+      toast.error(error instanceof Error ? error.message : "Enregistrement impossible.");
     } finally {
       setSaving(false);
     }
@@ -46,11 +41,8 @@ function AdminSettings() {
 
   return (
     <AdminLayout
-      title={t("Paramètres hôtel", "Hotel settings")}
-      description={t(
-        "Configuration prête pour Supabase : identité, facturation, fiscalité et règles de séjour.",
-        "Supabase-ready configuration: identity, invoicing, tax and stay rules.",
-      )}
+      title="Paramètres hôtel"
+      description="Configuration locale prête pour Supabase: identité, facturation, fiscalité et règles de séjour."
       actions={
         <AdminButton
           variant="primary"
@@ -58,55 +50,55 @@ function AdminSettings() {
           loading={saving}
           icon={<Save className="size-4" />}
         >
-          {t("Enregistrer", "Save")}
+          Enregistrer
         </AdminButton>
       }
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <section className="grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm md:grid-cols-2">
-          <SettingField label={t("Nom hôtel", "Hotel name")}>
+          <SettingField label="Nom hôtel">
             <input
               value={settings.hotelName}
               onChange={(event) => update("hotelName", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Téléphone réception", "Reception phone")}>
+          <SettingField label="Téléphone réception">
             <input
               value={settings.phone}
               onChange={(event) => update("phone", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Fax réception", "Reception fax")}>
+          <SettingField label="Fax réception">
             <input
               value={settings.fax}
               onChange={(event) => update("fax", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Email réception", "Reception email")}>
+          <SettingField label="Email réception">
             <input
               value={settings.email}
               onChange={(event) => update("email", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Email marketing", "Marketing email")}>
+          <SettingField label="Email marketing">
             <input
               value={settings.marketingEmail}
               onChange={(event) => update("marketingEmail", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Email capitainerie", "Harbour office email")}>
+          <SettingField label="Email capitainerie">
             <input
               value={settings.capitainerieEmail}
               onChange={(event) => update("capitainerieEmail", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Téléphones capitainerie", "Harbour office phones")}>
+          <SettingField label="Téléphones capitainerie">
             <input
               value={settings.capitaineriePhones.join(", ")}
               onChange={(event) =>
@@ -121,28 +113,28 @@ function AdminSettings() {
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Chemin du logo", "Logo path")}>
+          <SettingField label="Logo path">
             <input
               value={settings.logoUrl}
               onChange={(event) => update("logoUrl", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Matricule fiscale", "Tax ID")}>
+          <SettingField label="Matricule fiscale">
             <input
               value={settings.taxRegistration}
               onChange={(event) => update("taxRegistration", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Préfixe facture", "Invoice prefix")}>
+          <SettingField label="Préfixe facture">
             <input
               value={settings.invoicePrefix}
               onChange={(event) => update("invoicePrefix", event.target.value)}
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Devise par défaut", "Default currency")}>
+          <SettingField label="Devise par défaut">
             <select
               value={settings.defaultCurrency}
               onChange={(event) => update("defaultCurrency", event.target.value as "TND" | "EUR")}
@@ -152,7 +144,7 @@ function AdminSettings() {
               <option value="EUR">EUR</option>
             </select>
           </SettingField>
-          <SettingField label={t("Heure check-in", "Check-in time")}>
+          <SettingField label="Heure check-in">
             <input
               type="time"
               value={settings.checkInTime}
@@ -160,7 +152,7 @@ function AdminSettings() {
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Heure check-out", "Check-out time")}>
+          <SettingField label="Heure check-out">
             <input
               type="time"
               value={settings.checkOutTime}
@@ -168,7 +160,7 @@ function AdminSettings() {
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Taxe", "Tax")}>
+          <SettingField label="Taxe">
             <input
               type="number"
               step="0.01"
@@ -177,7 +169,7 @@ function AdminSettings() {
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Acompte", "Deposit")}>
+          <SettingField label="Acompte">
             <input
               type="number"
               step="0.01"
@@ -186,7 +178,7 @@ function AdminSettings() {
               className="admin-input"
             />
           </SettingField>
-          <SettingField label={t("Adresse", "Address")}>
+          <SettingField label="Adresse">
             <textarea
               value={settings.address}
               onChange={(event) => update("address", event.target.value)}
@@ -197,7 +189,7 @@ function AdminSettings() {
         </section>
 
         <aside className="rounded-lg border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-primary">{t("Logo & média", "Logo & media")}</h2>
+          <h2 className="text-lg font-bold text-primary">Logo & média</h2>
           <div className="mt-4 flex items-center gap-4">
             <img
               src={settings.logoUrl}
@@ -209,17 +201,14 @@ function AdminSettings() {
               className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-semibold text-primary"
             >
               <ImageUp className="size-4" />
-              {t("Téléverser", "Upload")}
+              Upload
             </button>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            {t(
-              "Upload pas encore branché : à connecter à Supabase Storage ou à un back-office média.",
-              "Upload not wired yet: connect Supabase Storage or a media back office.",
-            )}
+            Placeholder d'upload. TODO: connecter Supabase Storage ou un back-office média.
           </p>
           <div className="mt-5 rounded-md bg-secondary p-4 text-sm">
-            <div className="font-semibold text-primary">{t("Valeurs par défaut", "Defaults")}</div>
+            <div className="font-semibold text-primary">Valeurs par défaut</div>
             <p className="mt-2 text-muted-foreground">
               Marina Cap Monastir · TND · Check-in 14:00 · Check-out 11:00.
             </p>

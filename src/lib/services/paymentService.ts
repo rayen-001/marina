@@ -6,7 +6,6 @@ import {
   warnSupabaseFallback,
 } from "@/lib/supabase/serviceHelpers";
 import { listReservations } from "./reservationService";
-import { tr } from "@/lib/i18n/locale";
 
 export async function listPayments() {
   const supabase = await getSupabaseOrNull();
@@ -72,15 +71,11 @@ export function calculateRemainingAmount(reservationId: string) {
 
 export async function setPaymentStatus(reservationId: string, status: PaymentStatus) {
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
 
   const reservationItems = await listReservations();
   const reservation = reservationItems.find((item) => item.id === reservationId);
-  if (!reservation)
-    throw new Error(
-      tr(`Réservation ${reservationId} introuvable.`, `Booking ${reservationId} not found.`),
-    );
+  if (!reservation) throw new Error(`Reservation ${reservationId} introuvable.`);
 
   const amount =
     status === "paid" ? reservation.total : status === "deposit_paid" ? reservation.deposit : 0;

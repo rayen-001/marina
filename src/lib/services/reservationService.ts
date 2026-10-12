@@ -13,7 +13,6 @@ import {
 } from "@/lib/supabase/serviceHelpers";
 import { getBookingQuote } from "./bookingQuoteService";
 import { getRoomType, listRoomTypes } from "./roomService";
-import { tr } from "@/lib/i18n/locale";
 
 type ReservationRpcResult = {
   reservation_id: string;
@@ -113,7 +112,7 @@ export type CreateClientReservationInput = {
  * authenticated client session — never falls back to mock or anonymous booking. */
 export async function createClientReservation(input: CreateClientReservationInput) {
   const room = await getRoomType(input.roomId);
-  if (!room) throw new Error(tr("Chambre introuvable.", "Room not found."));
+  if (!room) throw new Error("Chambre introuvable.");
 
   const quote = await getBookingQuote(room, input.checkIn, input.checkOut);
   if (!quote.canBook) {
@@ -121,8 +120,7 @@ export async function createClientReservation(input: CreateClientReservationInpu
   }
 
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
 
   const rpcArgs = {
     p_room_type_id: input.roomId,
@@ -158,10 +156,7 @@ export async function createClientReservation(input: CreateClientReservationInpu
 
   const userResult = await supabase.auth.getUser();
   const user = userResult.data.user;
-  if (!user)
-    throw new Error(
-      tr("Vous devez être connecté pour réserver.", "You must be signed in to book."),
-    );
+  if (!user) throw new Error("Vous devez etre connecte pour reserver.");
 
   const resId = crypto.randomUUID();
   const resNum = `RES-${resId.slice(0, 8).toUpperCase()}`;
@@ -294,8 +289,7 @@ function mapReservationError(error: unknown) {
 
 export async function setReservationStatus(reservationId: string, status: ReservationStatus) {
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
 
   const { data, error } = await supabase
     .from("reservations")
@@ -313,8 +307,7 @@ export async function setReservationStatus(reservationId: string, status: Reserv
 
 export async function assignRoomUnit(reservationId: string, roomUnitId: string | null) {
   const supabase = await getSupabaseOrNull();
-  if (!supabase)
-    throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
 
   const { error } = await supabase
     .from("reservations")
@@ -345,12 +338,7 @@ function upsertReservationInMock(reservation: Reservation) {
 function normalizeRpcResult(data: ReservationRpcResult | ReservationRpcResult[] | null) {
   const result = Array.isArray(data) ? data[0] : data;
   if (!result?.reservation_number) {
-    throw new Error(
-      tr(
-        "La réservation n'a pas retourné de numéro de réservation.",
-        "The booking did not return a booking number.",
-      ),
-    );
+    throw new Error("La reservation n'a pas retourne de numero de reservation.");
   }
   return result;
 }

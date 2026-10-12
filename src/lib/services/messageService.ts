@@ -9,8 +9,6 @@ import {
 import { getCurrentProfile, isAdminRole, type UserProfile } from "@/lib/auth/profilesAuth";
 import { getSupabaseOrNull } from "@/lib/supabase/serviceHelpers";
 import type { ConversationStatus, MessageSenderType, Tables } from "@/lib/supabase/types";
-import { CLIENT_MESSAGING_LOCKED_REASON_EN } from "@/lib/i18n/labels";
-import { tr } from "@/lib/i18n/locale";
 
 type MessageRow = Tables<"messages">;
 type ProfileRow = Tables<"profiles">;
@@ -269,11 +267,11 @@ export async function createConversation(input: CreateConversationInput): Promis
   const current = await requireCurrentProfile();
 
   if (current.role === "client") {
-    if (!(await clientHasMessagingAccess())) throw new Error(tr(CLIENT_MESSAGING_LOCKED_REASON, CLIENT_MESSAGING_LOCKED_REASON_EN));
+    if (!(await clientHasMessagingAccess())) throw new Error(CLIENT_MESSAGING_LOCKED_REASON);
 
     const admins = await fetchAdminProfiles();
     const admin = admins[0];
-    if (!admin) throw new Error(tr("Aucun compte admin disponible.", "No admin account available."));
+    if (!admin) throw new Error("Aucun compte admin disponible.");
     return makeConversation(admin.id, input.subject || "Reception Marina");
   }
 
@@ -282,7 +280,7 @@ export async function createConversation(input: CreateConversationInput): Promis
     if (client?.role === "client") return makeConversation(client.id, input.subject);
   }
 
-  throw new Error(tr("Client introuvable.", "Guest not found."));
+  throw new Error("Client introuvable.");
 }
 
 export async function createConversationForClientReservation(_reservation?: ClientReservation) {
@@ -292,7 +290,7 @@ export async function createConversationForClientReservation(_reservation?: Clie
 export async function createConversationForAdminReservation(reservation: Reservation) {
   const profile = await findClientProfileForGuest(reservation.guest.id, reservation.guest.email);
   if (!profile) {
-    throw new Error(tr("Aucun compte client n'est lié à cette réservation.", "No guest account is linked to this booking."));
+    throw new Error("Aucun compte client n'est lie a cette reservation.");
   }
 
   return {
@@ -303,11 +301,11 @@ export async function createConversationForAdminReservation(reservation: Reserva
 
 export async function sendMessage(input: SendMessageInput): Promise<ConversationMessage> {
   const body = input.body.trim();
-  if (!body) throw new Error(tr("Message requis.", "Message required."));
+  if (!body) throw new Error("Message requis.");
 
   const current = await requireCurrentProfile();
   if (current.role === "client" && !(await clientHasMessagingAccess())) {
-    throw new Error(tr(CLIENT_MESSAGING_LOCKED_REASON, CLIENT_MESSAGING_LOCKED_REASON_EN));
+    throw new Error(CLIENT_MESSAGING_LOCKED_REASON);
   }
 
   const supabase = await requireMessagingSupabase();
@@ -561,7 +559,7 @@ async function fetchProfileById(id: string) {
 async function resolveReceiver(current: UserProfile, conversationId: string) {
   if (isAdminRole(current.role)) {
     const client = await fetchProfileById(conversationId);
-    if (!client || client.role !== "client") throw new Error(tr("Client introuvable.", "Guest not found."));
+    if (!client || client.role !== "client") throw new Error("Client introuvable.");
     return client;
   }
 
@@ -570,31 +568,31 @@ async function resolveReceiver(current: UserProfile, conversationId: string) {
 
   const admins = await fetchAdminProfiles();
   const admin = admins[0];
-  if (!admin) throw new Error(tr("Aucun compte admin disponible.", "No admin account available."));
+  if (!admin) throw new Error("Aucun compte admin disponible.");
   return admin;
 }
 
 async function requireMessagingSupabase() {
   const supabase = await getSupabaseOrNull();
-  if (!supabase) throw new Error(tr("Supabase n'est pas configuré.", "Supabase is not configured."));
+  if (!supabase) throw new Error("Supabase n'est pas configure.");
   return supabase;
 }
 
 async function requireClientContext() {
   const context = await getClientSessionProfile();
-  if (!context) throw new Error(tr("Session client requise.", "Guest session required."));
+  if (!context) throw new Error("Session client requise.");
   return context;
 }
 
 async function requireAdminContext() {
   const admin = await getCurrentAdminProfile();
-  if (!admin?.active) throw new Error(tr("Compte admin requis.", "Admin account required."));
+  if (!admin?.active) throw new Error("Compte admin requis.");
   return profileFromAdmin(admin);
 }
 
 async function requireCurrentProfile() {
   const profile = await getCurrentProfile();
-  if (!profile) throw new Error(tr("Session requise.", "Session required."));
+  if (!profile) throw new Error("Session requise.");
   return profile;
 }
 
@@ -737,7 +735,7 @@ function profileFromClient(profile: ClientProfile): UserProfile {
 function profileFromAdmin(
   profile: Awaited<ReturnType<typeof getCurrentAdminProfile>>,
 ): UserProfile {
-  if (!profile) throw new Error(tr("Compte admin requis.", "Admin account required."));
+  if (!profile) throw new Error("Compte admin requis.");
   return {
     id: profile.id,
     userId: profile.userId,

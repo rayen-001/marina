@@ -3,21 +3,15 @@ import { Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { getClientSessionProfile, type ClientProfile } from "@/lib/auth/clientAuth";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { tr } from "@/lib/i18n/locale";
 
 export const Route = createFileRoute("/client/profile")({
   head: () => ({
-    meta: [
-      { title: headT("Profil client - Marina Cap Monastir", "My profile - Marina Cap Monastir") },
-    ],
+    meta: [{ title: "Profil client - Marina Cap Monastir" }],
   }),
   component: ClientProfilePage,
 });
 
 function ClientProfilePage() {
-  const { t } = useI18n();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,11 +23,7 @@ function ClientProfilePage() {
         if (mounted) setProfile(context?.profile ?? null);
       })
       .catch((err) => {
-        if (mounted) {
-          setError(
-            err instanceof Error ? err.message : tr("Profil indisponible.", "Profile unavailable."),
-          );
-        }
+        if (mounted) setError(err instanceof Error ? err.message : "Profil indisponible.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -49,14 +39,11 @@ function ClientProfilePage() {
       <header>
         <div className="section-kicker">
           <UserRound className="size-4" />
-          {t("Profil", "Profile")}
+          Profil
         </div>
-        <h1 className="mt-2 text-3xl font-black text-primary">{t("Mon profil", "My profile")}</h1>
+        <h1 className="mt-2 text-3xl font-black text-primary">Mon profil</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t(
-            "Informations de compte utilisées pour lier vos réservations.",
-            "Account details used to link your bookings.",
-          )}
+          Informations de compte utilisées pour lier vos réservations.
         </p>
       </header>
 
@@ -73,33 +60,23 @@ function ClientProfilePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <ProfileTile
               icon={<UserRound className="size-5" />}
-              label={t("Nom", "Name")}
+              label="Nom"
               value={profile.fullName}
             />
-            <ProfileTile
-              icon={<Mail className="size-5" />}
-              label={t("Email", "Email")}
-              value={profile.email}
-            />
+            <ProfileTile icon={<Mail className="size-5" />} label="Email" value={profile.email} />
             <ProfileTile
               icon={<Phone className="size-5" />}
-              label={t("Téléphone", "Phone")}
+              label="Téléphone"
               value={profile.phone ?? "-"}
             />
             <ProfileTile
               icon={<ShieldCheck className="size-5" />}
-              label={t("Statut", "Status")}
-              value={
-                profile.active
-                  ? t("Compte actif", "Active account")
-                  : t("Compte inactif", "Inactive account")
-              }
+              label="Statut"
+              value={profile.active ? "Compte actif" : "Compte inactif"}
             />
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground">
-            {t("Profil client introuvable.", "Guest profile not found.")}
-          </div>
+          <div className="text-sm text-muted-foreground">Profil client introuvable.</div>
         )}
       </section>
     </div>

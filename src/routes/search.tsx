@@ -4,10 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RoomCard, RoomCardSkeleton } from "@/components/room-card";
 import { SearchForm } from "@/components/search-form";
 import { SiteHeader } from "@/components/site-header";
-import { getRoomCapacity } from "@/data/hotel";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { localizeAmenity, localizeRoomType } from "@/lib/i18n/rooms";
+import { formatCurrency, getRoomCapacity } from "@/data/hotel";
 import { getRoomAvailability, listRoomTypes } from "@/lib/services/roomService";
 
 type SearchParams = {
@@ -32,13 +29,11 @@ export const Route = createFileRoute("/search")({
   }),
   head: () => ({
     meta: [
-      { title: headT("Appart-Hôtel - Marina Cap Monastir", "Aparthotel - Marina Cap Monastir") },
+      { title: "Appart-Hôtel - Marina Cap Monastir" },
       {
         name: "description",
-        content: headT(
-          "Recherchez les studios et appartements disponibles à Marina Cap Monastir, au cœur du port de plaisance de Monastir.",
-          "Find available studios and apartments at Marina Cap Monastir, in the heart of the Monastir marina.",
-        ),
+        content:
+          "Recherchez les studios et appartements disponibles à Marina Cap Monastir, au coeur du port de plaisance de Monastir.",
       },
     ],
   }),
@@ -46,10 +41,10 @@ export const Route = createFileRoute("/search")({
 });
 
 const SORTS = [
-  { id: "recommended", label: { fr: "Recommandé", en: "Recommended" } },
-  { id: "price-asc", label: { fr: "Prix croissant", en: "Price: low to high" } },
-  { id: "price-desc", label: { fr: "Prix décroissant", en: "Price: high to low" } },
-  { id: "capacity", label: { fr: "Capacité", en: "Capacity" } },
+  { id: "recommended", label: "Recommandé" },
+  { id: "price-asc", label: "Prix croissant" },
+  { id: "price-desc", label: "Prix décroissant" },
+  { id: "capacity", label: "Capacité" },
 ] as const;
 
 type SortKey = (typeof SORTS)[number]["id"];
@@ -57,7 +52,6 @@ type SortKey = (typeof SORTS)[number]["id"];
 function SearchPage() {
   const search = Route.useSearch();
   const { roomItems } = Route.useLoaderData();
-  const { t, pick, locale, formatCurrency } = useI18n();
   const roomTypes = useMemo(
     () => Array.from(new Set(roomItems.map((room) => room.type))),
     [roomItems],
@@ -201,21 +195,19 @@ function SearchPage() {
           <div>
             <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
               <SearchIcon className="size-3.5" />
-              {t("Résultats de recherche", "Search results")}
+              Résultats de recherche
             </div>
-            <h1 className="page-title text-primary">
-              {t("Studios et appartements disponibles", "Available studios and apartments")}
+            <h1 className="text-3xl font-black text-primary md:text-4xl">
+              Studios et appartements disponibles
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              <span className="font-semibold text-primary">{filtered.length}</span>{" "}
-              {filtered.length > 1 ? t("résultats", "results") : t("résultat", "result")} ·{" "}
-              {search.adults} {search.adults > 1 ? t("adultes", "adults") : t("adulte", "adult")}
+              <span className="font-semibold text-primary">{filtered.length}</span> résultat
+              {filtered.length > 1 ? "s" : ""} · {search.adults} adulte
+              {search.adults > 1 ? "s" : ""}
               {search.children > 0
-                ? `, ${search.children} ${
-                    search.children > 1 ? t("enfants", "children") : t("enfant", "child")
-                  }`
+                ? `, ${search.children} enfant${search.children > 1 ? "s" : ""}`
                 : ""}
-              {datesSelected ? ` · ${search.checkIn} → ${search.checkOut}` : ""}
+              {datesSelected ? ` · ${search.checkIn} -> ${search.checkOut}` : ""}
             </p>
           </div>
 
@@ -227,7 +219,7 @@ function SearchPage() {
             >
               {SORTS.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {pick(item.label)}
+                  {item.label}
                 </option>
               ))}
             </select>
@@ -241,7 +233,7 @@ function SearchPage() {
               }`}
             >
               <SlidersHorizontal className="size-4" />
-              {t("Filtres", "Filters")}
+              Filtres
             </button>
           </div>
         </div>
@@ -258,7 +250,7 @@ function SearchPage() {
                   : "border border-border bg-card text-muted-foreground shadow-sm hover:border-accent hover:bg-accent/10 hover:text-primary"
               }`}
             >
-              {localizeRoomType(type, locale)}
+              {type}
             </button>
           ))}
         </div>
@@ -270,7 +262,7 @@ function SearchPage() {
                 <div className="flex items-center justify-between">
                   <h2 className="inline-flex items-center gap-2 font-bold text-primary">
                     <Filter className="size-4 text-accent" />
-                    {t("Filtres", "Filters")}
+                    Filtres
                   </h2>
                   <button
                     type="button"
@@ -278,7 +270,7 @@ function SearchPage() {
                     className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground transition hover:bg-secondary hover:text-primary"
                   >
                     <RotateCcw className="size-3.5" />
-                    {t("Réinitialiser", "Reset")}
+                    Réinitialiser
                   </button>
                 </div>
               </div>
@@ -286,9 +278,7 @@ function SearchPage() {
               <div className="space-y-6 p-4">
                 {datesSelected && (
                   <div className="flex items-center justify-between gap-3 rounded-lg bg-secondary/60 px-3 py-3 text-sm font-medium">
-                    <span className="text-foreground">
-                      {t("Disponibles uniquement", "Available only")}
-                    </span>
+                    <span className="text-foreground">Disponibles uniquement</span>
                     <input
                       type="checkbox"
                       checked={onlyAvailable}
@@ -300,7 +290,7 @@ function SearchPage() {
 
                 <div>
                   <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                    {t("Prix maximum / nuitée", "Maximum price / night")}
+                    Prix maximum / nuitée
                   </label>
                   <input
                     type="range"
@@ -321,7 +311,7 @@ function SearchPage() {
 
                 <div>
                   <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                    {t("Équipements", "Amenities")}
+                    Équipements
                   </label>
                   <div className="max-h-64 space-y-1.5 overflow-auto pr-1">
                     {allAmenities.map((amenity) => (
@@ -335,7 +325,7 @@ function SearchPage() {
                           onChange={() => toggleAmenity(amenity)}
                           className="accent-primary"
                         />
-                        {localizeAmenity(amenity, locale)}
+                        {amenity}
                       </label>
                     ))}
                   </div>
@@ -356,14 +346,10 @@ function SearchPage() {
                 <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-lg bg-secondary text-primary">
                   <Waves className="size-7" />
                 </div>
-                <h2 className="text-2xl font-bold text-primary">
-                  {t("Aucune disponibilité trouvée", "No availability found")}
-                </h2>
+                <h2 className="text-2xl font-bold text-primary">Aucune disponibilité trouvée</h2>
                 <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground">
-                  {t(
-                    "Modifiez les dates, le nombre de voyageurs ou les filtres pour afficher d'autres logements.",
-                    "Change the dates, number of guests or filters to see other accommodation.",
-                  )}
+                  Modifiez les dates, le nombre de voyageurs ou les filtres pour afficher d'autres
+                  logements.
                 </p>
                 <button
                   type="button"
@@ -371,7 +357,7 @@ function SearchPage() {
                   className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-ocean"
                 >
                   <RotateCcw className="size-4" />
-                  {t("Réinitialiser les filtres", "Reset filters")}
+                  Réinitialiser les filtres
                 </button>
               </div>
             ) : (

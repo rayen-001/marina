@@ -15,12 +15,17 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
-import { getReservationByNumber, getRoom, type Reservation, type Room } from "@/data/hotel";
+import {
+  formatCurrency,
+  formatDate,
+  getReservationByNumber,
+  getRoom,
+  paymentStatusLabels,
+  type Reservation,
+  type Room,
+  reservationStatusLabels,
+} from "@/data/hotel";
 import { bookingStore } from "@/lib/booking-store";
-import { headT } from "@/lib/i18n/head";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import { getPaymentStatusLabels, getReservationStatusLabels } from "@/lib/i18n/labels";
-import { localizeRoomName } from "@/lib/i18n/rooms";
 import { getReservation } from "@/lib/services/reservationService";
 import { getRoomType } from "@/lib/services/roomService";
 
@@ -34,14 +39,8 @@ export const Route = createFileRoute("/confirmation")({
   }),
   head: () => ({
     meta: [
-      { title: headT("Confirmation - Marina Cap Monastir", "Confirmation - Marina Cap Monastir") },
-      {
-        name: "description",
-        content: headT(
-          "Récapitulatif de votre réservation Marina Cap Monastir.",
-          "Your Marina Cap Monastir booking summary.",
-        ),
-      },
+      { title: "Confirmation - Marina Cap Monastir" },
+      { name: "description", content: "Votre réservation Marina Cap Monastir est confirmée." },
     ],
   }),
   component: ConfirmationPage,
@@ -49,7 +48,6 @@ export const Route = createFileRoute("/confirmation")({
 
 function ConfirmationPage() {
   const search = Route.useSearch();
-  const { t, locale, formatCurrency, formatDate } = useI18n();
   const remembered = bookingStore.get().reservationNumber;
   const reservationNumber = search.reservation ?? remembered;
   const initialReservation = getReservationByNumber(reservationNumber);
@@ -88,14 +86,9 @@ function ConfirmationPage() {
           <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-secondary text-primary">
             <CalendarDays className="size-7" />
           </div>
-          <h1 className="text-3xl font-bold text-primary">
-            {t("Chargement de la réservation", "Loading your booking")}
-          </h1>
+          <h1 className="text-3xl font-bold text-primary">Chargement de la réservation</h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            {t(
-              "Nous récupérons les détails de votre séjour.",
-              "We are retrieving the details of your stay.",
-            )}
+            Nous récupérons les détails de votre séjour.
           </p>
         </div>
       </div>
@@ -110,21 +103,16 @@ function ConfirmationPage() {
           <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-secondary text-primary">
             <CalendarDays className="size-7" />
           </div>
-          <h1 className="text-3xl font-bold text-primary">
-            {t("Réservation introuvable", "Booking not found")}
-          </h1>
+          <h1 className="text-3xl font-bold text-primary">Réservation introuvable</h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            {t(
-              "Lancez une nouvelle recherche pour créer une réservation Marina Cap Monastir.",
-              "Start a new search to make a Marina Cap Monastir booking.",
-            )}
+            Lancez une nouvelle recherche pour créer une réservation Marina Cap Monastir.
           </p>
           <Link
             to="/search"
             search={{ adults: 2, children: 0, roomType: "Tous" }}
             className="mt-6 inline-flex h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground"
           >
-            {t("Rechercher une chambre", "Search for a room")}
+            Rechercher une chambre
           </Link>
         </div>
       </div>
@@ -132,11 +120,6 @@ function ConfirmationPage() {
   }
 
   const remaining = Math.max(0, reservation.total - reservation.deposit);
-  // New guest bookings start as "pending" until reception confirms them.
-  const awaitingConfirmation = reservation.status === "pending";
-  const cancelled = reservation.status === "cancelled" || reservation.status === "no_show";
-  const reservationStatusLabels = getReservationStatusLabels(locale);
-  const paymentStatusLabels = getPaymentStatusLabels(locale);
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,28 +132,12 @@ function ConfirmationPage() {
               <CheckCircle2 className="size-10" strokeWidth={1.5} />
             </div>
           </div>
-          <h1 className="page-title text-primary animate-fade-up-delay-1">
-            {awaitingConfirmation
-              ? t("Demande de réservation envoyée !", "Booking request sent!")
-              : cancelled
-                ? t("Réservation annulée", "Booking cancelled")
-                : t("Réservation confirmée !", "Booking confirmed!")}
+          <h1 className="text-3xl font-black text-primary md:text-4xl animate-fade-up-delay-1">
+            Réservation confirmée !
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground animate-fade-up-delay-2">
-            {awaitingConfirmation
-              ? t(
-                  "Votre demande de séjour à Marina Cap Monastir est bien enregistrée. La réception va la confirmer très prochainement : conservez ce numéro de réservation.",
-                  "Your stay request at Marina Cap Monastir has been recorded. Reception will confirm it shortly: keep this booking number.",
-                )
-              : cancelled
-                ? t(
-                    "Cette réservation a été annulée. Contactez la réception pour toute question.",
-                    "This booking has been cancelled. Contact reception if you have any questions.",
-                  )
-                : t(
-                    "Votre séjour à Marina Cap Monastir est enregistré. Présentez ce numéro de confirmation à la réception lors de votre arrivée.",
-                    "Your stay at Marina Cap Monastir has been recorded. Show this confirmation number at reception when you arrive.",
-                  )}
+            Votre séjour à Marina Cap Monastir est enregistré. Présentez ce numéro de confirmation à
+            la réception lors de votre arrivée.
           </p>
         </div>
 
@@ -180,7 +147,7 @@ function ConfirmationPage() {
           <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:justify-between">
             <div className="text-center sm:text-left">
               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                {t("Numéro de réservation", "Booking number")}
+                Numéro de réservation
               </div>
               <div className="mt-1 text-4xl font-black tracking-wider text-primary">
                 {reservation.reservationNumber}
@@ -203,14 +170,13 @@ function ConfirmationPage() {
             </div>
             <div className="text-center">
               <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                {t("Total séjour", "Stay total")}
+                Total séjour
               </div>
               <div className="mt-1 text-3xl font-black text-primary">
                 {formatCurrency(reservation.total)}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {reservation.nights}{" "}
-                {reservation.nights > 1 ? t("nuits", "nights") : t("nuit", "night")}
+                {reservation.nights} nuit{reservation.nights > 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -219,61 +185,40 @@ function ConfirmationPage() {
         {/* Details grid */}
         <div className="grid gap-5 md:grid-cols-2">
           {/* Guest info */}
-          <InfoBlock icon={<Users className="size-5" />} title={t("Client", "Guest")}>
-            <Row label={t("Nom", "Name")} value={reservation.guest.fullName} />
-            <Row label={t("Email", "Email")} value={reservation.guest.email} />
-            <Row label={t("Téléphone", "Phone")} value={reservation.guest.phone} />
-            <Row label={t("Pays", "Country")} value={reservation.guest.country} />
-            <Row
-              label={t("CIN / Passeport", "ID card / Passport")}
-              value={reservation.guest.identityNumber}
-            />
+          <InfoBlock icon={<Users className="size-5" />} title="Client">
+            <Row label="Nom" value={reservation.guest.fullName} />
+            <Row label="Email" value={reservation.guest.email} />
+            <Row label="Téléphone" value={reservation.guest.phone} />
+            <Row label="Pays" value={reservation.guest.country} />
+            <Row label="CIN / Passeport" value={reservation.guest.identityNumber} />
           </InfoBlock>
 
           {/* Stay info */}
-          <InfoBlock icon={<CalendarDays className="size-5" />} title={t("Séjour", "Stay")}>
-            <Row label={t("Logement", "Accommodation")} value={localizeRoomName(room, locale)} />
-            <Row label={t("Arrivée", "Check-in")} value={formatDate(reservation.checkIn)} />
-            <Row label={t("Départ", "Check-out")} value={formatDate(reservation.checkOut)} />
+          <InfoBlock icon={<CalendarDays className="size-5" />} title="Séjour">
+            <Row label="Logement" value={room.name} />
+            <Row label="Arrivée" value={formatDate(reservation.checkIn)} />
+            <Row label="Départ" value={formatDate(reservation.checkOut)} />
             <Row
-              label={t("Voyageurs", "Guests")}
-              value={t(
-                `${reservation.adults} adulte${reservation.adults > 1 ? "s" : ""}${reservation.children > 0 ? `, ${reservation.children} enfant${reservation.children > 1 ? "s" : ""}` : ""}`,
-                `${reservation.adults} adult${reservation.adults > 1 ? "s" : ""}${reservation.children > 0 ? `, ${reservation.children} ${reservation.children > 1 ? "children" : "child"}` : ""}`,
-              )}
+              label="Voyageurs"
+              value={`${reservation.adults} adulte${reservation.adults > 1 ? "s" : ""}${reservation.children > 0 ? `, ${reservation.children} enfant${reservation.children > 1 ? "s" : ""}` : ""}`}
             />
-            <Row label={t("Localisation", "Location")} value="Marina Cap Monastir" />
+            <Row label="Localisation" value="Marina Cap Monastir" />
           </InfoBlock>
         </div>
 
         {/* Price breakdown */}
         <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="border-b border-border bg-secondary/50 px-5 py-3">
-            <h2 className="text-sm font-bold text-primary">
-              {t("Détail du prix", "Price breakdown")}
-            </h2>
+            <h2 className="text-sm font-bold text-primary">Détail du prix</h2>
           </div>
           <div className="p-5">
             <div className="space-y-3 text-sm">
-              <PriceRow
-                label={t("Prix chambre", "Room price")}
-                value={formatCurrency(reservation.roomPrice)}
-              />
-              <PriceRow
-                label={t("Taxes et frais", "Taxes and fees")}
-                value={formatCurrency(reservation.taxesAndFees)}
-              />
-              <PriceRow
-                label={t("Acompte", "Deposit")}
-                value={formatCurrency(reservation.deposit)}
-                accent
-              />
-              <PriceRow
-                label={t("Reste à régler", "Balance due")}
-                value={formatCurrency(remaining)}
-              />
+              <PriceRow label="Prix chambre" value={formatCurrency(reservation.roomPrice)} />
+              <PriceRow label="Taxes et frais" value={formatCurrency(reservation.taxesAndFees)} />
+              <PriceRow label="Acompte" value={formatCurrency(reservation.deposit)} accent />
+              <PriceRow label="Reste à régler" value={formatCurrency(remaining)} />
               <div className="flex items-center justify-between border-t border-border pt-3 text-base font-black text-primary">
-                <span>{t("Total", "Total")}</span>
+                <span>Total</span>
                 <span>{formatCurrency(reservation.total)}</span>
               </div>
             </div>
@@ -284,33 +229,24 @@ function ConfirmationPage() {
         <div className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-primary">
             <Star className="size-4 text-accent" />
-            {t("Prochaines étapes", "Next steps")}
+            Prochaines étapes
           </h2>
           <div className="grid gap-3 text-sm sm:grid-cols-3">
             {[
               {
                 icon: <Mail className="size-4 text-accent" />,
-                title: t("Confirmation email", "Confirmation email"),
-                text: t(
-                  "Un email de confirmation a été envoyé à votre adresse.",
-                  "A confirmation email has been sent to your address.",
-                ),
+                title: "Confirmation email",
+                text: "Un email de confirmation a été envoyé à votre adresse.",
               },
               {
                 icon: <MapPin className="size-4 text-turquoise" />,
-                title: t("Arrivée à l'hôtel", "Arriving at the hotel"),
-                text: t(
-                  "Présentez votre numéro de réservation à la réception.",
-                  "Show your booking number at reception.",
-                ),
+                title: "Arrivée à l'hôtel",
+                text: "Présentez votre numéro de réservation à la réception.",
               },
               {
                 icon: <ConciergeBell className="size-4 text-primary" />,
-                title: t("Besoin d'aide ?", "Need help?"),
-                text: t(
-                  "Contactez la réception pour toute demande spéciale.",
-                  "Contact reception for any special request.",
-                ),
+                title: "Besoin d'aide ?",
+                text: "Contactez la réception pour toute demande spéciale.",
               },
             ].map((step) => (
               <div key={step.title} className="flex gap-3">
@@ -330,20 +266,17 @@ function ConfirmationPage() {
           <div className="p-5">
             <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-primary">
               <MessageCircle className="size-4 text-accent" />
-              {t("Une question sur ce séjour ?", "A question about this stay?")}
+              Une question sur ce séjour ?
             </h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              {t(
-                "Retrouvez cette réservation et échangez avec la réception depuis votre espace client.",
-                "Find this booking and message reception from your guest account.",
-              )}
+              Retrouvez cette réservation et échangez avec la réception depuis votre espace client.
             </p>
             <Link
               to="/client/messages"
               className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-ocean"
             >
               <MessageCircle className="size-4" />
-              {t("Contacter la réception", "Contact reception")}
+              Contacter la réception
             </Link>
           </div>
         </div>
@@ -355,21 +288,21 @@ function ConfirmationPage() {
             search={{ adults: 2, children: 0, roomType: "Tous" }}
             className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-ocean"
           >
-            {t("Nouvelle réservation", "New booking")}
+            Nouvelle réservation
           </Link>
           <a
             href={`mailto:${reservation.guest.email}`}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-bold text-primary shadow-sm transition hover:border-accent hover:bg-accent/10"
           >
             <Mail className="size-4" />
-            {t("Envoyer par email", "Send by email")}
+            Envoyer par email
           </a>
           <a
             href="tel:+21673468300"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-bold text-primary shadow-sm transition hover:border-accent hover:bg-accent/10"
           >
             <Phone className="size-4" />
-            {t("Réception", "Reception")}
+            Réception
           </a>
           <button
             type="button"
@@ -377,14 +310,14 @@ function ConfirmationPage() {
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-bold text-primary shadow-sm transition hover:border-accent hover:bg-accent/10"
           >
             <Printer className="size-4" />
-            {t("Imprimer", "Print")}
+            Imprimer
           </button>
           <button
             type="button"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-bold text-primary shadow-sm transition hover:border-accent hover:bg-accent/10"
           >
             <Download className="size-4" />
-            {t("Télécharger PDF", "Download PDF")}
+            Télécharger PDF
           </button>
         </div>
 
@@ -392,15 +325,15 @@ function ConfirmationPage() {
         <div className="mt-6 flex flex-wrap items-center justify-center gap-5 rounded-2xl border border-border bg-secondary/40 px-5 py-4 text-xs font-semibold text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="size-3.5 text-emerald-600" />
-            {t("Réservation sécurisée", "Secure booking")}
+            Réservation sécurisée
           </span>
           <span className="flex items-center gap-1.5">
             <CheckCircle2 className="size-3.5 text-turquoise" />
-            {t("Données protégées", "Data protected")}
+            Données protégées
           </span>
           <span className="flex items-center gap-1.5">
             <ConciergeBell className="size-3.5 text-accent" />
-            {t("Support réception 24h/24", "24/7 reception support")}
+            Support réception 24h/24
           </span>
         </div>
       </main>
