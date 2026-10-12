@@ -8,9 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# dist is committed: Plesk deploys the built app straight from Git (npm run build before each push).
-# Keep the server dependencies Nitro copies next to the build.
-!dist/server/node_modules/
+dist
 dist-ssr
 .output
 .vinxi
